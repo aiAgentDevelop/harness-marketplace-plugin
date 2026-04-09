@@ -108,6 +108,7 @@ AskUserQuestion:
 
 Store as: wizard_language
 All subsequent questions and generated content use this language.
+When wizard_language is "ko", use label_ko and description_ko fields if available instead of translating.
 ```
 
 ### Step 0.5: Wizard Mode Selection
@@ -117,11 +118,17 @@ AskUserQuestion:
   header: "Wizard Mode"
   options:
     - label: "Deep Interview (AI Recommended)"
+      label_ko: "딥 인터뷰 (AI 추천)"
       description: "AI interviews you about your project idea through 3-5 questions, then recommends the full architecture and tech stack. Best for new projects or when you're unsure about tech choices."
+      description_ko: "AI가 프로젝트 아이디어에 대해 3~5개 질문을 하고, 전체 아키텍처와 기술 스택을 추천합니다. 새 프로젝트나 기술 선택이 불확실할 때 최적."
     - label: "Manual Selection"
+      label_ko: "수동 선택"
       description: "You directly select project type, language, DB, platform, and tech stack step by step. Best when you already know your architecture."
+      description_ko: "프로젝트 유형, 언어, DB, 플랫폼, 기술 스택을 단계별로 직접 선택합니다. 이미 아키텍처를 알고 있을 때 최적."
     - label: "Auto-Detect (Analyze Current Project)"
+      label_ko: "자동 감지 (현재 프로젝트 분석)"
       description: "AI scans your current project's files (package.json, configs, code structure) to detect the architecture and tech stack already in use. Best for adding a harness to an existing project."
+      description_ko: "AI가 현재 프로젝트의 파일(package.json, 설정 파일, 코드 구조)을 스캔하여 사용 중인 아키텍처와 기술 스택을 감지합니다. 기존 프로젝트에 harness를 추가할 때 최적."
 
 Store as: wizard_mode ("interview" | "manual" | "auto-detect")
 ```
