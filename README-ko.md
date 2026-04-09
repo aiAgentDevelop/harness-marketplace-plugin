@@ -330,21 +330,6 @@ harness-marketplace/
 
 - **Claude Code** Agent Teams 활성화 (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
 
-## revfactory/harness 와의 비교
-
-| 관점 | revfactory/harness | harness-marketplace |
-|------|-------------------|---------------------|
-| 범위 | 범용 (모든 도메인) | **소프트웨어 개발 파이프라인 특화** |
-| 입력 | 자연어 프롬프트 | **3모드 위자드** (인터뷰 / 수동 / 자동감지) |
-| 생성 | 전체 AI 생성 | **하이브리드** (템플릿 + AI) |
-| 설정 | 없음 (마크다운만) | **project-config.yaml** 기반 |
-| 파이프라인 | 범용 에이전트 팀 | **plan → implement → visual-qa → verify** |
-| 코드 강제 | 없음 | **Claude Code hooks** (PreToolUse/PostToolUse) |
-| CI/CD | 없음 | **GitHub Actions / GitLab CI** + AI 코드리뷰 |
-| 자기 학습 | 없음 | **자동 진화** — 회귀에서 hook + 가이드 업데이트 |
-| 검증 | 기본 드라이런 | 구조 + hook + CI/CD + plan 드라이런 |
-| 업그레이드 | 없음 | config 보존 (Custom Rules + 학습 로그 보존) |
-
 ## 라이선스
 
 Apache-2.0 — 자세한 내용은 [LICENSE](./LICENSE)를 참조하세요.

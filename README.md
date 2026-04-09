@@ -330,21 +330,6 @@ harness-marketplace/
 
 - **Claude Code** with Agent Teams enabled (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
 
-## Comparison with revfactory/harness
-
-| Aspect | revfactory/harness | harness-marketplace |
-|--------|-------------------|---------------------|
-| Scope | General-purpose (any domain) | **Software development pipelines** |
-| Input | Natural language prompt | **3-mode wizard** (interview / manual / auto-detect) |
-| Generation | Full AI generation | **Hybrid** (template + AI) |
-| Config | None (markdown only) | **project-config.yaml** driven |
-| Pipeline | Generic agent teams | **plan → implement → visual-qa → verify** |
-| Enforcement | None | **Claude Code hooks** (PreToolUse/PostToolUse) |
-| CI/CD | None | **GitHub Actions / GitLab CI** + AI code review |
-| Self-learning | None | **Auto-evolving** hooks + guides from regressions |
-| Validation | Basic dry-run | Structure + hooks + CI/CD + plan dry-run |
-| Upgrade | None | Config-preserving (Custom Rules + learning log preserved) |
-
 ## License
 
 Apache-2.0 — See [LICENSE](./LICENSE) for details.
