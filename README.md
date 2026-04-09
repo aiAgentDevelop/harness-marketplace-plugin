@@ -2,7 +2,7 @@
 
 **Scaffolding wizard that generates project-specific development pipeline harness skills for Claude Code.**
 
-Generate a complete development pipeline — plan, implement, visual-qa, verify — tailored to your project's type, tech stack, and deployment target. One wizard, any project.
+Generate a complete development pipeline — plan, implement, visual-qa, verify — with code-level enforcement via hooks, CI/CD pipeline generation, and self-learning capabilities. Tailored to your project's type, tech stack, and deployment target. One wizard, any project.
 
 > **[한국어 (Korean)](./README-ko.md)**
 
@@ -14,17 +14,22 @@ Generate a complete development pipeline — plan, implement, visual-qa, verify 
 /harness-marketplace:wizard
   │
   ├─ Step-by-step questions about your project
-  │   (type, language, DB, platform, tech stack...)
+  │   (type, language, DB, platform, tech stack,
+  │    enforcement, CI/CD, self-learning...)
   │
   ├─ Generates a full harness skill set
-  │   ├── project-config.yaml
-  │   ├── plan/SKILL.md
-  │   ├── implement/SKILL.md
-  │   ├── visual-qa/SKILL.md  (if UI project)
-  │   ├── verify/SKILL.md
-  │   ├── agents/*.md          (AI-generated, user-selected)
-  │   ├── guides/*.md          (AI-generated, user-selected)
-  │   └── references/
+  │   ├── project-config.yaml       — master config driving everything
+  │   ├── plan/SKILL.md             — planning phase
+  │   ├── implement/SKILL.md        — implementation phase
+  │   ├── visual-qa/SKILL.md        — visual QA (if UI project)
+  │   ├── verify/SKILL.md           — verification phase
+  │   ├── agents/*.md               — AI-generated domain agents
+  │   ├── guides/*.md               — AI-generated development guides
+  │   ├── hooks/*.sh                — code enforcement via Claude Code hooks
+  │   ├── hooks-config.json         — hook configuration for settings.json
+  │   ├── .github/workflows/*.yml   — CI/CD pipelines + AI code review
+  │   ├── state/learning-log.yaml   — self-learning history
+  │   └── references/               — classification, schemas, options
   │
   └─ Validated & ready to use via /project-harness
 ```
@@ -64,11 +69,18 @@ The wizard will ask you questions one at a time:
 | 5 | Cache | Redis, Upstash, CDN, None |
 | 6 | Platform | Vercel, AWS, Railway, Docker... |
 | 7 | Tech stack | Tailwind, shadcn/ui, FSD, Turborepo... (multi-select) |
-| 8+ | Conditional | Auth method, state management, CI/CD... (varies by project type) |
+| 8+ | Conditional | Auth method, state management... (varies by project type) |
+| E1 | Enforcement level | Strict / Standard / Minimal / None |
+| E2 | Protected files | .env, lock files, migrations... (multi-select) |
+| E3 | Custom rules | "No direct SQL in service layer"... (free text, strict only) |
+| C1 | CI/CD platform | GitHub Actions / GitLab CI / None |
+| C2 | Pipelines | CI, AI Code Review, Deploy, Security... (multi-select) |
+| C3 | AI review config | Comment only / Block on critical / Auto-approve |
+| L1 | Self-learning | With approval / Automatic / Disabled |
 | A | Agents | security-reviewer, performance-auditor... (multi-select) |
 | G | Guides | api-design, database-design... (multi-select) |
 
-After all questions: generates files → validates structure → runs plan dry-run → asks for confirmation.
+After all questions: generates files → validates structure (including hooks + CI/CD) → runs plan dry-run → merges hooks into settings.json → asks for confirmation.
 
 ### Upgrade an existing harness
 
@@ -76,7 +88,7 @@ After all questions: generates files → validates structure → runs plan dry-r
 /harness-marketplace:upgrade
 ```
 
-Preserves your `project-config.yaml` while updating template-based skill files to the latest version.
+Preserves your `project-config.yaml`, hook Custom Rules, and `learning-log.yaml` while updating template-based skill files to the latest version.
 
 ### Use the generated harness
 
@@ -86,6 +98,93 @@ Preserves your `project-config.yaml` while updating template-based skill files t
 /project-harness --resume
 ```
 
+---
+
+## Three Layers Beyond Markdown
+
+### Layer 1: Hook-based Code Enforcement
+
+Claude Code hooks that **prevent mistakes before they happen** — not just guidelines for agents to follow, but code-level guards that block or auto-fix in real time.
+
+| Hook | Event | What it does |
+|------|-------|-------------|
+| Protected files | PreToolUse | Blocks editing .env, lock files, applied migrations |
+| DB safety | PreToolUse | Blocks dangerous SQL (DROP TABLE, TRUNCATE, DELETE without WHERE) |
+| Secret guard | PreToolUse | Prevents hardcoded credentials in source code |
+| Pattern guard | PreToolUse | Enforces architecture rules (FSD layers, repository pattern, custom rules) |
+| Auto lint | PostToolUse | Runs linter after every file edit |
+| Auto typecheck | PostToolUse | Runs typecheck after every .ts/.tsx edit |
+| Auto format | PostToolUse | Runs formatter after every file edit |
+| Session init | SessionStart | Loads project context and verifies environment on startup |
+
+**Enforcement levels:**
+
+| Level | What's active |
+|-------|--------------|
+| **Strict** | All hooks: protected files, lint, typecheck, format, patterns, secrets, DB safety |
+| **Standard** | Core hooks: protected files, lint, typecheck, secrets |
+| **Minimal** | Protected files only |
+| **None** | No hooks — markdown-only harness (v0.1.0 compatible) |
+
+Hook scripts use an **upgrade-safe** two-section structure:
+- **Generated Rules** — overwritten on upgrade
+- **Custom Rules** — preserved on upgrade (where self-learning adds rules)
+
+### Layer 2: CI/CD Pipeline Generation
+
+Generates real CI/CD workflow files based on your project config:
+
+| Pipeline | Trigger | Description |
+|----------|---------|-------------|
+| **CI** | push, PR | Test + lint + typecheck + build |
+| **AI Code Review** | PR | Claude API reviews diffs, posts comments, optionally blocks merge |
+| **Deploy Preview** | PR | Preview environments per PR (Vercel, Netlify, Railway, Fly.io) |
+| **Deploy Production** | push to main | Auto-deploy to production (Vercel, AWS, Docker, etc.) |
+| **Security Scan** | weekly, PR | Dependency audit + secret scanning + CodeQL analysis |
+
+**Supported platforms:** GitHub Actions, GitLab CI
+
+**AI Code Review** uses the Claude API to:
+1. Get the PR diff
+2. Review for logic bugs, security vulnerabilities, performance issues, and code quality
+3. Post review comments with severity ratings (CRITICAL / WARNING / INFO)
+4. Optionally block merge on critical issues
+
+### Layer 3: Self-Learning
+
+The harness **evolves over time** by learning from mistakes during the implement and verify phases:
+
+```
+AI makes mistake during implementation
+  → Regression detected in verify phase
+  → Fix applied
+  → Self-learning engine activates:
+      ├── Classifies root cause (PATTERN_VIOLATION, UNSAFE_OPERATION, CONVENTION_BREAK, ...)
+      ├── Drafts prevention rule (if auto-detectable)
+      ├── Proposes: hook rule addition + guide note
+      └── User approves (or auto-applied in automatic mode)
+  → Hook script updated (Custom Rules section)
+  → Guide updated (Lessons Learned section)
+  → Learning log entry added (state/learning-log.yaml)
+  → Same mistake can never happen again
+```
+
+**Self-learning modes:**
+
+| Mode | Behavior |
+|------|----------|
+| **Approval** (recommended) | AI proposes new rules, user approves via AskUserQuestion |
+| **Automatic** | AI applies rules automatically, logs everything |
+| **Disabled** | Static harness, no evolution |
+
+**Guardrails:**
+- Can only modify: `hooks/*.sh` Custom Rules section, `guides/*.md`, `state/learning-log.yaml`
+- Cannot modify: SKILL.md files, project-config.yaml core fields, settings.json directly
+- Maximum rule limit (default: 20) prevents unbounded accumulation
+- Duplicate detection prevents adding the same rule twice
+
+---
+
 ## How It Works
 
 ### Hybrid Generation
@@ -94,6 +193,8 @@ Preserves your `project-config.yaml` while updating template-based skill files t
 |-----------|--------|--------|
 | SKILL.md files (orchestrator, plan, implement, verify) | **Template** | `templates/*.md` — pipeline structure stays consistent |
 | project-config.yaml | **Mapped** | Wizard answers → YAML schema |
+| Hook scripts (hooks/*.sh) | **Template** | `templates/hooks/*.sh.template` — conditional on enforcement level |
+| CI/CD workflows (.github/workflows/*.yml) | **Template** | `templates/ci-cd/github-actions/*.yml.template` — conditional on platform |
 | agents/*.md | **AI Generated** | Claude generates project-specific agent checklists |
 | guides/*.md | **AI Generated** | Claude generates project-specific development guides |
 | classification.md | **AI Generated** | Project-specific classification rules |
@@ -132,6 +233,31 @@ agents:                   # User-selected
 guides:                   # User-selected
   - api-design
   - database-design
+
+enforcement:              # Code-level enforcement (Layer 1)
+  level: standard
+  protected_files:
+    - "**/.env*"
+    - "package-lock.json"
+  custom_rules: []
+
+ci_cd:                    # CI/CD pipeline generation (Layer 2)
+  platform: github-actions
+  pipelines:
+    - type: ci
+      enabled: true
+    - type: ai-review
+      enabled: true
+    - type: security
+      enabled: true
+  ai_review:
+    model: claude-sonnet-4-6
+    block_on_critical: true
+
+self_learning:            # Self-learning mechanism (Layer 3)
+  enabled: true
+  mode: approval
+  max_auto_rules: 20
 ```
 
 ### Supported Project Types
@@ -147,37 +273,64 @@ guides:                   # User-selected
 | **Data** | ML Pipeline, ETL, Analytics, Chatbot | Prediction, NLP, Visualization |
 | **IoT** | Embedded, Edge, Gateway, Smart Home | Monitoring, Automation, Wearable |
 
+---
+
 ## Plugin Structure
 
 ```
 harness-marketplace/
 ├── .claude-plugin/
-│   ├── plugin.json              # Plugin manifest
-│   └── marketplace.json         # Marketplace metadata
+│   ├── plugin.json                # Plugin manifest
+│   └── marketplace.json           # Marketplace metadata
 ├── skills/
-│   ├── wizard/SKILL.md          # Main scaffolding wizard
-│   └── upgrade/SKILL.md         # Harness upgrade skill
-├── templates/                   # Harness skeleton templates (7 files)
-│   ├── orchestrator.md
-│   ├── plan.md
-│   ├── implement.md
-│   ├── visual-qa.md
-│   ├── verify.md
-│   ├── config-schema.yaml
-│   └── classification.md
-├── data/                        # Deep-researched option datasets (8 files)
-│   ├── project-types.yaml       # 3-level project taxonomy
-│   ├── languages.yaml           # Programming languages
-│   ├── databases.yaml           # Databases (serverless & traditional)
-│   ├── cache-servers.yaml       # Cache options
-│   ├── platforms.yaml           # Deployment platforms
-│   ├── tech-stacks.yaml         # Tech stack options
-│   ├── mcps.yaml                # MCP server requirements
-│   └── branching-tree.yaml      # Conditional wizard steps
+│   ├── wizard/SKILL.md            # Main scaffolding wizard (15+ steps)
+│   └── upgrade/SKILL.md           # Harness upgrade skill (preserves Custom Rules)
+├── templates/                     # Harness skeleton templates
+│   ├── orchestrator.md            # Pipeline orchestrator
+│   ├── plan.md                    # Planning phase
+│   ├── implement.md               # Implementation phase (with Learning Loop)
+│   ├── visual-qa.md               # Visual QA phase
+│   ├── verify.md                  # Verification phase (with Learning Loop)
+│   ├── self-learning.md           # Self-learning engine
+│   ├── config-schema.yaml         # Config schema (with enforcement/ci_cd/self_learning)
+│   ├── classification.md          # Task classification rules
+│   ├── hooks/                     # Hook script templates
+│   │   ├── protected-files.sh.template
+│   │   ├── db-safety.sh.template
+│   │   ├── secret-guard.sh.template
+│   │   ├── pattern-guard.sh.template
+│   │   ├── post-edit-lint.sh.template
+│   │   ├── post-edit-typecheck.sh.template
+│   │   ├── post-edit-format.sh.template
+│   │   ├── session-init.sh.template
+│   │   └── hooks-config.json.template
+│   └── ci-cd/                     # CI/CD workflow templates
+│       └── github-actions/
+│           ├── ci.yml.template
+│           ├── ai-review.yml.template
+│           ├── deploy-preview.yml.template
+│           ├── deploy-prod.yml.template
+│           └── security.yml.template
+├── data/                          # Deep-researched option datasets
+│   ├── project-types.yaml         # 3-level project taxonomy (8 categories)
+│   ├── languages.yaml             # Programming languages
+│   ├── databases.yaml             # Databases (serverless & traditional)
+│   ├── cache-servers.yaml         # Cache options
+│   ├── platforms.yaml             # Deployment platforms
+│   ├── tech-stacks.yaml           # Tech stack options
+│   ├── mcps.yaml                  # MCP server requirements
+│   ├── branching-tree.yaml        # Conditional wizard steps
+│   ├── hook-patterns.yaml         # Hook pattern catalog (20 patterns)
+│   ├── ci-cd-pipelines.yaml       # CI/CD pipeline catalog
+│   └── enforcement-rules.yaml     # Enforcement presets & tech-stack rules
 ├── scripts/
-│   └── validate-harness.js      # Structure & schema validator
+│   ├── validate-harness.js        # Structure, config, hooks, CI/CD, self-learning validator
+│   └── merge-hooks.js             # Non-destructive settings.json hook merger
+├── LICENSE                        # Apache-2.0
+├── NOTICE                         # Attribution
 ├── package.json
-└── README.md
+├── README.md
+└── README-ko.md
 ```
 
 ## Requirements
@@ -190,14 +343,16 @@ harness-marketplace/
 | Aspect | revfactory/harness | harness-marketplace |
 |--------|-------------------|---------------------|
 | Scope | General-purpose (any domain) | **Software development pipelines** |
-| Input | Natural language prompt | **Structured wizard** (10+ steps) |
+| Input | Natural language prompt | **Structured wizard** (15+ steps) |
 | Generation | Full AI generation | **Hybrid** (template + AI) |
 | Config | None (markdown only) | **project-config.yaml** driven |
 | Pipeline | Generic agent teams | **plan → implement → visual-qa → verify** |
-| Validation | Basic dry-run | Structure check + plan dry-run + user confirm |
-| Upgrade | None | Config-preserving template upgrade |
+| Enforcement | None | **Claude Code hooks** (PreToolUse/PostToolUse) |
+| CI/CD | None | **GitHub Actions / GitLab CI** generation + AI code review |
+| Self-learning | None | **Auto-evolving** hooks + guides from regressions |
+| Validation | Basic dry-run | Structure + hooks + CI/CD + plan dry-run + user confirm |
+| Upgrade | None | Config-preserving template upgrade (Custom Rules preserved) |
 
 ## License
 
-MIT
-
+Apache-2.0 — See [LICENSE](./LICENSE) for details.

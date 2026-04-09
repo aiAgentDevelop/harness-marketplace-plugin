@@ -42,6 +42,9 @@ All option data is loaded from the plugin's `data/` directory:
 - `data/tech-stacks.yaml` — tech stack options by domain
 - `data/mcps.yaml` — MCP server requirements per flag
 - `data/branching-tree.yaml` — conditional wizard steps per project type
+- `data/hook-patterns.yaml` — hook pattern catalog for enforcement
+- `data/ci-cd-pipelines.yaml` — CI/CD pipeline catalog
+- `data/enforcement-rules.yaml` — enforcement presets and tech-stack rules
 
 The plugin root is available via `${CLAUDE_PLUGIN_ROOT}` or can be found at `~/.claude/plugins/cache/*/harness-marketplace/*/`.
 </Data_Sources>
@@ -309,6 +312,146 @@ Example flow for "mobile":
 Store results in: additional.* and tech_stack.*
 ```
 
+## Phase 2.5: Enforcement, CI/CD & Self-Learning
+
+### Step E1: Enforcement Level
+```
+Load data/enforcement-rules.yaml → get recommended level for project_type.category.
+
+AskUserQuestion:
+  question: "What level of code enforcement do you want?"
+  header: "Enforcement"
+  options:
+    - label: "Strict"
+      description: "All hooks enabled: protected files, auto lint/typecheck/format after every edit, architecture pattern guards, secret detection, dangerous SQL blocking. Maximum safety."
+    - label: "Standard" [Recommended]
+      description: "Core hooks: protected files (.env, lock files), auto lint and typecheck after edits, secret detection. Balanced safety without overhead."
+    - label: "Minimal"
+      description: "Protected files only: blocks AI from editing .env, lock files, and migration files. No auto-lint or pattern guards."
+    - label: "None"
+      description: "No hooks. Markdown-only harness (agents follow guidelines but nothing is enforced at code level). Same as v0.1.0 behavior."
+
+Store as: enforcement.level
+```
+
+### Step E2: Protected Files (if enforcement.level != "none")
+```
+AI generates recommended protected file patterns based on project type and tech stack.
+
+AskUserQuestion:
+  question: "Which files should be protected from AI modification?"
+  header: "Protected Files"
+  multiSelect: true
+  options: (AI-filtered based on project config)
+    - label: ".env files"
+      description: "All environment variable files (.env, .env.local, .env.production). Contains secrets."
+    - label: "Lock files"
+      description: "Package manager lock files (package-lock.json, yarn.lock, pnpm-lock.yaml). Must only be modified by package managers."
+    {{CONDITION:prisma}}
+    - label: "Prisma migrations"
+      description: "Applied migration files in prisma/migrations/. Create new migrations instead of editing applied ones."
+    {{/CONDITION:prisma}}
+    {{CONDITION:supabase}}
+    - label: "Supabase migrations"
+      description: "Applied migration files in supabase/migrations/. Never modify applied migrations."
+    {{/CONDITION:supabase}}
+    - label: "CI/CD config files"
+      description: "GitHub Actions workflows, GitLab CI config. Prevent accidental CI pipeline changes."
+    - label: "Custom paths..."
+      description: "Enter custom glob patterns to protect (e.g., 'config/production.yaml')"
+
+Store as: enforcement.protected_files[]
+If "Custom paths..." selected → follow up with free text input for custom patterns.
+```
+
+### Step E3: Custom Enforcement Rules (if enforcement.level == "strict")
+```
+AskUserQuestion:
+  question: "Do you have custom enforcement rules?"
+  header: "Custom Rules"
+  options:
+    - label: "No custom rules"
+      description: "Use default enforcement rules for your tech stack."
+    - label: "Add custom rules"
+      description: "Describe rules in natural language. AI will convert them to hook scripts."
+      → Follow-up: free text input
+      → AI parses rules and creates custom_rules[] entries
+      → Examples: "No direct SQL in service files", "All API routes must have auth middleware"
+
+Store as: enforcement.custom_rules[]
+```
+
+### Step C1: CI/CD Platform
+```
+AskUserQuestion:
+  question: "Which CI/CD platform do you use?"
+  header: "CI/CD"
+  options:
+    - label: "GitHub Actions" [Recommended for GitHub repos]
+      description: "Integrated CI/CD in GitHub. Workflow files in .github/workflows/. Free for public repos."
+    - label: "GitLab CI"
+      description: "Built-in CI/CD for GitLab. Single .gitlab-ci.yml config file."
+    - label: "None"
+      description: "No CI/CD pipeline generation. You can add it manually later."
+
+Store as: ci_cd.platform (also updates additional.ci_cd for backward compat)
+```
+
+### Step C2: Pipeline Selection (if ci_cd.platform != "none")
+```
+Load data/ci-cd-pipelines.yaml → filter by ci_cd.platform.
+
+AskUserQuestion:
+  question: "Which CI/CD pipelines should be generated?"
+  header: "Pipelines"
+  multiSelect: true
+  options: (from data file, pre-checked for recommended)
+    - label: "CI (Test + Lint + Build)"
+      description: "Standard quality gate. Runs tests, lint, typecheck, and build on every push and PR. Essential for any project."
+    - label: "AI Code Review"
+      description: "Claude reviews every PR automatically. Posts comments with severity ratings. Requires ANTHROPIC_API_KEY secret."
+    - label: "Deploy Preview"
+      description: "Deploy a preview environment for each PR. Supports Vercel, Netlify, Railway, Fly.io."
+    - label: "Deploy Production"
+      description: "Auto-deploy to production on merge to main. Platform-specific configuration."
+    - label: "Security Scan"
+      description: "Weekly dependency audit, secret scanning, and CodeQL analysis."
+
+Store as: ci_cd.pipelines[]
+```
+
+### Step C3: AI Review Config (if "AI Code Review" selected)
+```
+AskUserQuestion:
+  question: "How should AI code review behave?"
+  header: "AI Review"
+  options:
+    - label: "Comment only"
+      description: "AI posts review comments on PRs. Does not block merge. Good for getting started."
+    - label: "Block on critical"
+      description: "AI blocks PR merge when critical issues (security, logic bugs) are found. Recommended for production projects."
+    - label: "Auto-approve"
+      description: "AI approves PRs when no critical issues found. Use with caution."
+
+Store as: ci_cd.ai_review.block_on_critical and ci_cd.ai_review.auto_approve
+```
+
+### Step L1: Self-Learning
+```
+AskUserQuestion:
+  question: "Enable self-learning? The harness evolves by adding enforcement rules when mistakes are detected."
+  header: "Self-Learning"
+  options:
+    - label: "Yes, with approval" [Recommended]
+      description: "When AI fixes a regression, it proposes a new hook rule + guide note to prevent recurrence. You approve before it's applied."
+    - label: "Yes, automatic"
+      description: "AI automatically adds enforcement rules when regressions are fixed. All changes are logged to learning-log.yaml."
+    - label: "No"
+      description: "Static harness. No automatic evolution. You can still manually edit hooks and guides."
+
+Store as: self_learning.enabled, self_learning.mode
+```
+
 ## Phase 3: AI Additional Questions
 
 ```
@@ -405,6 +548,14 @@ Map all wizard answers to the project-config.yaml schema:
 9. Detect required MCPs from data/mcps.yaml based on flags
 10. Set commands based on language/framework defaults
 11. AI generates run_options based on project type
+12. Set enforcement section from Phase 2.5 answers:
+    - enforcement.level, enforcement.protected_files, enforcement.custom_rules
+    - Load data/enforcement-rules.yaml → apply tech_stack_rules for selected stack
+13. Set ci_cd section from Phase 2.5 answers:
+    - ci_cd.platform, ci_cd.pipelines, ci_cd.ai_review
+    - Derive ci_cd.node_version and ci_cd.package_manager from tech stack
+14. Set self_learning section from Phase 2.5 answers:
+    - self_learning.enabled, self_learning.mode, self_learning.max_auto_rules
 
 Write to: .claude/skills/project-harness/project-config.yaml
 ```
@@ -496,6 +647,105 @@ For each required MCP based on config flags:
 Create:
 - .claude/skills/project-harness/state/
 - .claude/skills/project-harness/state/.gitkeep
+- .claude/skills/project-harness/hooks/ (if enforcement.level != "none")
+```
+
+### Step 5.6: Generate Hook Scripts (if enforcement.level != "none")
+```
+Load data/hook-patterns.yaml and data/enforcement-rules.yaml.
+Determine active hooks from enforcement preset + tech_stack_rules.
+
+For each active hook category, load the corresponding template from templates/hooks/:
+
+1. protected-files.sh ← templates/hooks/protected-files.sh.template
+   - Replace {{PROTECTED_FILES}} with enforcement.protected_files patterns
+   - Always generated if enforcement.level != "none"
+
+2. db-safety.sh ← templates/hooks/db-safety.sh.template
+   - Only if has_database AND enforcement.level in ["strict", "standard"]
+
+3. secret-guard.sh ← templates/hooks/secret-guard.sh.template
+   - Generated if enforcement.level in ["strict", "standard"]
+
+4. pattern-guard.sh ← templates/hooks/pattern-guard.sh.template
+   - Only if enforcement.level == "strict"
+   - Replace tech-stack-specific conditions (FSD, clean architecture, etc.)
+   - Include enforcement.custom_rules if any
+
+5. post-edit-lint.sh ← templates/hooks/post-edit-lint.sh.template
+   - Only if enforcement.level in ["strict", "standard"]
+   - Replace {{LINT_COMMAND}} from commands.lint_fix
+
+6. post-edit-typecheck.sh ← templates/hooks/post-edit-typecheck.sh.template
+   - Only if enforcement.level in ["strict", "standard"] AND commands.typecheck exists
+
+7. post-edit-format.sh ← templates/hooks/post-edit-format.sh.template
+   - Only if enforcement.level == "strict"
+   - Replace {{FORMAT_COMMAND}} from framework defaults
+
+8. session-init.sh ← templates/hooks/session-init.sh.template
+   - Always generated if enforcement.level != "none"
+
+For each generated script:
+  - Replace template variables ({{VERSION}}, {{PROJECT_NAME}}, etc.)
+  - Process conditional blocks
+  - Write to: .claude/skills/project-harness/hooks/{script-name}.sh
+
+Generate hooks-config.json:
+  - Load templates/hooks/hooks-config.json.template
+  - Include only hooks for generated scripts
+  - Write to: .claude/skills/project-harness/hooks-config.json
+```
+
+### Step 5.7: Generate CI/CD Workflows (if ci_cd.platform != "none")
+```
+Load data/ci-cd-pipelines.yaml.
+
+For each enabled pipeline in ci_cd.pipelines:
+  1. Load template from templates/ci-cd/{platform}/{pipeline}.yml.template
+  2. Replace template variables:
+     - {{VERSION}}, {{PROJECT_NAME}}
+     - {{NODE_VERSION}} ← ci_cd.node_version
+     - {{PACKAGE_MANAGER}} ← ci_cd.package_manager
+     - {{INSTALL_COMMAND}} ← commands.install
+     - {{BUILD_COMMAND}} ← commands.build
+     - {{LINT_COMMAND}} ← commands.lint
+     - {{TYPECHECK_COMMAND}} ← commands.typecheck
+     - {{TEST_COMMAND}} ← commands.test
+     - {{TEST_E2E_COMMAND}} ← commands.test_e2e
+     - {{AI_REVIEW_MODEL}} ← ci_cd.ai_review.model
+     - Platform-specific: {{DOCKER_REGISTRY}}, {{AWS_REGION}}, {{FLY_APP_NAME}}, etc.
+  3. Process conditional blocks for deployment platform
+  4. Write to target path:
+     - GitHub Actions: .github/workflows/{pipeline-id}.yml
+     - GitLab CI: .gitlab-ci.yml (single file, all pipelines combined)
+```
+
+### Step 5.8: Configure Self-Learning (if self_learning.enabled)
+```
+1. Generate initial learning log:
+   Write to: .claude/skills/project-harness/state/learning-log.yaml
+   Content: "entries: []"
+
+2. The self-learning engine is built into templates/implement.md and templates/verify.md
+   (Learning Loop sections). No additional file generation needed —
+   the engine activates based on self_learning.enabled in project-config.yaml.
+```
+
+### Step 5.9: Merge Hooks into settings.json (if enforcement.level != "none")
+```
+AskUserQuestion:
+  question: "Merge generated hooks into .claude/settings.json?"
+  header: "Hook Installation"
+  options:
+    - label: "Yes, merge now"
+      description: "Runs merge-hooks.js to add enforcement hooks to your settings. Creates backup first."
+    - label: "No, I'll merge manually"
+      description: "Hooks are saved to hooks-config.json. You can merge later with: node scripts/merge-hooks.js"
+
+If "Yes":
+  → Run: node {plugin_root}/scripts/merge-hooks.js {project_path}
+  → Report merge results
 ```
 
 ## Phase 6: Validation
@@ -521,6 +771,21 @@ Run validation checks (equivalent to scripts/validate-harness.js):
    - All SKILL.md files have frontmatter
    - No unresolved template variables ({{...}})
    - Minimum content length
+
+4. Hook validation (if enforcement.level != "none"):
+   - hooks/ directory exists
+   - hooks-config.json exists and is valid JSON
+   - Each referenced hook script exists and has valid shebang
+   - Protected file patterns are valid globs
+
+5. CI/CD validation (if ci_cd.platform != "none"):
+   - Workflow files exist in .github/workflows/ (or .gitlab-ci.yml)
+   - Each enabled pipeline has a corresponding workflow file
+   - Workflow files are valid YAML
+
+6. Self-learning validation (if self_learning.enabled):
+   - state/learning-log.yaml exists
+   - enforcement.level != "none" (self-learning requires hooks)
 ```
 
 ### Step 6.2: Plan Dry-run
@@ -556,6 +821,15 @@ Display generation summary:
   Platform: {deployment.platform}
   Stack: {key tech stack items}
 
+🔒 Enforcement: {level}
+  Hooks: {count} active ({hook_names})
+  Protected files: {count} patterns
+
+🔄 CI/CD: {platform}
+  Pipelines: {enabled_pipeline_names}
+
+🧠 Self-Learning: {mode}
+
 📁 Generated Files ({count} files):
   ├── SKILL.md — Main orchestrator
   ├── project-config.yaml — Project configuration
@@ -569,10 +843,18 @@ Display generation summary:
   ├── guides/ ({count} guides)
   │   ├── api-design.md
   │   └── ...
-  └── references/
-      ├── classification.md
-      ├── schemas.md
-      └── options.md
+  ├── hooks/ ({count} hook scripts)        ← if enforcement != none
+  │   ├── protected-files.sh
+  │   ├── post-edit-lint.sh
+  │   └── ...
+  ├── references/
+  │   ├── classification.md
+  │   ├── schemas.md
+  │   └── options.md
+  └── .github/workflows/ ({count} pipelines) ← if ci_cd != none
+      ├── ci.yml
+      ├── ai-review.yml
+      └── ...
 
 ✅ Validation: PASS
 ✅ Dry-run: PASS
@@ -609,10 +891,10 @@ If "취소":
 <Tool_Usage>
 - `AskUserQuestion` — Every wizard step (one at a time, detailed descriptions)
 - `Read` — Load data/*.yaml files, existing config, template files
-- `Write` — Generate all output files (config, skills, agents, guides)
+- `Write` — Generate all output files (config, skills, agents, guides, hooks, CI/CD workflows)
 - `Agent(subagent_type="oh-my-claudecode:executor")` — AI generation of agents/guides (parallel)
 - `Agent(subagent_type="Explore")` — Dry-run exploration test
-- `Bash` — MCP installation, directory creation, backup operations
+- `Bash` — MCP installation, directory creation, backup operations, merge-hooks.js execution
 - `Glob` — Check for existing harness files
 - `Grep` — Validate no unresolved template variables
 </Tool_Usage>
@@ -702,13 +984,18 @@ Why bad: No descriptions — user can't make informed choice.
 - [ ] Phase 0: Pre-checks complete (existing harness, Agent Teams, omc detection)
 - [ ] Phase 1: All 8 common steps asked with detailed descriptions
 - [ ] Phase 2: Conditional branching steps executed for project category
+- [ ] Phase 2.5: Enforcement level, protected files, CI/CD platform, pipelines, self-learning configured
 - [ ] Phase 3: AI additional questions (0-3) asked if gaps detected
 - [ ] Phase 4: Agents and guides selected via multiSelect checkboxes
 - [ ] Phase 5: All files generated (config + skills + agents + guides + references)
+- [ ] Phase 5: Hook scripts generated and hooks-config.json created (if enforcement != none)
+- [ ] Phase 5: CI/CD workflow files generated (if ci_cd != none)
+- [ ] Phase 5: Self-learning configured and learning-log.yaml initialized (if enabled)
+- [ ] Phase 5: Hooks merged into settings.json (if user approved)
 - [ ] Phase 5: MCP auto-install offered for required MCPs
-- [ ] Phase 6: Structure validation passed
+- [ ] Phase 6: Structure validation passed (including hooks, CI/CD, self-learning checks)
 - [ ] Phase 6: Plan dry-run passed
-- [ ] Phase 7: User confirmation received
+- [ ] Phase 7: User confirmation received (summary includes enforcement, CI/CD, self-learning status)
 - [ ] No unresolved template variables in generated files
 - [ ] All agents listed in config have corresponding .md files
 - [ ] All guides listed in config have corresponding .md files

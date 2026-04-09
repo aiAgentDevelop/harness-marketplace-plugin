@@ -1,0 +1,103 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {{CONDITION:enforcement_protected_files}}
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/skills/project-harness/hooks/protected-files.sh \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {{/CONDITION:enforcement_protected_files}}
+      {{CONDITION:enforcement_secret_guard}}
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/skills/project-harness/hooks/secret-guard.sh \"$CLAUDE_TOOL_INPUT_FILE_PATH\" \"$CLAUDE_TOOL_INPUT_CONTENT\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {{/CONDITION:enforcement_secret_guard}}
+      {{CONDITION:enforcement_pattern_guard}}
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/skills/project-harness/hooks/pattern-guard.sh \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {{/CONDITION:enforcement_pattern_guard}}
+      {{CONDITION:has_database}}
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/skills/project-harness/hooks/db-safety.sh \"$CLAUDE_TOOL_INPUT_COMMAND\"",
+            "timeout": 5
+          }
+        ]
+      }
+      {{/CONDITION:has_database}}
+    ],
+    "PostToolUse": [
+      {{CONDITION:has_lint}}
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/skills/project-harness/hooks/post-edit-lint.sh \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
+            "timeout": 30
+          }
+        ]
+      },
+      {{/CONDITION:has_lint}}
+      {{CONDITION:has_typecheck}}
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/skills/project-harness/hooks/post-edit-typecheck.sh \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
+            "timeout": 30
+          }
+        ]
+      },
+      {{/CONDITION:has_typecheck}}
+      {{CONDITION:has_formatter}}
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/skills/project-harness/hooks/post-edit-format.sh \"$CLAUDE_TOOL_INPUT_FILE_PATH\"",
+            "timeout": 15
+          }
+        ]
+      }
+      {{/CONDITION:has_formatter}}
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/skills/project-harness/hooks/session-init.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

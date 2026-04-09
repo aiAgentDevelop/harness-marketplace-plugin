@@ -347,6 +347,220 @@ function validateSkillContent(projectPath) {
   return { valid: errors.length === 0, errors, warnings, checks, passed };
 }
 
+function validateHooks(projectPath) {
+  const harnessPath = path.join(projectPath, HARNESS_ROOT);
+  const configPath = path.join(harnessPath, 'project-config.yaml');
+  const errors = [];
+  const warnings = [];
+  let checks = 0;
+  let passed = 0;
+
+  // Read config to check enforcement level
+  let config;
+  try {
+    const content = fs.readFileSync(configPath, 'utf-8');
+    config = yaml ? yaml.parse(content) : JSON.parse(content);
+  } catch {
+    return { valid: true, errors: [], warnings: ['Cannot read config for hook validation'], checks: 0, passed: 0 };
+  }
+
+  const level = config.enforcement?.level;
+  if (!level || level === 'none') {
+    return { valid: true, errors: [], warnings: [], checks: 0, passed: 0 };
+  }
+
+  // Check hooks directory exists
+  checks++;
+  const hooksPath = path.join(harnessPath, 'hooks');
+  if (fs.existsSync(hooksPath)) {
+    passed++;
+  } else {
+    errors.push('hooks/ directory missing but enforcement.level != "none"');
+    return { valid: false, errors, warnings, checks, passed };
+  }
+
+  // Check hooks-config.json exists and is valid JSON
+  checks++;
+  const hooksConfigPath = path.join(harnessPath, 'hooks-config.json');
+  if (fs.existsSync(hooksConfigPath)) {
+    try {
+      const hooksConfig = JSON.parse(fs.readFileSync(hooksConfigPath, 'utf-8'));
+      if (hooksConfig.hooks) {
+        passed++;
+      } else {
+        errors.push('hooks-config.json missing "hooks" key');
+      }
+    } catch (e) {
+      errors.push(`hooks-config.json is not valid JSON: ${e.message}`);
+    }
+  } else {
+    errors.push('hooks-config.json not found');
+  }
+
+  // Check each hook script referenced exists and has valid shebang
+  const hookScripts = fs.readdirSync(hooksPath).filter(f => f.endsWith('.sh'));
+  for (const script of hookScripts) {
+    checks++;
+    const scriptPath = path.join(hooksPath, script);
+    const content = fs.readFileSync(scriptPath, 'utf-8');
+    if (content.startsWith('#!/')) {
+      passed++;
+    } else {
+      errors.push(`${script}: Missing shebang (must start with #!/)`);
+    }
+
+    // Check no unresolved template variables
+    checks++;
+    const templateVarPattern = /\{\{[A-Z_]+(?::[a-z_]+)?\}\}/g;
+    const unresolvedVars = content.match(templateVarPattern);
+    if (!unresolvedVars) {
+      passed++;
+    } else {
+      errors.push(`hooks/${script}: Unresolved template variables: ${unresolvedVars.join(', ')}`);
+    }
+  }
+
+  // Check protected files patterns are valid
+  if (config.enforcement?.protected_files) {
+    checks++;
+    if (Array.isArray(config.enforcement.protected_files)) {
+      passed++;
+    } else {
+      errors.push('enforcement.protected_files must be an array');
+    }
+  }
+
+  return { valid: errors.length === 0, errors, warnings, checks, passed };
+}
+
+function validateCICD(projectPath) {
+  const harnessPath = path.join(projectPath, HARNESS_ROOT);
+  const configPath = path.join(harnessPath, 'project-config.yaml');
+  const errors = [];
+  const warnings = [];
+  let checks = 0;
+  let passed = 0;
+
+  let config;
+  try {
+    const content = fs.readFileSync(configPath, 'utf-8');
+    config = yaml ? yaml.parse(content) : JSON.parse(content);
+  } catch {
+    return { valid: true, errors: [], warnings: ['Cannot read config for CI/CD validation'], checks: 0, passed: 0 };
+  }
+
+  const platform = config.ci_cd?.platform;
+  if (!platform || platform === 'none') {
+    return { valid: true, errors: [], warnings: [], checks: 0, passed: 0 };
+  }
+
+  const pipelines = config.ci_cd?.pipelines || [];
+  const enabledPipelines = pipelines.filter(p => p.enabled);
+
+  if (platform === 'github-actions') {
+    const workflowsPath = path.join(projectPath, '.github', 'workflows');
+    checks++;
+    if (fs.existsSync(workflowsPath)) {
+      passed++;
+    } else {
+      errors.push('.github/workflows/ directory not found but ci_cd.platform = "github-actions"');
+      return { valid: false, errors, warnings, checks, passed };
+    }
+
+    const pipelineFileMap = {
+      ci: 'ci.yml',
+      'ai-review': 'ai-review.yml',
+      'deploy-preview': 'deploy-preview.yml',
+      'deploy-prod': 'deploy-prod.yml',
+      security: 'security.yml',
+    };
+
+    for (const pipeline of enabledPipelines) {
+      const fileName = pipelineFileMap[pipeline.type];
+      if (!fileName) continue;
+
+      checks++;
+      const filePath = path.join(workflowsPath, fileName);
+      if (fs.existsSync(filePath)) {
+        passed++;
+      } else {
+        errors.push(`Pipeline "${pipeline.type}" enabled but workflow file missing: .github/workflows/${fileName}`);
+      }
+    }
+  }
+
+  if (platform === 'gitlab-ci') {
+    checks++;
+    const gitlabCiPath = path.join(projectPath, '.gitlab-ci.yml');
+    if (fs.existsSync(gitlabCiPath)) {
+      passed++;
+    } else {
+      errors.push('.gitlab-ci.yml not found but ci_cd.platform = "gitlab-ci"');
+    }
+  }
+
+  // Check for required secrets documentation
+  const aiReview = enabledPipelines.find(p => p.type === 'ai-review');
+  if (aiReview) {
+    checks++;
+    warnings.push('AI Code Review pipeline requires ANTHROPIC_API_KEY secret to be configured in repository settings');
+    passed++; // Warning only
+  }
+
+  return { valid: errors.length === 0, errors, warnings, checks, passed };
+}
+
+function validateSelfLearning(projectPath) {
+  const harnessPath = path.join(projectPath, HARNESS_ROOT);
+  const configPath = path.join(harnessPath, 'project-config.yaml');
+  const errors = [];
+  const warnings = [];
+  let checks = 0;
+  let passed = 0;
+
+  let config;
+  try {
+    const content = fs.readFileSync(configPath, 'utf-8');
+    config = yaml ? yaml.parse(content) : JSON.parse(content);
+  } catch {
+    return { valid: true, errors: [], warnings: ['Cannot read config for self-learning validation'], checks: 0, passed: 0 };
+  }
+
+  if (!config.self_learning?.enabled) {
+    return { valid: true, errors: [], warnings: [], checks: 0, passed: 0 };
+  }
+
+  // Check learning-log.yaml exists
+  checks++;
+  const logPath = path.join(harnessPath, 'state', 'learning-log.yaml');
+  if (fs.existsSync(logPath)) {
+    passed++;
+  } else {
+    warnings.push('state/learning-log.yaml not found (will be created on first learning event)');
+    passed++; // Warning only
+  }
+
+  // Self-learning requires enforcement hooks to be active
+  checks++;
+  const level = config.enforcement?.level;
+  if (level && level !== 'none') {
+    passed++;
+  } else {
+    errors.push('self_learning.enabled=true but enforcement.level is "none" — self-learning requires hooks to add rules to');
+  }
+
+  // Check mode is valid
+  checks++;
+  const validModes = ['approval', 'automatic', 'disabled'];
+  if (validModes.includes(config.self_learning.mode)) {
+    passed++;
+  } else {
+    errors.push(`Invalid self_learning.mode: "${config.self_learning.mode}". Must be one of: ${validModes.join(', ')}`);
+  }
+
+  return { valid: errors.length === 0, errors, warnings, checks, passed };
+}
+
 function runValidation(projectPath) {
   console.log('=== Project Harness Validation ===\n');
   console.log(`Project: ${projectPath}`);
@@ -356,6 +570,9 @@ function runValidation(projectPath) {
     structure: validateStructure(projectPath),
     config: validateConfig(projectPath),
     content: validateSkillContent(projectPath),
+    hooks: validateHooks(projectPath),
+    cicd: validateCICD(projectPath),
+    'self-learning': validateSelfLearning(projectPath),
   };
 
   let totalChecks = 0;
@@ -410,5 +627,5 @@ if (typeof require !== 'undefined' && require.main === module) {
 
 // Export for programmatic use
 if (typeof module !== 'undefined') {
-  module.exports = { runValidation, validateStructure, validateConfig, validateSkillContent };
+  module.exports = { runValidation, validateStructure, validateConfig, validateSkillContent, validateHooks, validateCICD, validateSelfLearning };
 }

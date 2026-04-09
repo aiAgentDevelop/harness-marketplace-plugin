@@ -1,0 +1,386 @@
+# Enforcement Rule Presets
+# Used by the wizard to configure enforcement level and by hook generation.
+# Presets define which hooks are activated; tech-stack rules add domain-specific checks.
+
+# ─────────────────────────────────────────────
+# PRESETS
+# ─────────────────────────────────────────────
+
+presets:
+
+  strict:
+    description: "Maximum enforcement. All hooks enabled. Recommended for production-grade projects and teams that value automated guardrails."
+    hooks:
+      protected_files:
+        - env_files
+        - lock_files
+        - ci_configs
+        - migrations
+      post_edit:
+        - lint
+        - typecheck
+        - format
+      safety:
+        - dangerous_sql
+        - secret_in_code
+        - unsafe_eval
+      conventions:
+        - architecture_rules
+
+  standard:
+    description: "Balanced enforcement. Core protections and quality checks without slowing down rapid iteration. Good default for most projects."
+    hooks:
+      protected_files:
+        - env_files
+        - lock_files
+      post_edit:
+        - lint
+        - typecheck
+      safety:
+        - secret_in_code
+
+  minimal:
+    description: "Light enforcement. File protections only. Suitable for prototypes, experiments, or teams that prefer manual quality control."
+    hooks:
+      protected_files:
+        - env_files
+        - lock_files
+
+# ─────────────────────────────────────────────
+# HOOK DEFINITIONS
+# ─────────────────────────────────────────────
+# Reference table for hook identifiers used in presets and tech-stack rules.
+
+hook_definitions:
+
+  # Protected file guards (PreToolUse — blocks Edit/Write on matching paths)
+  protected_files:
+    env_files:
+      description: "Block direct edits to .env, .env.local, .env.* files. Secrets must be managed outside the AI context."
+      glob_patterns:
+        - "**/.env*"
+    lock_files:
+      description: "Block direct edits to package lock files. Use install commands instead."
+      glob_patterns:
+        - "package-lock.json"
+        - "yarn.lock"
+        - "pnpm-lock.yaml"
+        - "bun.lockb"
+        - "Pipfile.lock"
+        - "poetry.lock"
+        - "Gemfile.lock"
+        - "Cargo.lock"
+        - "go.sum"
+        - "composer.lock"
+    ci_configs:
+      description: "Protect CI/CD workflow files from unintended modification. Changes should be deliberate."
+      glob_patterns:
+        - ".github/workflows/*.yml"
+        - ".github/workflows/*.yaml"
+        - ".gitlab-ci.yml"
+        - "Jenkinsfile"
+        - ".circleci/config.yml"
+    migrations:
+      description: "Protect existing migration files. New migrations should be created, not existing ones edited."
+      glob_patterns:
+        - "**/migrations/**"
+        - "**/migrate/**"
+    prisma_migrations:
+      description: "Protect Prisma migration SQL files. Only prisma migrate dev should generate these."
+      glob_patterns:
+        - "prisma/migrations/**"
+    supabase_migrations:
+      description: "Protect Supabase migration files. Use supabase migration commands."
+      glob_patterns:
+        - "supabase/migrations/**"
+    dockerfile:
+      description: "Protect Dockerfile and docker-compose files from accidental changes."
+      glob_patterns:
+        - "Dockerfile*"
+        - "docker-compose*.yml"
+        - "docker-compose*.yaml"
+
+  # Post-edit quality gates (PostToolUse — runs after Edit/Write)
+  post_edit:
+    lint:
+      description: "Run linter after every file edit to catch style and quality issues immediately."
+      command_key: "lint"
+    typecheck:
+      description: "Run type checker after edits to typed files. Catches type errors before they cascade."
+      command_key: "typecheck"
+    format:
+      description: "Run code formatter after edits. Ensures consistent style without manual effort."
+      command_key: "format"
+
+  # Safety checks (PreToolUse — blocks dangerous patterns)
+  safety:
+    dangerous_sql:
+      description: "Block raw SQL containing DROP, TRUNCATE, DELETE without WHERE, or ALTER TABLE in non-migration files."
+      detection: "regex"
+      patterns:
+        - "DROP\\s+(TABLE|DATABASE|SCHEMA|INDEX)"
+        - "TRUNCATE\\s+TABLE"
+        - "DELETE\\s+FROM\\s+\\w+\\s*;"
+        - "ALTER\\s+TABLE.*DROP\\s+COLUMN"
+    secret_in_code:
+      description: "Block code that contains hardcoded secrets, API keys, passwords, or tokens."
+      detection: "regex"
+      patterns:
+        - "(api[_-]?key|secret|password|token|credential)\\s*[:=]\\s*['\"][^'\"]{8,}"
+        - "sk-[a-zA-Z0-9]{20,}"
+        - "AKIA[0-9A-Z]{16}"
+        - "ghp_[a-zA-Z0-9]{36}"
+        - "-----BEGIN (RSA |EC )?PRIVATE KEY-----"
+    unsafe_eval:
+      description: "Block eval(), new Function(), and other dynamic code execution patterns that create security risks."
+      detection: "regex"
+      patterns:
+        - "\\beval\\s*\\("
+        - "new\\s+Function\\s*\\("
+        - "\\bexec\\s*\\("
+        - "child_process\\.exec\\s*\\("
+
+  # Convention enforcement (PreToolUse — validates architecture rules)
+  conventions:
+    architecture_rules:
+      description: "Enforce architecture-specific import and dependency rules. Actual rules are determined by tech_stack_rules below."
+      dynamic: true
+
+# ─────────────────────────────────────────────
+# TECH STACK SPECIFIC RULE ADDITIONS
+# ─────────────────────────────────────────────
+# Merged on top of the selected preset. Each entry adds rules to
+# specific hook categories or introduces new protected file patterns.
+
+tech_stack_rules:
+
+  prisma:
+    - category: protected_files
+      add:
+        - prisma_migrations
+    - category: conventions
+      add:
+        - prisma_migration_safety
+      rules:
+        prisma_migration_safety:
+          description: "Never edit existing Prisma migration SQL files. Always use prisma migrate dev to create new migrations. Warn when schema.prisma changes without a corresponding migration."
+          check: "Verify no direct edits to prisma/migrations/**/*.sql"
+
+  supabase:
+    - category: protected_files
+      add:
+        - supabase_migrations
+    - category: safety
+      add:
+        - rls_policy_check
+      rules:
+        rls_policy_check:
+          description: "Warn when creating Supabase tables without Row Level Security (RLS) policies. Every public-facing table must have at least one RLS policy."
+          check: "Verify CREATE TABLE is followed by ALTER TABLE ... ENABLE ROW LEVEL SECURITY"
+    - category: conventions
+      add:
+        - supabase_edge_functions
+      rules:
+        supabase_edge_functions:
+          description: "Supabase Edge Functions must use Deno imports (https:// or npm: specifiers), not Node.js require() or bare npm specifiers."
+          check: "Verify supabase/functions/**/*.ts use Deno-compatible imports"
+
+  fsd:
+    - category: conventions
+      add:
+        - fsd_layer_imports
+        - fsd_public_api
+      rules:
+        fsd_layer_imports:
+          description: "Enforce FSD layer import direction. Lower layers (shared, entities) cannot import from upper layers (features, widgets, pages, app). Import direction must always be downward."
+          layers_top_to_bottom:
+            - app
+            - pages
+            - widgets
+            - features
+            - entities
+            - shared
+          check: "Verify imports in each layer only reference same or lower layers"
+        fsd_public_api:
+          description: "Each FSD slice must expose a public API via index.ts barrel file. Cross-slice imports must go through the public API, never reach into internal files."
+          check: "Verify cross-slice imports reference index.ts, not internal paths"
+
+  typescript:
+    - category: post_edit
+      add:
+        - typecheck
+    - category: conventions
+      add:
+        - strict_types
+      rules:
+        strict_types:
+          description: "Discourage use of 'any' type. Prefer 'unknown' for truly unknown types, or define proper interfaces. Exceptions: third-party type augmentation, test mocks."
+          check: "Warn on explicit 'any' usage outside type declaration files"
+
+  react:
+    - category: conventions
+      add:
+        - react_hooks_rules
+        - react_key_prop
+      rules:
+        react_hooks_rules:
+          description: "Enforce React Rules of Hooks: hooks must be called at the top level of function components or custom hooks, never inside conditions, loops, or nested functions."
+          check: "Verify hooks are not called conditionally or inside loops"
+        react_key_prop:
+          description: "Every element in a list rendered with .map() must have a stable, unique key prop. Array index as key is only acceptable for static lists that never reorder."
+          check: "Verify .map() JSX elements include key prop"
+
+  nextjs:
+    - category: conventions
+      add:
+        - nextjs_server_client
+        - nextjs_metadata
+      rules:
+        nextjs_server_client:
+          description: "Enforce correct use of 'use client' and 'use server' directives. Server Components must not use hooks, browser APIs, or event handlers. Client Components must have 'use client' at the top."
+          check: "Verify server/client boundary correctness in app/ directory"
+        nextjs_metadata:
+          description: "Every page and layout in the App Router should export metadata or generateMetadata for SEO. Warn when page.tsx files lack metadata exports."
+          check: "Verify app/**/page.tsx exports metadata or generateMetadata"
+    - category: protected_files
+      add:
+        - ci_configs
+      rules: {}
+
+  nestjs:
+    - category: conventions
+      add:
+        - nestjs_module_structure
+        - nestjs_dependency_injection
+      rules:
+        nestjs_module_structure:
+          description: "Every NestJS feature should be organized as a module with its own directory containing module, controller, service, and DTO files. Avoid placing business logic directly in controllers."
+          check: "Verify feature directories contain *.module.ts, *.controller.ts, *.service.ts"
+        nestjs_dependency_injection:
+          description: "Always inject dependencies through constructor parameters with proper decorators. Never instantiate services manually with 'new'. Use NestJS DI container exclusively."
+          check: "Warn on 'new SomeService()' patterns in module/controller/service files"
+    - category: safety
+      add:
+        - dangerous_sql
+    - category: post_edit
+      add:
+        - lint
+        - typecheck
+
+  docker:
+    - category: protected_files
+      add:
+        - dockerfile
+    - category: conventions
+      add:
+        - docker_best_practices
+      rules:
+        docker_best_practices:
+          description: "Enforce Dockerfile best practices: use multi-stage builds, avoid running as root (add USER directive), pin base image versions (no :latest tag), minimize layer count, and use .dockerignore."
+          check: "Verify Dockerfile uses pinned image tags, USER directive, and multi-stage when applicable"
+    - category: safety
+      add:
+        - docker_secret_exposure
+      rules:
+        docker_secret_exposure:
+          description: "Block COPY or ADD of .env files, private keys, or credential files into Docker images. Use Docker secrets, build args, or runtime environment variables instead."
+          patterns:
+            - "COPY.*\\.env"
+            - "ADD.*\\.env"
+            - "COPY.*id_rsa"
+            - "COPY.*\\.pem"
+
+# ─────────────────────────────────────────────
+# PROJECT TYPE DEFAULTS
+# ─────────────────────────────────────────────
+# Recommended enforcement level and commonly needed hooks per project category.
+# The wizard uses these defaults as pre-selected values that the user can override.
+
+project_type_defaults:
+
+  web:
+    recommended_level: standard
+    description: "Web applications benefit from lint and typecheck enforcement with file protections. Strict mode recommended for production SaaS."
+    common_tech_stacks: [typescript, react, nextjs, fsd]
+    additional_hooks:
+      - secret_in_code
+    recommended_pipelines:
+      - ci
+      - ai_review
+      - deploy_preview
+      - security
+
+  mobile:
+    recommended_level: standard
+    description: "Mobile apps need consistent quality gates. TypeScript/Dart type checking catches errors before expensive device testing cycles."
+    common_tech_stacks: [typescript, react]
+    additional_hooks:
+      - secret_in_code
+    recommended_pipelines:
+      - ci
+      - security
+
+  backend:
+    recommended_level: strict
+    description: "Backend services handle sensitive data and business logic. Strict enforcement prevents security regressions, dangerous SQL, and hardcoded secrets."
+    common_tech_stacks: [typescript, nestjs, prisma, docker]
+    additional_hooks:
+      - dangerous_sql
+      - secret_in_code
+      - unsafe_eval
+    recommended_pipelines:
+      - ci
+      - ai_review
+      - deploy_prod
+      - security
+
+  desktop:
+    recommended_level: standard
+    description: "Desktop applications benefit from type checking and lint enforcement. File protections guard native configuration and build manifests."
+    common_tech_stacks: [typescript, react]
+    additional_hooks:
+      - secret_in_code
+    recommended_pipelines:
+      - ci
+      - security
+
+  game:
+    recommended_level: minimal
+    description: "Game projects prioritize rapid iteration. Minimal enforcement protects critical assets and config files without slowing the creative workflow."
+    common_tech_stacks: []
+    additional_hooks: []
+    recommended_pipelines:
+      - ci
+
+  cli:
+    recommended_level: standard
+    description: "CLI tools benefit from type checking and lint enforcement. Strict mode recommended for tools that handle user credentials or file system operations."
+    common_tech_stacks: [typescript]
+    additional_hooks:
+      - unsafe_eval
+      - secret_in_code
+    recommended_pipelines:
+      - ci
+      - security
+
+  data:
+    recommended_level: standard
+    description: "Data pipelines need SQL safety guards and secret protection. Migration files must be immutable once applied to shared environments."
+    common_tech_stacks: [prisma, docker]
+    additional_hooks:
+      - dangerous_sql
+      - secret_in_code
+    recommended_pipelines:
+      - ci
+      - security
+
+  iot:
+    recommended_level: strict
+    description: "IoT firmware and edge software require strict enforcement due to limited debugging access and security-critical operating environments."
+    common_tech_stacks: [docker]
+    additional_hooks:
+      - secret_in_code
+      - unsafe_eval
+    recommended_pipelines:
+      - ci
+      - security

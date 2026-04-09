@@ -49,13 +49,17 @@ If `--preview` flag or user wants to see changes first:
    - `verify/SKILL.md`
    - `references/classification.md`
    - `references/schemas.md`
+   - `hooks/*.sh` — Generated Rules section only (Custom Rules section preserved)
+   - `hooks-config.json` (regenerated from template)
 
 2. **List files that will be preserved**:
    - `project-config.yaml`
    - `agents/*.md` (unless user requests regeneration)
    - `guides/*.md` (unless user requests regeneration)
    - `references/options.md`
-   - `state/` (runtime data)
+   - `state/` (runtime data, including `learning-log.yaml`)
+   - `hooks/*.sh` — Custom Rules section (below the `═══ CUSTOM RULES` marker)
+   - `.github/workflows/*.yml` (CI/CD workflows, unless user requests regeneration)
 
 3. **Show upgrade summary** via AskUserQuestion:
    - Files to replace (count + list)
@@ -77,11 +81,32 @@ If `--preview` flag or user wants to see changes first:
    - Replace conditional blocks based on config flags
    - Write updated SKILL.md files
 
-2. **Update version** in project-config.yaml:
-   - Update `generated_by` to current marketplace version
-   - Preserve all other config values
+2. **Upgrade hook scripts** (if enforcement.level != "none"):
+   - For each hook script in `hooks/*.sh`:
+     a. Read existing file
+     b. Extract Custom Rules section (everything below `═══ CUSTOM RULES` marker)
+     c. Re-generate the Generated Rules section from latest template
+     d. Append preserved Custom Rules section
+     e. Write updated file
+   - Regenerate `hooks-config.json` from template
+   - If new hook types were added in this version, generate new hook scripts
+   - Offer to re-merge hooks into settings.json
 
-3. **If "Regenerate AI content" selected**:
+3. **Upgrade CI/CD workflows** (if ci_cd.platform != "none"):
+   - Only regenerate if user selected "Regenerate CI/CD" option
+   - Preserve user customizations by default
+   - If new pipeline types available, offer to add them
+
+4. **Preserve self-learning data**:
+   - Never overwrite `state/learning-log.yaml`
+   - Custom Rules added by self-learning are preserved (Step 2 above)
+
+5. **Update version** in project-config.yaml:
+   - Update `generated_by` to current marketplace version
+   - Add new config sections if missing (enforcement, ci_cd, self_learning with defaults)
+   - Preserve all existing config values
+
+6. **If "Regenerate AI content" selected**:
    - Re-generate agents based on config.agents list
    - Re-generate guides based on config.guides list
    - Re-generate classification.md
