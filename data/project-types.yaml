@@ -1,0 +1,781 @@
+# Project Types - 3-level taxonomy for the scaffolding wizard
+# Structure: category → subcategory → purpose
+# Used by AI to filter/rank options based on user selections
+
+categories:
+
+  - id: web
+    name: Web
+    description: Browser-based applications delivered over HTTP/HTTPS.
+    icon: globe
+    has_ui: true
+    typical_languages: [TypeScript, JavaScript, Python, Ruby, PHP, Elixir, Go]
+    subcategories:
+
+      - id: web_spa
+        name: Single-Page Application (SPA)
+        description: Client-rendered apps that load once and update dynamically without full page reloads.
+        key_concerns: [bundle_size, code_splitting, client_routing, seo_limitations, hydration]
+        has_ui: true
+        typical_languages: [TypeScript, JavaScript]
+        typical_frameworks: [React, Vue, Svelte, SolidJS, Qwik]
+        purposes:
+          - id: web_spa_dashboard
+            name: Analytics Dashboard
+            description: Data-heavy UI with charts, tables, and real-time metrics for business intelligence.
+            key_concerns: [data_fetching, caching, chart_performance, responsive_layout]
+          - id: web_spa_saas
+            name: SaaS Product
+            description: Multi-tenant web application with subscription billing and user management.
+            key_concerns: [auth, multi_tenancy, billing_integration, role_based_access]
+          - id: web_spa_portal
+            name: Customer/User Portal
+            description: Self-service interface for end-users to manage their account and data.
+            key_concerns: [auth, profile_management, notifications, accessibility]
+          - id: web_spa_admin
+            name: Admin Panel
+            description: Internal tool for managing application data, users, and configuration.
+            key_concerns: [rbac, audit_logs, bulk_operations, data_tables]
+          - id: web_spa_marketplace
+            name: Marketplace
+            description: Platform connecting buyers and sellers with listings, search, and transactions.
+            key_concerns: [search, payments, listings, reviews, trust_safety]
+
+      - id: web_fullstack
+        name: Full-Stack Web App
+        description: Apps with both server-side rendering/API and a client-side interactive layer.
+        key_concerns: [ssr, api_design, session_management, data_mutations, deployment_complexity]
+        has_ui: true
+        typical_languages: [TypeScript, JavaScript, Python, Ruby]
+        typical_frameworks: [Next.js, Nuxt, SvelteKit, Remix, Astro, Django, Rails]
+        purposes:
+          - id: web_fullstack_ecommerce
+            name: E-Commerce Store
+            description: Online shop with product catalog, cart, checkout, and order management.
+            key_concerns: [payments, inventory, cart_state, seo, performance]
+          - id: web_fullstack_blog
+            name: Blog / Content Site
+            description: Content-heavy site with articles, authors, tags, and SEO optimization.
+            key_concerns: [seo, cms_integration, image_optimization, rss, sitemap]
+          - id: web_fullstack_community
+            name: Community / Forum
+            description: User-generated content platform with threads, replies, voting, and moderation.
+            key_concerns: [moderation, real_time_updates, notifications, spam_prevention]
+          - id: web_fullstack_booking
+            name: Booking / Reservation System
+            description: Scheduling platform for appointments, rooms, or resources with calendar views.
+            key_concerns: [calendar_logic, conflict_detection, payments, reminders, timezone_handling]
+          - id: web_fullstack_social
+            name: Social Platform
+            description: User-profile-driven platform with follows, feeds, and content sharing.
+            key_concerns: [activity_feeds, real_time, media_uploads, privacy_controls]
+
+      - id: web_static
+        name: Static / JAMstack Site
+        description: Pre-built HTML pages served from a CDN with optional client-side interactivity.
+        key_concerns: [build_time, incremental_static_regeneration, cdn_caching, form_handling]
+        has_ui: true
+        typical_languages: [TypeScript, JavaScript, Markdown]
+        typical_frameworks: [Astro, Next.js, Nuxt, Gatsby, Hugo, Eleventy]
+        purposes:
+          - id: web_static_landing
+            name: Landing Page / Marketing Site
+            description: High-conversion public-facing pages with CTAs, pricing, and product info.
+            key_concerns: [performance, seo, a_b_testing, analytics, conversion_tracking]
+          - id: web_static_docs
+            name: Documentation Site
+            description: Technical reference and guide site for a library, API, or product.
+            key_concerns: [search, versioning, syntax_highlighting, navigation, content_management]
+          - id: web_static_portfolio
+            name: Portfolio / Personal Site
+            description: Showcase site for individuals or agencies to display work and contact info.
+            key_concerns: [design_polish, performance, contact_forms, cms_flexibility]
+
+      - id: web_pwa
+        name: Progressive Web App (PWA)
+        description: Web apps installable on devices with offline support and push notifications.
+        key_concerns: [service_worker, offline_caching, push_notifications, installability, performance]
+        has_ui: true
+        typical_languages: [TypeScript, JavaScript]
+        typical_frameworks: [React, Vue, Angular, Workbox]
+        purposes:
+          - id: web_pwa_offline_first
+            name: Offline-First App
+            description: App that functions without a network connection and syncs when reconnected.
+            key_concerns: [sync_strategy, conflict_resolution, local_storage, background_sync]
+          - id: web_pwa_installable
+            name: Installable Web App
+            description: Web app that can be added to home screen and behaves like a native app.
+            key_concerns: [manifest, app_icons, splash_screens, deep_linking]
+          - id: web_pwa_notifications
+            name: Push Notification App
+            description: Engagement-focused app that uses push notifications to re-engage users.
+            key_concerns: [push_api, subscription_management, notification_design, opt_in_ux]
+
+      - id: web_realtime
+        name: Real-Time Web App
+        description: Apps requiring live data updates via WebSockets, SSE, or long polling.
+        key_concerns: [websocket_management, connection_resilience, state_sync, scalability]
+        has_ui: true
+        typical_languages: [TypeScript, JavaScript, Go, Elixir]
+        typical_frameworks: [Socket.io, Phoenix LiveView, Liveblocks, PartyKit]
+        purposes:
+          - id: web_realtime_chat
+            name: Chat / Messaging App
+            description: Real-time messaging platform with rooms, direct messages, and presence.
+            key_concerns: [message_ordering, presence, read_receipts, media_sharing, history]
+          - id: web_realtime_collab
+            name: Collaborative Editor
+            description: Multi-user document editing with CRDTs or OT for conflict-free collaboration.
+            key_concerns: [crdt, cursor_sync, undo_redo, permissions, version_history]
+          - id: web_realtime_live
+            name: Live Dashboard / Feed
+            description: Auto-updating data display for stock prices, sports scores, or event feeds.
+            key_concerns: [data_throughput, rendering_performance, connection_pooling]
+
+      - id: web_api_gateway
+        name: API / Backend-for-Frontend (BFF)
+        description: Dedicated server layer that aggregates and adapts APIs for specific frontend clients.
+        key_concerns: [api_composition, caching, authentication, rate_limiting, schema_stitching]
+        has_ui: false
+        typical_languages: [TypeScript, JavaScript, Go, Python]
+        typical_frameworks: [Express, Fastify, Hono, tRPC, GraphQL Yoga]
+        purposes:
+          - id: web_bff_graphql
+            name: GraphQL Gateway
+            description: Unified GraphQL API that federates multiple downstream services.
+            key_concerns: [schema_design, resolvers, dataloader, subscription_support]
+          - id: web_bff_rest
+            name: REST Aggregation Layer
+            description: REST API that fans out to multiple microservices and aggregates responses.
+            key_concerns: [circuit_breaking, timeout_handling, response_transformation]
+
+      - id: web_browser_extension
+        name: Browser Extension
+        description: Chrome, Firefox, or Edge extensions that extend browser functionality.
+        key_concerns: [manifest_v3, content_scripts, background_workers, permissions, store_review]
+        has_ui: true
+        typical_languages: [TypeScript, JavaScript]
+        typical_frameworks: [React, Vue, WXT, Plasmo]
+        purposes:
+          - id: web_ext_productivity
+            name: Productivity Tool
+            description: Extension that augments browsing with notes, bookmarks, or task management.
+            key_concerns: [storage_api, keyboard_shortcuts, popup_performance]
+          - id: web_ext_content
+            name: Content Modifier
+            description: Extension that injects UI or transforms content on visited websites.
+            key_concerns: [content_script_isolation, csp, dom_manipulation_safety]
+          - id: web_ext_devtools
+            name: Developer Tool
+            description: DevTools panel extension for debugging, inspection, or workflow automation.
+            key_concerns: [devtools_api, panel_ui, performance_profiling]
+
+  - id: mobile
+    name: Mobile
+    description: Native or cross-platform apps for iOS and Android devices.
+    icon: smartphone
+    has_ui: true
+    typical_languages: [Swift, Kotlin, Dart, TypeScript, JavaScript]
+    subcategories:
+
+      - id: mobile_cross_platform
+        name: Cross-Platform App
+        description: Single codebase that targets both iOS and Android.
+        key_concerns: [platform_parity, native_module_bridging, performance, ui_consistency]
+        has_ui: true
+        typical_languages: [TypeScript, JavaScript, Dart]
+        typical_frameworks: [React Native, Flutter, Expo, Capacitor]
+        purposes:
+          - id: mobile_cross_consumer
+            name: Consumer App
+            description: General-purpose app targeting a broad consumer audience on both platforms.
+            key_concerns: [onboarding_ux, push_notifications, analytics, app_store_compliance]
+          - id: mobile_cross_b2b
+            name: B2B / Enterprise App
+            description: Business-focused app with SSO, MDM support, and enterprise security requirements.
+            key_concerns: [sso_saml, mdm_compatibility, offline_sync, data_security]
+          - id: mobile_cross_ecommerce
+            name: Mobile Commerce App
+            description: Shopping app with product browsing, cart, and in-app or external checkout.
+            key_concerns: [payment_integration, deep_linking, push_for_cart_recovery, performance]
+          - id: mobile_cross_social
+            name: Social / Community App
+            description: User-generated content and social interaction app with feeds and profiles.
+            key_concerns: [real_time_updates, media_handling, notifications, moderation]
+
+      - id: mobile_ios_native
+        name: iOS Native App
+        description: App built specifically for Apple devices using Swift and SwiftUI or UIKit.
+        key_concerns: [apple_hig, app_store_review, entitlements, privacy_manifest, xcode_build]
+        has_ui: true
+        typical_languages: [Swift]
+        typical_frameworks: [SwiftUI, UIKit, Combine, Swift Concurrency]
+        purposes:
+          - id: mobile_ios_widget
+            name: Widget / App Clip
+            description: Lightweight iOS experience via home screen widgets or App Clips for instant access.
+            key_concerns: [widget_kit, timeline_provider, app_clip_size_limit, associated_domains]
+          - id: mobile_ios_health
+            name: Health & Fitness App
+            description: App integrating with HealthKit for activity, nutrition, or medical data.
+            key_concerns: [healthkit_permissions, data_privacy, background_delivery, watch_integration]
+          - id: mobile_ios_productivity
+            name: Productivity App
+            description: Task management, notes, or workflow automation app for power users.
+            key_concerns: [icloud_sync, keyboard_shortcuts, shortcuts_app_integration, focus_modes]
+
+      - id: mobile_android_native
+        name: Android Native App
+        description: App built specifically for Android devices using Kotlin and Jetpack Compose.
+        key_concerns: [google_play_review, permissions_model, fragmentation, material_design, proguard]
+        has_ui: true
+        typical_languages: [Kotlin, Java]
+        typical_frameworks: [Jetpack Compose, Android Views, Coroutines, Hilt]
+        purposes:
+          - id: mobile_android_wear
+            name: Wear OS App
+            description: Smartwatch companion app with glanceable UI and health sensor integration.
+            key_concerns: [watch_face_api, complications, health_services_api, battery_efficiency]
+          - id: mobile_android_automotive
+            name: Android Automotive App
+            description: In-vehicle infotainment app with car-optimized UI and media/navigation integration.
+            key_concerns: [car_app_library, media_session, navigation_template, driver_distraction]
+          - id: mobile_android_tv
+            name: Android TV / Google TV App
+            description: Lean-back experience for TV screens with remote control navigation.
+            key_concerns: [leanback_library, d_pad_navigation, channel_api, content_recommendations]
+
+      - id: mobile_pwa_native
+        name: Mobile-First PWA
+        description: Web app optimized for mobile experience and installable as a pseudo-native app.
+        key_concerns: [touch_gestures, viewport_optimization, offline_first, push_notifications]
+        has_ui: true
+        typical_languages: [TypeScript, JavaScript]
+        typical_frameworks: [React, Vue, Svelte, Ionic]
+        purposes:
+          - id: mobile_pwa_lightweight
+            name: Lightweight Mobile Tool
+            description: Simple utility or tool that doesn't require full native app distribution.
+            key_concerns: [first_paint_speed, touch_targets, data_minimization]
+          - id: mobile_pwa_catalog
+            name: Mobile Catalog / Reference
+            description: Browsable content catalog optimized for mobile with offline reading.
+            key_concerns: [offline_content_caching, search, navigation_patterns]
+
+  - id: backend
+    name: Backend / API
+    description: Server-side services, APIs, and infrastructure components without a primary UI.
+    icon: server
+    has_ui: false
+    typical_languages: [TypeScript, JavaScript, Python, Go, Rust, Java, Kotlin, Elixir, C#]
+    subcategories:
+
+      - id: backend_rest_api
+        name: REST API
+        description: HTTP API following REST principles for CRUD operations and resource management.
+        key_concerns: [api_versioning, authentication, rate_limiting, openapi_docs, error_handling]
+        has_ui: false
+        typical_languages: [TypeScript, Python, Go, Java, Kotlin, Rust, C#]
+        typical_frameworks: [Express, Fastify, FastAPI, Gin, Spring Boot, Axum, ASP.NET Core]
+        purposes:
+          - id: backend_rest_crud
+            name: CRUD Service
+            description: Standard create-read-update-delete API for a specific business domain entity.
+            key_concerns: [data_validation, pagination, filtering, soft_delete, audit_trail]
+          - id: backend_rest_integration
+            name: Integration / Proxy API
+            description: Facade that wraps third-party APIs with normalization and credential management.
+            key_concerns: [credential_rotation, retry_logic, rate_limit_passthrough, caching]
+          - id: backend_rest_public
+            name: Public API / Platform API
+            description: Developer-facing API with SDK generation, versioning, and usage-based billing.
+            key_concerns: [api_keys, versioning_strategy, sdk_generation, developer_portal, rate_limiting]
+
+      - id: backend_graphql
+        name: GraphQL API
+        description: Schema-first API allowing clients to request exactly the data they need.
+        key_concerns: [n_plus_one, schema_design, subscriptions, persisted_queries, introspection_security]
+        has_ui: false
+        typical_languages: [TypeScript, Python, Go, Java]
+        typical_frameworks: [Apollo Server, GraphQL Yoga, Strawberry, gqlgen, Netflix DGS]
+        purposes:
+          - id: backend_graphql_federation
+            name: Federated GraphQL Gateway
+            description: Supergraph that composes multiple subgraph schemas into a unified API.
+            key_concerns: [schema_federation, subgraph_ownership, query_planning, entity_resolution]
+          - id: backend_graphql_realtime
+            name: GraphQL with Subscriptions
+            description: Real-time GraphQL API with WebSocket-based subscriptions for live data.
+            key_concerns: [subscription_transport, connection_management, pub_sub_backend]
+
+      - id: backend_grpc
+        name: gRPC Service
+        description: High-performance RPC service using Protocol Buffers and HTTP/2.
+        key_concerns: [proto_design, backward_compatibility, streaming, load_balancing, observability]
+        has_ui: false
+        typical_languages: [Go, Java, Kotlin, Python, Rust, C#]
+        typical_frameworks: [gRPC, Connect, Twirp]
+        purposes:
+          - id: backend_grpc_microservice
+            name: Internal Microservice
+            description: High-throughput internal service communicating with peer services via gRPC.
+            key_concerns: [service_discovery, deadline_propagation, interceptors, tracing]
+          - id: backend_grpc_streaming
+            name: Streaming Data Service
+            description: Service using bidirectional or server-streaming for continuous data flows.
+            key_concerns: [backpressure, stream_lifecycle, error_propagation]
+
+      - id: backend_event_driven
+        name: Event-Driven Service
+        description: Asynchronous service that produces and consumes events via a message broker.
+        key_concerns: [event_schema, idempotency, dead_letter_queue, ordering_guarantees, consumer_groups]
+        has_ui: false
+        typical_languages: [TypeScript, Python, Java, Kotlin, Go, Rust]
+        typical_frameworks: [Kafka.js, Confluent, AWS SQS, RabbitMQ, NATS]
+        purposes:
+          - id: backend_event_saga
+            name: Saga / Workflow Orchestrator
+            description: Manages distributed transactions across services using saga patterns.
+            key_concerns: [compensating_transactions, state_persistence, timeout_handling]
+          - id: backend_event_cqrs
+            name: CQRS / Event Sourcing Service
+            description: Service using command-query separation and event log as source of truth.
+            key_concerns: [event_store, projection_rebuilding, eventual_consistency, snapshot_strategy]
+          - id: backend_event_pipeline
+            name: Event Processing Pipeline
+            description: Stream processing service that transforms, filters, and enriches events.
+            key_concerns: [windowing, stateful_processing, exactly_once_semantics, schema_evolution]
+
+      - id: backend_serverless
+        name: Serverless Functions
+        description: Stateless compute units deployed as functions-as-a-service.
+        key_concerns: [cold_start, execution_limits, stateless_design, vendor_lock_in, local_dev]
+        has_ui: false
+        typical_languages: [TypeScript, JavaScript, Python, Go, Rust]
+        typical_frameworks: [AWS Lambda, Cloudflare Workers, Azure Functions, Deno Deploy, SST]
+        purposes:
+          - id: backend_serverless_webhook
+            name: Webhook Handler
+            description: Function that receives and processes incoming webhook payloads from third-party services.
+            key_concerns: [signature_verification, idempotency, async_processing, retry_handling]
+          - id: backend_serverless_scheduled
+            name: Scheduled Job / Cron Function
+            description: Function triggered on a schedule for cleanup, reports, or periodic syncs.
+            key_concerns: [execution_timeout, idempotency, failure_alerting, state_management]
+          - id: backend_serverless_edge
+            name: Edge Function
+            description: Function running at CDN edge nodes for geo-distributed logic near users.
+            key_concerns: [runtime_limitations, latency_optimization, kv_storage, a_b_testing]
+
+      - id: backend_auth
+        name: Auth / Identity Service
+        description: Centralized authentication and authorization service for other services.
+        key_concerns: [token_management, session_security, mfa, sso, token_revocation]
+        has_ui: false
+        typical_languages: [Go, TypeScript, Java, Rust]
+        typical_frameworks: [Auth.js, Keycloak, Ory Hydra, custom OIDC]
+        purposes:
+          - id: backend_auth_oidc
+            name: OIDC / OAuth2 Provider
+            description: Identity provider issuing JWTs and managing OAuth2 authorization flows.
+            key_concerns: [jwks, authorization_code_pkce, token_introspection, scope_management]
+          - id: backend_auth_saml
+            name: SAML / Enterprise SSO
+            description: Enterprise identity federation supporting SAML 2.0 for corporate identity providers.
+            key_concerns: [saml_assertions, metadata_exchange, attribute_mapping, session_management]
+
+  - id: desktop
+    name: Desktop
+    description: Applications that run natively on Windows, macOS, or Linux desktops.
+    icon: monitor
+    has_ui: true
+    typical_languages: [TypeScript, JavaScript, Rust, C++, C#, Swift, Python]
+    subcategories:
+
+      - id: desktop_electron
+        name: Electron App
+        description: Cross-platform desktop app using web technologies via the Chromium runtime.
+        key_concerns: [bundle_size, auto_update, native_api_access, security_hardening, memory_usage]
+        has_ui: true
+        typical_languages: [TypeScript, JavaScript]
+        typical_frameworks: [Electron, Electron Forge, electron-vite]
+        purposes:
+          - id: desktop_electron_productivity
+            name: Productivity Tool
+            description: Desktop tool for note-taking, project management, or workflow automation.
+            key_concerns: [offline_first, file_system_access, keyboard_shortcuts, tray_icon]
+          - id: desktop_electron_devtool
+            name: Developer Tool
+            description: Desktop IDE, database client, API tester, or similar engineering tool.
+            key_concerns: [syntax_highlighting, terminal_integration, extension_system, performance]
+          - id: desktop_electron_media
+            name: Media Application
+            description: Audio/video player, editor, or creator tool with heavy media handling.
+            key_concerns: [native_codecs, hardware_acceleration, file_association, media_controls]
+
+      - id: desktop_tauri
+        name: Tauri App
+        description: Lightweight cross-platform desktop app using a native WebView and Rust backend.
+        key_concerns: [bundle_size, rust_commands, csp, ipc_design, updater]
+        has_ui: true
+        typical_languages: [TypeScript, JavaScript, Rust]
+        typical_frameworks: [Tauri, React, Vue, Svelte]
+        purposes:
+          - id: desktop_tauri_utility
+            name: System Utility
+            description: Lightweight system tool like a launcher, clipboard manager, or menu bar app.
+            key_concerns: [system_tray, global_hotkeys, low_memory_footprint, startup_time]
+          - id: desktop_tauri_productivity
+            name: Productivity Application
+            description: Feature-rich productivity app leveraging Rust for performance-critical operations.
+            key_concerns: [file_access, native_dialogs, plugin_system, cross_platform_ux]
+
+      - id: desktop_native
+        name: Native Desktop App
+        description: Platform-native app written in Swift, C++, C#, or similar native languages.
+        key_concerns: [platform_apis, hig_compliance, accessibility, distribution, signing]
+        has_ui: true
+        typical_languages: [Swift, C++, C#, Rust]
+        typical_frameworks: [SwiftUI, WPF, MAUI, Qt, Win32]
+        purposes:
+          - id: desktop_native_macos
+            name: macOS App
+            description: Mac-specific app leveraging AppKit/SwiftUI and Apple ecosystem integrations.
+            key_concerns: [sandboxing, notarization, icloud, handoff, mac_app_store]
+          - id: desktop_native_windows
+            name: Windows App
+            description: Windows-specific app using WinUI, WPF, or MAUI targeting the Windows ecosystem.
+            key_concerns: [msix_packaging, winrt_apis, windows_store, dpi_scaling, accessibility]
+
+      - id: desktop_cli_hybrid
+        name: Desktop + CLI Hybrid
+        description: App with both a graphical interface and a command-line interface for power users.
+        key_concerns: [shared_logic, config_files, shell_integration, headless_mode]
+        has_ui: true
+        typical_languages: [Rust, TypeScript, Go, Python]
+        typical_frameworks: [Tauri, Electron, Clap, Commander]
+        purposes:
+          - id: desktop_cli_hybrid_devtool
+            name: Hybrid Developer Tool
+            description: Tool that can be driven via GUI or scripted via CLI for automation.
+            key_concerns: [config_file_format, stdin_stdout, exit_codes, headless_automation]
+
+  - id: game
+    name: Game
+    description: Interactive entertainment software from indie games to AAA titles.
+    icon: gamepad
+    has_ui: true
+    typical_languages: [C++, C#, GDScript, Rust, TypeScript]
+    subcategories:
+
+      - id: game_2d
+        name: 2D Game
+        description: Two-dimensional game with sprite-based or vector graphics rendering.
+        key_concerns: [rendering_performance, physics, asset_pipeline, input_handling, audio]
+        has_ui: true
+        typical_languages: [C#, GDScript, TypeScript, Rust]
+        typical_frameworks: [Unity, Godot, Phaser, Bevy]
+        purposes:
+          - id: game_2d_platformer
+            name: Platformer
+            description: Side-scrolling or vertical platformer with jumping mechanics and level design.
+            key_concerns: [physics_feel, collision_detection, level_streaming, controller_support]
+          - id: game_2d_rpg
+            name: RPG / JRPG
+            description: Role-playing game with stats, inventory, dialog systems, and turn-based or action combat.
+            key_concerns: [dialog_system, save_system, inventory_ui, combat_logic, map_editor]
+          - id: game_2d_puzzle
+            name: Puzzle Game
+            description: Logic-based game with discrete puzzles, levels, and progression.
+            key_concerns: [level_design_tools, undo_system, hint_system, analytics]
+          - id: game_2d_strategy
+            name: Strategy / Tower Defense
+            description: Resource management and tactical placement game with AI opponents.
+            key_concerns: [pathfinding, ai_behavior, ui_scalability, save_state]
+
+      - id: game_3d
+        name: 3D Game
+        description: Three-dimensional game with perspective rendering and 3D physics.
+        key_concerns: [rendering_pipeline, lod, occlusion_culling, physics_engine, asset_streaming]
+        has_ui: true
+        typical_languages: [C++, C#, GDScript]
+        typical_frameworks: [Unreal Engine, Unity, Godot, CryEngine]
+        purposes:
+          - id: game_3d_fps
+            name: First-Person Shooter
+            description: First-person perspective game with combat, movement mechanics, and level design.
+            key_concerns: [netcode, hitbox_accuracy, anti_cheat, weapon_system, performance]
+          - id: game_3d_open_world
+            name: Open World / Sandbox
+            description: Large explorable world with dynamic content, crafting, and emergent gameplay.
+            key_concerns: [world_streaming, procedural_generation, lod_system, save_system]
+          - id: game_3d_simulation
+            name: Simulation / Management
+            description: City builder, farming sim, or management game with complex systems.
+            key_concerns: [simulation_tick, ui_scalability, economy_balance, mod_support]
+
+      - id: game_mobile
+        name: Mobile Game
+        description: Game designed for touch screens with session length and monetization constraints.
+        key_concerns: [touch_controls, monetization, retention_loops, battery_usage, store_compliance]
+        has_ui: true
+        typical_languages: [C#, TypeScript, Java, Kotlin, Swift]
+        typical_frameworks: [Unity, Godot, Phaser, Cocos2d, Corona]
+        purposes:
+          - id: game_mobile_casual
+            name: Casual / Hyper-Casual Game
+            description: Simple one-tap mechanics with high virality potential and ad-based monetization.
+            key_concerns: [first_session_hook, ad_integration, session_length, rating_prompt]
+          - id: game_mobile_midcore
+            name: Mid-Core Game
+            description: Deeper gameplay with progression systems, guilds, and IAP monetization.
+            key_concerns: [retention_systems, live_ops, iap_design, pvp_balance]
+
+      - id: game_multiplayer
+        name: Multiplayer / Online Game
+        description: Game requiring real-time or turn-based networking between players.
+        key_concerns: [netcode, server_authority, anti_cheat, matchmaking, latency_compensation]
+        has_ui: true
+        typical_languages: [C++, C#, Go, Rust]
+        typical_frameworks: [Unity, Unreal, Godot, Nakama, Photon]
+        purposes:
+          - id: game_multiplayer_competitive
+            name: Competitive PvP Game
+            description: Skill-based competitive game with matchmaking, rankings, and anti-cheat.
+            key_concerns: [elo_ranking, lag_compensation, replay_system, anti_cheat, spectator_mode]
+          - id: game_multiplayer_coop
+            name: Co-op / Cooperative Game
+            description: Team-based cooperative game with shared objectives and cross-platform play.
+            key_concerns: [session_management, drop_in_drop_out, voice_chat, crossplay]
+
+      - id: game_vr_ar
+        name: VR / AR Game
+        description: Immersive game using virtual or augmented reality headsets and controllers.
+        key_concerns: [frame_rate_90hz, comfort_design, locomotion, hand_tracking, platform_sdk]
+        has_ui: true
+        typical_languages: [C#, C++]
+        typical_frameworks: [Unity XR Toolkit, Unreal VR, OpenXR]
+        purposes:
+          - id: game_vr_immersive
+            name: Immersive VR Experience
+            description: Story-driven or exploratory VR experience with spatial interactions.
+            key_concerns: [comfort_guidelines, haptics, spatial_audio, room_scale]
+          - id: game_ar_mobile
+            name: Mobile AR Game
+            description: Augmented reality game overlaying gameplay on the real world via phone camera.
+            key_concerns: [arkit_arcore, plane_detection, occlusion, tracking_stability]
+
+  - id: cli
+    name: CLI Tool
+    description: Command-line interface tools and scripts for developer or system workflows.
+    icon: terminal
+    has_ui: false
+    typical_languages: [Rust, Go, TypeScript, Python, Bash]
+    subcategories:
+
+      - id: cli_developer_tool
+        name: Developer Tool
+        description: CLI utility designed to improve developer workflows and productivity.
+        key_concerns: [ergonomics, help_text, error_messages, version_management, plugin_system]
+        has_ui: false
+        typical_languages: [Rust, Go, TypeScript, Python]
+        typical_frameworks: [Clap, Cobra, Commander, Click, Inquirer]
+        purposes:
+          - id: cli_devtool_scaffolding
+            name: Project Scaffolding Tool
+            description: Interactive CLI that generates project boilerplate and configuration files.
+            key_concerns: [template_engine, interactive_prompts, git_init, package_manager_detection]
+          - id: cli_devtool_code_gen
+            name: Code Generator
+            description: CLI that generates typed client code, schemas, or boilerplate from specs.
+            key_concerns: [spec_parsing, template_rendering, watch_mode, diff_output]
+          - id: cli_devtool_linter
+            name: Linter / Formatter
+            description: Code quality tool that analyzes and optionally fixes source files.
+            key_concerns: [ast_parsing, rule_engine, fix_mode, editor_integration, performance]
+
+      - id: cli_system_tool
+        name: System / Ops Tool
+        description: CLI for system administration, automation, or infrastructure management.
+        key_concerns: [privilege_handling, error_recovery, logging, cross_platform, config_files]
+        has_ui: false
+        typical_languages: [Rust, Go, Python, Bash]
+        typical_frameworks: [Clap, Cobra, Click, Typer]
+        purposes:
+          - id: cli_system_automation
+            name: Automation Script
+            description: Shell-replaceable automation tool for CI, deployment, or ops workflows.
+            key_concerns: [exit_codes, stdin_stdout, shell_compatibility, dry_run_mode]
+          - id: cli_system_monitoring
+            name: Monitoring / Diagnostic Tool
+            description: CLI for inspecting system health, logs, or infrastructure status.
+            key_concerns: [output_format, streaming_output, signal_handling, tui_mode]
+
+      - id: cli_data_tool
+        name: Data Processing Tool
+        description: CLI for transforming, validating, or migrating data files and streams.
+        key_concerns: [streaming, format_support, error_reporting, progress_display, memory_efficiency]
+        has_ui: false
+        typical_languages: [Rust, Python, Go, TypeScript]
+        typical_frameworks: [Polars, Pandas, jq-style parsers]
+        purposes:
+          - id: cli_data_etl
+            name: ETL / Migration Tool
+            description: Extracts, transforms, and loads data between systems with progress reporting.
+            key_concerns: [transaction_safety, rollback, schema_mapping, progress_bar]
+          - id: cli_data_validator
+            name: Schema Validator
+            description: Validates data files against JSON Schema, Avro, or custom rules.
+            key_concerns: [error_reporting_clarity, exit_codes, multiple_format_support]
+
+  - id: data
+    name: Data / ML / AI
+    description: Machine learning, data engineering, and AI applications and pipelines.
+    icon: brain
+    has_ui: false
+    typical_languages: [Python, Scala, Julia, R, TypeScript]
+    subcategories:
+
+      - id: data_ml_model
+        name: ML Model Service
+        description: Service that trains, evaluates, and serves machine learning models.
+        key_concerns: [model_versioning, feature_engineering, inference_latency, model_drift, reproducibility]
+        has_ui: false
+        typical_languages: [Python]
+        typical_frameworks: [PyTorch, TensorFlow, scikit-learn, JAX, Hugging Face]
+        purposes:
+          - id: data_ml_classification
+            name: Classification / Regression Model
+            description: Supervised learning model for prediction or categorization tasks.
+            key_concerns: [training_pipeline, cross_validation, feature_importance, model_explainability]
+          - id: data_ml_nlp
+            name: NLP / Language Model
+            description: Natural language processing model for text classification, generation, or extraction.
+            key_concerns: [tokenization, fine_tuning, prompt_engineering, evaluation_metrics]
+          - id: data_ml_vision
+            name: Computer Vision Model
+            description: Image or video analysis model for detection, segmentation, or classification.
+            key_concerns: [data_augmentation, annotation_pipeline, inference_optimization, edge_deployment]
+
+      - id: data_pipeline
+        name: Data Pipeline / ETL
+        description: Batch or streaming data pipeline for ingestion, transformation, and loading.
+        key_concerns: [idempotency, data_quality, lineage_tracking, failure_recovery, scheduling]
+        has_ui: false
+        typical_languages: [Python, Scala, SQL]
+        typical_frameworks: [Apache Spark, Airflow, Prefect, dbt, Dagster, Flink]
+        purposes:
+          - id: data_pipeline_batch
+            name: Batch ETL Pipeline
+            description: Scheduled batch job that extracts, transforms, and loads data at intervals.
+            key_concerns: [partitioning, incremental_load, data_contracts, alerting]
+          - id: data_pipeline_streaming
+            name: Streaming Pipeline
+            description: Real-time data processing pipeline consuming from Kafka or similar brokers.
+            key_concerns: [exactly_once, windowing, late_data_handling, schema_registry]
+
+      - id: data_analytics
+        name: Analytics / BI Platform
+        description: Data warehousing, dashboards, and analytical reporting infrastructure.
+        key_concerns: [query_performance, data_modeling, access_control, caching, freshness]
+        has_ui: false
+        typical_languages: [SQL, Python, dbt]
+        typical_frameworks: [dbt, Metabase, Superset, Redash, Looker]
+        purposes:
+          - id: data_analytics_warehouse
+            name: Data Warehouse / Lakehouse
+            description: Centralized analytical store for business intelligence and historical reporting.
+            key_concerns: [star_schema, partitioning_strategy, cost_optimization, governance]
+          - id: data_analytics_dashboard
+            name: Self-Serve Analytics Dashboard
+            description: BI tool allowing non-technical users to explore and visualize data.
+            key_concerns: [query_builder, permission_model, scheduled_reports, embed_support]
+
+      - id: data_ai_agent
+        name: AI Agent / LLM Application
+        description: Application powered by large language models with tool use and multi-step reasoning.
+        key_concerns: [prompt_management, tool_calling, context_window, cost_control, evaluation]
+        has_ui: false
+        typical_languages: [Python, TypeScript]
+        typical_frameworks: [LangChain, LlamaIndex, Vercel AI SDK, Anthropic SDK, OpenAI SDK]
+        purposes:
+          - id: data_ai_chatbot
+            name: AI Chatbot / Assistant
+            description: Conversational AI agent with memory, personality, and domain knowledge.
+            key_concerns: [conversation_history, system_prompts, guardrails, latency, streaming]
+          - id: data_ai_rag
+            name: RAG / Knowledge Base
+            description: Retrieval-augmented generation system grounding LLM answers in documents.
+            key_concerns: [chunking_strategy, embedding_model, vector_search, reranking, citation]
+          - id: data_ai_automation
+            name: AI Automation Agent
+            description: Autonomous agent that uses tools and APIs to complete multi-step tasks.
+            key_concerns: [tool_design, agent_loop, human_in_the_loop, state_management, observability]
+
+  - id: iot
+    name: IoT / Embedded
+    description: Software for physical devices, sensors, and edge computing systems.
+    icon: cpu
+    has_ui: false
+    typical_languages: [C++, Rust, MicroPython, C, Go]
+    subcategories:
+
+      - id: iot_embedded
+        name: Embedded Firmware
+        description: Low-level software running directly on microcontrollers with limited resources.
+        key_concerns: [memory_constraints, real_time, power_consumption, hardware_abstraction, ota_updates]
+        has_ui: false
+        typical_languages: [C++, Rust, C, MicroPython]
+        typical_frameworks: [ESP-IDF, Zephyr, FreeRTOS, Embassy, Arduino]
+        purposes:
+          - id: iot_embedded_sensor
+            name: Sensor / Data Collector
+            description: Firmware that reads environmental sensors and transmits data to the cloud.
+            key_concerns: [sensor_calibration, power_modes, transmission_protocol, data_buffering]
+          - id: iot_embedded_actuator
+            name: Actuator / Controller
+            description: Firmware that receives commands and controls physical actuators or motors.
+            key_concerns: [safety_limits, command_validation, feedback_loop, watchdog_timer]
+          - id: iot_embedded_wearable
+            name: Wearable Device
+            description: Body-worn device firmware with BLE, low power, and health sensor integration.
+            key_concerns: [ble_stack, battery_life, comfort_modes, companion_app_sync]
+
+      - id: iot_edge
+        name: Edge Gateway / Runtime
+        description: Software running on edge nodes aggregating and processing IoT device data.
+        key_concerns: [protocol_bridging, local_compute, connectivity_resilience, remote_management]
+        has_ui: false
+        typical_languages: [Rust, Go, Python, C++]
+        typical_frameworks: [AWS Greengrass, Azure IoT Edge, EdgeX Foundry, Balena]
+        purposes:
+          - id: iot_edge_gateway
+            name: Protocol Gateway
+            description: Translates between device protocols (MQTT, Modbus, BACnet) and cloud APIs.
+            key_concerns: [protocol_adapters, message_transformation, store_and_forward, security]
+          - id: iot_edge_inference
+            name: Edge ML Inference
+            description: Runs machine learning models locally on edge hardware for low-latency decisions.
+            key_concerns: [model_quantization, inference_runtime, ota_model_updates, resource_limits]
+
+      - id: iot_platform
+        name: IoT Platform / Backend
+        description: Cloud-side backend managing device fleets, telemetry, and device commands.
+        key_concerns: [device_provisioning, telemetry_ingestion, device_shadow, fleet_management]
+        has_ui: false
+        typical_languages: [TypeScript, Go, Python, Java]
+        typical_frameworks: [AWS IoT Core, Azure IoT Hub, HiveMQ, EMQX, custom MQTT broker]
+        purposes:
+          - id: iot_platform_telemetry
+            name: Telemetry Ingestion Service
+            description: High-throughput service receiving and storing time-series data from devices.
+            key_concerns: [ingest_throughput, time_series_storage, compression, retention_policy]
+          - id: iot_platform_fleet
+            name: Device Fleet Manager
+            description: Dashboard and API for provisioning, monitoring, and updating device fleets.
+            key_concerns: [device_registry, ota_updates, certificate_management, remote_commands]
+          - id: iot_platform_rules
+            name: Rules Engine
+            description: Event-driven rules engine that triggers actions based on device telemetry.
+            key_concerns: [rule_evaluation, action_types, alert_routing, condition_complexity]

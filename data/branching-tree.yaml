@@ -1,0 +1,1123 @@
+# Branching Tree - conditional wizard steps per project category (steps 8+)
+# These steps activate after the user has answered the core questions:
+#   1. project_category, 2. project_subcategory, 3. project_purpose
+#   4. language, 5. database, 6. cache, 7. platform
+# Steps in this file are category-specific and shown from step 8 onward.
+# depends_on: list of prior answer field values that must be true to show this step
+# condition: expression evaluated against all prior answers
+
+branching_tree:
+
+  # ─────────────────────────────────────────────
+  # WEB
+  # ─────────────────────────────────────────────
+  web:
+
+    - id: web_ssr_framework
+      step: 8
+      question: "Which rendering strategy and framework will you use?"
+      field: ssr_framework
+      multiSelect: false
+      depends_on:
+        project_category: web
+      options:
+        - id: nextjs
+          name: Next.js (App Router)
+          description: React full-stack framework with RSC, server actions, ISR, and Edge runtime. The most feature-complete choice for React SSR/SSG.
+        - id: nextjs_pages
+          name: Next.js (Pages Router)
+          description: The classic Next.js routing model. More familiar, widely documented, and still fully supported.
+        - id: nuxt
+          name: Nuxt 3
+          description: Vue-based full-stack framework with auto-imports, Nitro server engine, and first-class SSR/SSG support.
+        - id: sveltekit
+          name: SvelteKit
+          description: Svelte's official full-stack framework with filesystem routing, server load functions, and adapters for any deployment target.
+        - id: remix
+          name: Remix
+          description: React router-centric framework focused on web fundamentals, progressive enhancement, and nested layouts with loader/action pattern.
+        - id: astro
+          name: Astro
+          description: Content-focused framework with island architecture. Ships zero JS by default; hydrate only interactive components. Ideal for docs, blogs, marketing sites.
+        - id: tanstack_start
+          name: TanStack Start
+          description: Full-stack React framework built on TanStack Router with type-safe server functions and isomorphic data loading.
+        - id: spa_only
+          name: SPA (No SSR)
+          description: Pure client-side React/Vue/Svelte app served as static files. Simple to deploy, no server required.
+
+    - id: web_auth_method
+      step: 9
+      question: "How will users authenticate?"
+      field: auth_method
+      multiSelect: false
+      depends_on:
+        project_category: web
+      options:
+        - id: auth_js
+          name: Auth.js (NextAuth)
+          description: Framework-agnostic auth library for Next.js, SvelteKit, and more. Supports 50+ OAuth providers, magic links, and credentials.
+        - id: clerk
+          name: Clerk
+          description: Hosted auth platform with pre-built UI components, social login, MFA, and organizations. Fastest to production for auth.
+        - id: supabase_auth
+          name: Supabase Auth
+          description: Built-in auth for Supabase projects. Supports email/password, magic links, OAuth, and phone OTP with RLS integration.
+        - id: lucia
+          name: Lucia
+          description: Lightweight, framework-agnostic session management library. Gives full control with minimal abstraction. Pairs well with any database.
+        - id: better_auth
+          name: Better Auth
+          description: Type-safe, plugin-based auth framework for TypeScript. Handles sessions, OAuth, 2FA, and organizations with a composable API.
+        - id: firebase_auth
+          name: Firebase Auth
+          description: Google's hosted auth service with social providers, phone auth, and anonymous auth. Native to the Firebase ecosystem.
+        - id: cognito
+          name: AWS Cognito
+          description: AWS's managed user pool and identity service. Integrates natively with Lambda, API Gateway, and IAM for AWS-hosted apps.
+        - id: custom_jwt
+          name: Custom JWT / Session
+          description: Roll your own auth with JWT or database sessions. Full control, more implementation work. Use with Argon2/bcrypt for password hashing.
+        - id: no_auth
+          name: No Authentication
+          description: Public application with no user accounts required.
+
+    - id: web_state_management
+      step: 10
+      question: "How will you manage client-side state?"
+      field: state_management
+      multiSelect: false
+      depends_on:
+        project_category: web
+      options:
+        - id: zustand
+          name: Zustand
+          description: Minimal React state management with a hooks-based API. No boilerplate, no Provider wrapper needed.
+        - id: jotai
+          name: Jotai
+          description: Atomic state management for React. Compose small atoms into derived state with excellent TypeScript inference.
+        - id: redux_toolkit
+          name: Redux Toolkit (RTK)
+          description: The official, opinionated Redux toolset with RTK Query for server state, Immer for immutables, and powerful DevTools.
+        - id: tanstack_query
+          name: TanStack Query (server state only)
+          description: Async state management for data fetching, caching, and synchronization. Not a general state store — pair with Zustand for UI state.
+        - id: pinia
+          name: Pinia (Vue only)
+          description: Official Vue 3 state management library with a clean, type-safe API.
+        - id: xstate
+          name: XState
+          description: State machines and statecharts for explicit, bug-free state modeling. Best for complex flows like multi-step wizards or auth.
+        - id: context_only
+          name: React Context / Vue Provide (built-in)
+          description: Use the framework's built-in state sharing. Sufficient for simple, low-frequency state updates.
+        - id: no_global_state
+          name: No Global State
+          description: Component-local state only (useState / ref). Appropriate for simple apps or when server state (TanStack Query) covers all data needs.
+
+    - id: web_css_approach
+      step: 11
+      question: "Which CSS approach will you use?"
+      field: css_approach
+      multiSelect: false
+      depends_on:
+        project_category: web
+      options:
+        - id: tailwind
+          name: Tailwind CSS
+          description: Utility-first CSS framework. Compose styles with small utility classes directly in markup. Zero-runtime, tiny production bundle.
+        - id: css_modules
+          name: CSS Modules
+          description: Locally-scoped CSS files. Write standard CSS with zero runtime overhead and no class name conflicts.
+        - id: styled_components
+          name: Styled Components
+          description: CSS-in-JS with tagged template literals. Component-scoped styles with dynamic styling via props.
+        - id: vanilla_extract
+          name: vanilla-extract
+          description: Zero-runtime CSS-in-TypeScript. Fully type-safe styles compiled to static CSS at build time.
+        - id: unocss
+          name: UnoCSS
+          description: On-demand atomic CSS engine. Tailwind-compatible presets with faster build times and more flexibility.
+        - id: emotion
+          name: Emotion
+          description: High-performance CSS-in-JS. Powers MUI's styling system. Supports both object and string syntax.
+        - id: plain_css
+          name: Plain CSS / SCSS
+          description: Global or BEM-structured CSS with optional Sass/SCSS preprocessing. Maximum control, no framework dependency.
+
+    - id: web_testing_strategy
+      step: 12
+      question: "What testing strategy will you use?"
+      field: testing_strategy
+      multiSelect: true
+      depends_on:
+        project_category: web
+      options:
+        - id: unit
+          name: Unit Tests (Vitest / Jest)
+          description: Fast isolated tests for utility functions, hooks, and business logic. The foundation of any test suite.
+        - id: component
+          name: Component Tests (Testing Library)
+          description: Test UI components in isolation with user-centric queries (getByRole, getByLabel). Catches accessibility regressions.
+        - id: e2e
+          name: End-to-End Tests (Playwright)
+          description: Full browser tests that validate complete user flows across real pages. Catches integration issues unit tests miss.
+        - id: visual
+          name: Visual Regression (Chromatic / Percy)
+          description: Screenshot-based tests that catch unintended visual changes to UI components.
+        - id: storybook
+          name: Storybook (component dev + docs)
+          description: Develop and document components in isolation. Add interaction tests and accessibility checks via addons.
+        - id: api_tests
+          name: API Integration Tests
+          description: Test API endpoints with real HTTP requests (supertest, Hono test client). Validates request/response contracts.
+        - id: no_tests
+          name: No Tests (prototype / MVP)
+          description: Skip automated testing for now. Appropriate only for early prototypes and throwaway code.
+
+  # ─────────────────────────────────────────────
+  # MOBILE
+  # ─────────────────────────────────────────────
+  mobile:
+
+    - id: mobile_cross_platform_framework
+      step: 8
+      question: "Which cross-platform mobile framework will you use?"
+      field: cross_platform_framework
+      multiSelect: false
+      depends_on:
+        project_category: mobile
+      options:
+        - id: react_native
+          name: React Native (bare)
+          description: Facebook's framework for building native iOS and Android apps with React. Full access to native modules and the vast npm ecosystem.
+        - id: expo
+          name: Expo (managed workflow)
+          description: Managed React Native platform. Fastest to start — OTA updates, EAS Build, and 50+ built-in APIs without touching native code.
+        - id: expo_bare
+          name: Expo (bare workflow)
+          description: Expo tooling with full native code access. Best of both worlds: Expo DX with custom native modules.
+        - id: flutter
+          name: Flutter
+          description: Google's UI toolkit using Dart. Single codebase for iOS, Android, web, and desktop with pixel-perfect custom UIs.
+        - id: capacitor
+          name: Capacitor (Ionic)
+          description: Web-to-native bridge that wraps your web app (React, Vue, Angular) in a native container with device API access.
+        - id: native_ios_only
+          name: Native iOS (Swift / SwiftUI)
+          description: Build exclusively for Apple platforms with Swift and SwiftUI. Maximum performance and platform integration.
+        - id: native_android_only
+          name: Native Android (Kotlin / Compose)
+          description: Build exclusively for Android with Kotlin and Jetpack Compose. Maximum native performance and Google ecosystem integration.
+
+    - id: mobile_push_notification
+      step: 9
+      question: "How will you handle push notifications?"
+      field: push_notification
+      multiSelect: false
+      depends_on:
+        project_category: mobile
+      options:
+        - id: expo_notifications
+          name: Expo Notifications
+          description: Managed push notification service via Expo Push Service. Handles APNs and FCM tokens with a unified API.
+        - id: firebase_fcm
+          name: Firebase Cloud Messaging (FCM)
+          description: Google's cross-platform push service. Supports Android and iOS with rich notification options and analytics.
+        - id: onesignal
+          name: OneSignal
+          description: Dedicated push notification platform with segmentation, A/B testing, in-app messaging, and a generous free tier.
+        - id: aws_sns
+          name: AWS SNS
+          description: AWS Simple Notification Service for push delivery. Integrates naturally with other AWS services for event-driven notifications.
+        - id: apns_fcm_direct
+          name: Direct APNs + FCM (custom backend)
+          description: Send directly to APNs (iOS) and FCM (Android) from your own backend. Full control, no third-party dependency.
+        - id: no_push
+          name: No Push Notifications
+          description: The app does not require push notifications.
+
+    - id: mobile_app_store_target
+      step: 10
+      question: "Which app stores will you target?"
+      field: app_store_target
+      multiSelect: true
+      depends_on:
+        project_category: mobile
+      options:
+        - id: apple_app_store
+          name: Apple App Store (iOS / iPadOS)
+          description: Primary distribution for iPhone and iPad users. Requires Apple Developer Program ($99/year) and App Review.
+        - id: google_play
+          name: Google Play Store (Android)
+          description: Primary distribution for Android devices. Lower barrier to entry than Apple with $25 one-time registration.
+        - id: microsoft_store
+          name: Microsoft Store (Windows)
+          description: Distribute mobile/PWA apps on Windows via the Microsoft Store with 12% revenue share for games.
+        - id: samsung_galaxy_store
+          name: Samsung Galaxy Store
+          description: Secondary Android store for Samsung device users. Lower competition, useful for Galaxy-specific features.
+        - id: fdroid
+          name: F-Droid (open-source Android)
+          description: Free and open-source Android app repository. Ideal for open-source projects targeting privacy-conscious users.
+        - id: pwa_only
+          name: PWA Only (no app store)
+          description: Distribute as a Progressive Web App without app store submission. Avoids review process and platform fees.
+
+    - id: mobile_offline_support
+      step: 11
+      question: "Does the app need offline support?"
+      field: offline_support
+      multiSelect: false
+      depends_on:
+        project_category: mobile
+      options:
+        - id: full_offline
+          name: Full Offline (offline-first)
+          description: App works completely without a network connection and syncs data when connectivity is restored. Requires local database and sync strategy.
+        - id: partial_offline
+          name: Partial Offline (cache recent data)
+          description: Cache recently loaded data for read-only access when offline. Users can view but not create or update without connectivity.
+        - id: no_offline
+          name: Online Only
+          description: App requires a network connection at all times. Appropriate for real-time apps where stale data would cause confusion.
+
+    - id: mobile_native_modules
+      step: 12
+      question: "Which native device capabilities will you need?"
+      field: native_modules
+      multiSelect: true
+      depends_on:
+        project_category: mobile
+      options:
+        - id: camera
+          name: Camera / Photo Library
+          description: Access device camera for photo/video capture and photo library selection.
+        - id: biometrics
+          name: Biometric Auth (Face ID / Fingerprint)
+          description: Authenticate users with device biometrics for secure, frictionless login.
+        - id: geolocation
+          name: Geolocation / GPS
+          description: Access device GPS for location-based features, mapping, and geofencing.
+        - id: ble
+          name: Bluetooth (BLE)
+          description: Connect to Bluetooth Low Energy peripherals (wearables, IoT devices, beacons).
+        - id: nfc
+          name: NFC
+          description: Read and write NFC tags or communicate with NFC-enabled payment terminals.
+        - id: contacts
+          name: Contacts
+          description: Access and write to the device contacts book.
+        - id: health_kit
+          name: HealthKit / Google Fit
+          description: Read and write health and fitness data from the platform health data store.
+        - id: in_app_purchase
+          name: In-App Purchases (IAP)
+          description: Implement subscriptions, consumables, and one-time purchases via App Store / Play billing.
+        - id: ar
+          name: Augmented Reality (ARKit / ARCore)
+          description: Render AR experiences using the device camera and platform AR frameworks.
+        - id: none
+          name: No Special Native Capabilities
+          description: Standard web APIs and cross-platform capabilities are sufficient.
+
+  # ─────────────────────────────────────────────
+  # BACKEND
+  # ─────────────────────────────────────────────
+  backend:
+
+    - id: backend_api_style
+      step: 8
+      question: "What API style will your service expose?"
+      field: api_style
+      multiSelect: false
+      depends_on:
+        project_category: backend
+      options:
+        - id: rest
+          name: REST
+          description: Resource-oriented HTTP API with JSON. The universal standard understood by every client and toolchain. Best for public APIs.
+        - id: graphql
+          name: GraphQL
+          description: Schema-first API allowing clients to request exactly the data they need. Excellent for complex, relationship-heavy data with multiple client types.
+        - id: grpc
+          name: gRPC / Protobuf
+          description: High-performance binary protocol using Protocol Buffers. Ideal for internal service-to-service communication with strict contracts.
+        - id: trpc
+          name: tRPC
+          description: End-to-end type-safe API without a schema language. TypeScript types flow from server to client automatically. Full-stack TS monorepos only.
+        - id: event_driven
+          name: Event-Driven (no synchronous API)
+          description: Service communicates exclusively via events (Kafka, SQS, NATS). No HTTP API exposed — consumed as a producer/consumer.
+        - id: websocket
+          name: WebSocket / Real-Time
+          description: Persistent bidirectional connection for real-time data push. Used for chat, live dashboards, collaborative tools.
+
+    - id: backend_auth_strategy
+      step: 9
+      question: "What authentication strategy will this service use?"
+      field: auth_strategy
+      multiSelect: false
+      depends_on:
+        project_category: backend
+      options:
+        - id: jwt_bearer
+          name: JWT Bearer Token
+          description: Stateless authentication via signed JWTs in the Authorization header. Verify tokens locally using JWKS endpoint.
+        - id: api_key
+          name: API Key
+          description: Simple key-based auth for developer/service APIs. Easy to implement, easy to rotate. Stored in headers or query params.
+        - id: oauth2_oidc
+          name: OAuth 2.0 / OIDC
+          description: Delegated authorization standard for acting on behalf of users. Use when integrating with third-party identity providers.
+        - id: session_cookie
+          name: Session Cookie
+          description: Server-side sessions with HttpOnly cookies. Stateful — requires session store (Redis). Best for browser-facing services.
+        - id: mtls
+          name: mTLS (Mutual TLS)
+          description: Certificate-based mutual authentication for service-to-service. Zero-trust network communication with no shared secrets.
+        - id: service_account
+          name: Service Account / IAM Role
+          description: Cloud IAM-based auth (AWS IAM, GCP Service Account). No credentials in code — identity comes from the runtime environment.
+        - id: no_auth
+          name: No Authentication (internal only)
+          description: Service is only accessible within a private network or VPC. No public-facing auth required.
+
+    - id: backend_message_queue
+      step: 10
+      question: "Do you need a message queue or event streaming system?"
+      field: message_queue
+      multiSelect: false
+      depends_on:
+        project_category: backend
+      options:
+        - id: kafka
+          name: Apache Kafka
+          description: Distributed event streaming platform for high-throughput, durable, replayable event logs. The standard for event-driven microservices at scale.
+        - id: rabbitmq
+          name: RabbitMQ
+          description: Message broker supporting complex routing (exchanges, queues, bindings). Excellent for task queues, fanout, and dead-letter patterns.
+        - id: sqs
+          name: AWS SQS
+          description: Fully managed AWS message queue. FIFO and standard queues with at-least-once delivery. Native to the AWS serverless ecosystem.
+        - id: bullmq
+          name: BullMQ (Redis-backed)
+          description: Feature-rich Node.js job queue backed by Redis. Supports priorities, delays, repeatable jobs, and job dependencies.
+        - id: nats
+          name: NATS
+          description: Lightweight, high-performance messaging system. Supports pub/sub, request/reply, and JetStream for persistent queuing.
+        - id: google_pubsub
+          name: Google Pub/Sub
+          description: Fully managed GCP messaging service with push and pull delivery. Native to the GCP ecosystem.
+        - id: no_queue
+          name: No Message Queue
+          description: Synchronous service with no async messaging needs. All operations are handled in-process or via direct HTTP calls.
+
+    - id: backend_orm_choice
+      step: 11
+      question: "Which ORM or query builder will you use?"
+      field: orm_choice
+      multiSelect: false
+      depends_on:
+        project_category: backend
+      options:
+        - id: prisma
+          name: Prisma
+          description: Next-generation ORM with a declarative schema language, auto-generated type-safe client, and Prisma Studio GUI. The most popular choice for TypeScript backends.
+        - id: drizzle
+          name: Drizzle ORM
+          description: Lightweight TypeScript ORM with a SQL-like query builder and zero-overhead type inference. Supports all major SQL dialects including edge runtimes.
+        - id: typeorm
+          name: TypeORM
+          description: Decorator-based ORM for TypeScript supporting Active Record and Data Mapper patterns. Mature with broad database support.
+        - id: sequelize
+          name: Sequelize
+          description: Mature, promise-based Node.js ORM with a large ecosystem. The classic choice for Node.js backends before TypeScript became dominant.
+        - id: sqlalchemy
+          name: SQLAlchemy (Python)
+          description: Python's most powerful ORM with a sophisticated query API, Core expression language, and Alembic for migrations.
+        - id: django_orm
+          name: Django ORM (Python)
+          description: Django's built-in ORM. Batteries-included with migrations, admin, and querysets. Works only within the Django ecosystem.
+        - id: gorm
+          name: GORM (Go)
+          description: Full-featured ORM for Go with associations, hooks, and migrations. The standard ORM choice for Go backends.
+        - id: hibernate
+          name: Hibernate / Spring Data JPA (Java/Kotlin)
+          description: JPA-based ORM for Java and Kotlin. The standard for Spring Boot applications with rich relationship mapping.
+        - id: raw_sql
+          name: Raw SQL (no ORM)
+          description: Direct SQL queries with a lightweight query builder (slonik, pgtyped, sqlc). Full SQL control with type-safe query generation.
+
+    - id: backend_logging_strategy
+      step: 12
+      question: "What logging and observability strategy will you use?"
+      field: logging_strategy
+      multiSelect: true
+      depends_on:
+        project_category: backend
+      options:
+        - id: structured_logs
+          name: Structured Logging (JSON)
+          description: Emit logs as JSON objects with consistent fields (level, timestamp, requestId, userId). Required for log aggregation and search.
+        - id: opentelemetry
+          name: OpenTelemetry (traces + metrics)
+          description: Vendor-neutral observability framework. Instrument once, export to Datadog, Jaeger, Tempo, or any OTEL-compatible backend.
+        - id: datadog
+          name: Datadog APM
+          description: Full-stack observability platform with APM, log management, infrastructure metrics, and alerting.
+        - id: sentry
+          name: Sentry (error tracking)
+          description: Error monitoring with stack traces, release tracking, and performance monitoring.
+        - id: cloudwatch
+          name: AWS CloudWatch
+          description: AWS-native logging, metrics, and alarms. Zero setup for Lambda and ECS workloads in the AWS ecosystem.
+        - id: pino
+          name: Pino / Winston (Node.js)
+          description: Fast, low-overhead structured logger for Node.js. Pino is the highest-performance option; Winston has more transport options.
+        - id: basic_console
+          name: Console Logging (prototype only)
+          description: Simple console.log / print statements. Appropriate only for early prototypes with no production requirements.
+
+  # ─────────────────────────────────────────────
+  # DESKTOP
+  # ─────────────────────────────────────────────
+  desktop:
+
+    - id: desktop_framework
+      step: 8
+      question: "Which desktop application framework will you use?"
+      field: desktop_framework
+      multiSelect: false
+      depends_on:
+        project_category: desktop
+      options:
+        - id: tauri
+          name: Tauri
+          description: Lightweight desktop apps with a native WebView frontend and a Rust backend. Ships 5-20x smaller binaries than Electron with better memory usage.
+        - id: electron
+          name: Electron
+          description: Battle-tested cross-platform desktop framework using Chromium and Node.js. Massive ecosystem, mature tooling, and used by VS Code, Slack, and Figma.
+        - id: swiftui
+          name: SwiftUI (macOS native)
+          description: Apple's declarative UI framework for native macOS apps. Best performance and deepest Apple platform integration.
+        - id: wpf_winui
+          name: WPF / WinUI 3 (Windows native)
+          description: Microsoft's native Windows UI frameworks. WPF for mature apps; WinUI 3 for modern Windows 11 design and packaging.
+        - id: maui
+          name: .NET MAUI
+          description: Microsoft's cross-platform native UI framework for Windows, macOS, iOS, and Android with a single .NET codebase.
+        - id: qt
+          name: Qt (C++ / QML)
+          description: Mature, high-performance cross-platform framework for C++ applications. Industry standard for embedded UIs, industrial apps, and performance-critical desktop tools.
+        - id: gtk
+          name: GTK (Linux-first)
+          description: The GNOME toolkit for native Linux desktop apps. Also runs on macOS and Windows. Used by GIMP, Inkscape, and other major Linux apps.
+        - id: flutter_desktop
+          name: Flutter Desktop
+          description: Google's Flutter framework extended to Windows, macOS, and Linux. Pixel-perfect custom UIs with a single Dart codebase.
+
+    - id: desktop_distribution_channel
+      step: 9
+      question: "How will you distribute the desktop application?"
+      field: distribution_channel
+      multiSelect: true
+      depends_on:
+        project_category: desktop
+      options:
+        - id: mac_app_store
+          name: Mac App Store
+          description: Apple's curated macOS marketplace. Requires sandboxing and notarization. Provides automatic updates and billing.
+        - id: microsoft_store
+          name: Microsoft Store
+          description: Windows app marketplace. Supports MSIX packages. Lower friction than Mac App Store for Win32 apps.
+        - id: direct_download
+          name: Direct Download (website)
+          description: Self-hosted download from your website. Full control over packaging format (dmg, exe, AppImage, deb, rpm).
+        - id: homebrew
+          name: Homebrew / Chocolatey / Winget
+          description: Package manager distribution for developer tools. Homebrew (macOS/Linux), Chocolatey/Winget (Windows).
+        - id: github_releases
+          name: GitHub Releases
+          description: Upload built artifacts to GitHub Releases. Simple, free, and integrated with your existing CI/CD pipeline.
+        - id: snap_flatpak
+          name: Snap / Flatpak (Linux)
+          description: Universal Linux packaging formats that work across distributions without manual .deb/.rpm packaging.
+
+    - id: desktop_auto_update
+      step: 10
+      question: "How will the app deliver updates to users?"
+      field: auto_update
+      multiSelect: false
+      depends_on:
+        project_category: desktop
+      options:
+        - id: tauri_updater
+          name: Tauri Updater (built-in)
+          description: Tauri's built-in update mechanism checking a JSON endpoint for new versions and downloading delta or full updates.
+        - id: electron_updater
+          name: electron-updater (auto-updater)
+          description: The standard Electron auto-update library backed by GitHub Releases, S3, or a custom server.
+        - id: sparkle
+          name: Sparkle (macOS native)
+          description: The standard macOS app update framework used by nearly all non-App Store Mac apps.
+        - id: winsparkle
+          name: WinSparkle (Windows native)
+          description: Windows counterpart to Sparkle for native Win32/WPF applications.
+        - id: store_managed
+          name: Store-Managed Updates
+          description: Let the Mac App Store or Microsoft Store handle update distribution and installation automatically.
+        - id: manual
+          name: Manual Update (user downloads)
+          description: No automatic update mechanism. Users must manually download and install new versions.
+
+    - id: desktop_native_api_needs
+      step: 11
+      question: "Which native OS APIs does your app need?"
+      field: native_api_needs
+      multiSelect: true
+      depends_on:
+        project_category: desktop
+      options:
+        - id: file_system
+          name: File System Access
+          description: Read, write, and watch files and directories on the user's file system beyond the app sandbox.
+        - id: system_tray
+          name: System Tray / Menu Bar Icon
+          description: Persistent icon in the OS system tray or macOS menu bar for background apps and quick access.
+        - id: global_hotkeys
+          name: Global Keyboard Shortcuts
+          description: Register keyboard shortcuts that work system-wide even when the app is not focused.
+        - id: notifications
+          name: OS Notifications
+          description: Send native OS notifications that appear in the notification center (macOS Notification Center, Windows Action Center).
+        - id: clipboard
+          name: Clipboard Access
+          description: Read from and write to the system clipboard for copy/paste integration.
+        - id: shell_integration
+          name: Shell / CLI Integration
+          description: Register file associations, URI schemes, or shell commands so the app can be invoked from the terminal or file manager.
+        - id: ipc_sockets
+          name: IPC / Named Pipes
+          description: Communicate with other local processes or daemon services via Unix domain sockets or Windows named pipes.
+        - id: hardware_access
+          name: Hardware Access (USB / Serial / HID)
+          description: Connect to USB devices, serial ports, or HID peripherals (game controllers, drawing tablets, external hardware).
+
+  # ─────────────────────────────────────────────
+  # GAME
+  # ─────────────────────────────────────────────
+  game:
+
+    - id: game_engine
+      step: 8
+      question: "Which game engine will you use?"
+      field: game_engine
+      multiSelect: false
+      depends_on:
+        project_category: game
+      options:
+        - id: godot
+          name: Godot Engine
+          description: Free, open-source engine for 2D and 3D games. GDScript or C# scripting. No royalties, active community, great for indie games.
+        - id: unity
+          name: Unity
+          description: The most widely used game engine. Excellent for mobile, 2D, 3D, VR/AR. C# scripting, massive asset store, industry-standard tooling.
+        - id: unreal
+          name: Unreal Engine 5
+          description: Epic's AAA-grade engine with Nanite, Lumen, and Blueprints. C++ and visual scripting. Best-in-class visuals for 3D and open-world games.
+        - id: phaser
+          name: Phaser (TypeScript / web)
+          description: Fast 2D HTML5 game framework for browser games. TypeScript, Canvas/WebGL rendering. Ideal for web-deployed casual and mobile web games.
+        - id: bevy
+          name: Bevy (Rust)
+          description: Data-driven game engine built in Rust with an ECS architecture. High performance, no GC pauses. Emerging choice for systems-minded developers.
+        - id: pygame
+          name: Pygame (Python)
+          description: Python game development library. Accessible and beginner-friendly. Suitable for 2D games and game jam projects.
+        - id: custom
+          name: Custom Engine / Framework
+          description: Building a custom engine or renderer from scratch (OpenGL, Vulkan, DirectX). Maximum control for specialized or research-oriented projects.
+
+    - id: game_systems
+      step: 9
+      question: "Which game systems will your game include?"
+      field: game_systems
+      multiSelect: true
+      depends_on:
+        project_category: game
+      options:
+        - id: inventory
+          name: Inventory System
+          description: Item storage, stacking, equipment slots, and drag-and-drop inventory UI.
+        - id: dialog
+          name: Dialog / Narrative System
+          description: Branching conversations, cutscenes, and story event triggers with speaker portraits and choice UI.
+        - id: quest
+          name: Quest / Mission System
+          description: Track player objectives, completion states, rewards, and quest chains.
+        - id: crafting
+          name: Crafting System
+          description: Combine items or resources to create new items with recipes, queues, and progression gating.
+        - id: combat
+          name: Combat System
+          description: Health, damage, abilities, hit detection, and combat feedback (screen shake, VFX, audio).
+        - id: physics
+          name: Custom Physics / Movement
+          description: Specialized physics behavior beyond engine defaults (platformer coyote time, character controllers, water, cloth).
+        - id: ai_behavior
+          name: Enemy AI / Behavior Trees
+          description: NPC decision-making via behavior trees, state machines, or utility AI for patrol, chase, and attack patterns.
+        - id: procedural_gen
+          name: Procedural Generation
+          description: Algorithmic level, dungeon, terrain, or content generation for replayability.
+        - id: save_system
+          name: Save / Load System
+          description: Serialize and persist game state to disk with multiple save slots, autosave, and cloud save support.
+        - id: economy
+          name: Economy / Progression System
+          description: In-game currency, XP, level gates, skill trees, and unlockables.
+        - id: leaderboard
+          name: Leaderboard / Achievements
+          description: Score tracking, global/local leaderboards, and platform achievement integration (Steam, Game Center, Play Games).
+
+    - id: game_multiplayer
+      step: 10
+      question: "Does your game require multiplayer networking?"
+      field: multiplayer
+      multiSelect: false
+      depends_on:
+        project_category: game
+      options:
+        - id: none
+          name: Single-Player Only
+          description: No networking required. Fully offline single-player experience.
+        - id: local_coop
+          name: Local Co-op / Split Screen
+          description: Multiple players on the same device. No networking — just input mapping and split-screen rendering.
+        - id: online_coop
+          name: Online Co-op
+          description: Players collaborate over the internet with a shared game state. Requires server-authoritative or peer-to-peer networking.
+        - id: pvp_competitive
+          name: Online PvP / Competitive
+          description: Skill-based competitive play with matchmaking, anti-cheat, and ranked systems.
+        - id: mmo_persistent
+          name: MMO / Persistent World
+          description: Large-scale persistent online world with many concurrent players, server-side simulation, and cross-session state.
+        - id: async_multiplayer
+          name: Async / Turn-Based Multiplayer
+          description: Players take turns without needing to be online simultaneously. Suitable for strategy and puzzle games.
+
+    - id: game_monetization
+      step: 11
+      question: "What monetization model will the game use?"
+      field: monetization
+      multiSelect: true
+      depends_on:
+        project_category: game
+      options:
+        - id: premium
+          name: Premium (one-time purchase)
+          description: Players pay once to own the full game. No ongoing monetization complexity. Standard for PC/console games.
+        - id: iap_cosmetics
+          name: In-App Purchases (cosmetics only)
+          description: Sell optional cosmetic items (skins, emotes) without affecting gameplay balance. Player-friendly monetization.
+        - id: iap_consumables
+          name: In-App Purchases (consumables / gacha)
+          description: Sell consumable items, currency bundles, or gacha pulls. High revenue potential but requires careful fairness design.
+        - id: subscription
+          name: Subscription (battle pass / season pass)
+          description: Monthly or seasonal subscription for exclusive content and progression. Common in live-service games.
+        - id: ads
+          name: Ads (rewarded / interstitial)
+          description: Ad-based monetization for free mobile games. Rewarded ads exchange watch time for in-game rewards.
+        - id: free_to_play
+          name: Free to Play (no monetization)
+          description: Fully free with no monetization. Open-source, game jam, or portfolio project.
+
+  # ─────────────────────────────────────────────
+  # CLI
+  # ─────────────────────────────────────────────
+  cli:
+
+    - id: cli_package_manager
+      step: 8
+      question: "What package manager will you use for the CLI project?"
+      field: package_manager
+      multiSelect: false
+      depends_on:
+        project_category: cli
+      options:
+        - id: cargo
+          name: Cargo (Rust)
+          description: Rust's official package manager and build system. Ideal for performant, distributable CLI binaries.
+        - id: go_modules
+          name: Go Modules
+          description: Go's built-in module system. Single static binary output with no runtime dependency. Great for distributable CLIs.
+        - id: npm_pnpm
+          name: npm / pnpm (Node.js / TypeScript)
+          description: JavaScript ecosystem package management. Use tsx for TypeScript execution or compile with tsup/esbuild.
+        - id: pip_uv
+          name: pip / uv (Python)
+          description: Python package management. uv is the modern, fast alternative to pip+venv. Python CLIs are easy to write but require a runtime.
+        - id: bundler
+          name: Bundler (Ruby)
+          description: Ruby's package manager via Gemfile. Publish as a Ruby gem for the Ruby ecosystem.
+
+    - id: cli_distribution
+      step: 9
+      question: "How will users install the CLI?"
+      field: distribution
+      multiSelect: true
+      depends_on:
+        project_category: cli
+      options:
+        - id: npm
+          name: npm / npx (Node.js ecosystem)
+          description: Publish to npm registry. Users install globally with npm install -g or run without installing via npx.
+        - id: cargo_crates
+          name: crates.io (Rust ecosystem)
+          description: Publish to the Rust package registry. Users install with cargo install. Compiles from source on the user's machine.
+        - id: homebrew
+          name: Homebrew (macOS / Linux)
+          description: Create a Homebrew formula or tap. Users install with brew install. Pre-compiled bottles for fast installation.
+        - id: binary_releases
+          name: Pre-compiled Binary (GitHub Releases)
+          description: Upload platform-specific binaries to GitHub Releases. Use goreleaser (Go) or cargo-dist (Rust) to automate cross-compilation.
+        - id: apt_deb
+          name: apt / .deb (Debian / Ubuntu)
+          description: Debian package for Linux users. Integrate with apt repositories for automatic updates.
+        - id: winget_choco
+          name: winget / Chocolatey (Windows)
+          description: Windows package managers for discoverability and installation in Windows environments.
+        - id: pip_pypi
+          name: pip / PyPI (Python ecosystem)
+          description: Publish to PyPI. Users install with pip install or pipx install (isolated virtual environment).
+        - id: docker_image
+          name: Docker Image
+          description: Ship the CLI as a Docker image. Zero install friction; works on any platform with Docker. Common for DevOps tooling.
+
+    - id: cli_interactive_mode
+      step: 10
+      question: "Will the CLI have an interactive mode or TUI?"
+      field: interactive_mode
+      multiSelect: false
+      depends_on:
+        project_category: cli
+      options:
+        - id: full_tui
+          name: Full TUI (Terminal UI)
+          description: Rich terminal interface with panels, tables, scrolling, and key bindings. Built with Ratatui (Rust), Bubble Tea (Go), or Textual (Python).
+        - id: interactive_prompts
+          name: Interactive Prompts
+          description: Step-by-step prompts asking the user questions (like a wizard). Built with Inquirer.js, Clack, or Inquirer (Python).
+        - id: non_interactive
+          name: Non-Interactive (flags only)
+          description: All input via command-line flags and arguments. No interactive prompts. Ideal for scripts and CI environments.
+        - id: mixed
+          name: Mixed (prompts when flags are missing)
+          description: Use flags when provided; fall back to interactive prompts for missing required values. Best UX for user-facing CLIs.
+
+  # ─────────────────────────────────────────────
+  # DATA / ML / AI
+  # ─────────────────────────────────────────────
+  data:
+
+    - id: data_ml_framework
+      step: 8
+      question: "Which ML or data framework will you use?"
+      field: ml_framework
+      multiSelect: false
+      depends_on:
+        project_category: data
+      options:
+        - id: pytorch
+          name: PyTorch
+          description: Facebook's dynamic computation graph framework. The dominant choice for research, fine-tuning LLMs, and production model training.
+        - id: tensorflow
+          name: TensorFlow / Keras
+          description: Google's production ML framework. Keras provides a high-level API; TF Serving for production deployment.
+        - id: sklearn
+          name: scikit-learn
+          description: The go-to library for classical ML algorithms (regression, classification, clustering, preprocessing). Pure Python, no GPU required.
+        - id: jax
+          name: JAX
+          description: Google's NumPy-compatible array library with automatic differentiation and JIT compilation. Used for cutting-edge ML research.
+        - id: huggingface
+          name: Hugging Face Transformers
+          description: The standard library for working with pre-trained transformer models (BERT, GPT, LLaMA, Mistral, etc.) with a unified API.
+        - id: langchain
+          name: LangChain / LangGraph
+          description: Framework for building LLM-powered applications with chains, agents, memory, and tool use. LangGraph for multi-agent graph workflows.
+        - id: llamaindex
+          name: LlamaIndex
+          description: Data framework for LLM applications, specializing in RAG (ingestion, indexing, querying) over custom data sources.
+        - id: spark
+          name: Apache Spark
+          description: Distributed data processing engine for large-scale ETL, ML (MLlib), and analytics. PySpark is the Python API.
+        - id: dbt
+          name: dbt (data build tool)
+          description: SQL-first transformation framework for building analytics-ready data models in data warehouses (BigQuery, Snowflake, Redshift).
+        - id: polars
+          name: Polars (Python / Rust)
+          description: Blazing-fast DataFrame library written in Rust. The modern alternative to Pandas for large dataset processing.
+        - id: pandas
+          name: Pandas
+          description: The ubiquitous Python data manipulation library. Ideal for small-to-medium datasets and exploratory data analysis.
+
+    - id: data_source
+      step: 9
+      question: "What are the primary data sources for this project?"
+      field: data_source
+      multiSelect: true
+      depends_on:
+        project_category: data
+      options:
+        - id: relational_db
+          name: Relational Database (PostgreSQL / MySQL)
+          description: Structured data from a SQL database accessed via JDBC, SQLAlchemy, or direct SQL queries.
+        - id: data_warehouse
+          name: Data Warehouse (BigQuery / Snowflake / Redshift)
+          description: Analytical queries over large historical datasets stored in a cloud data warehouse.
+        - id: object_storage
+          name: Object Storage (S3 / GCS / Azure Blob)
+          description: Files in CSV, Parquet, JSON, or Avro format stored in cloud object storage.
+        - id: streaming
+          name: Streaming (Kafka / Kinesis / Pub/Sub)
+          description: Real-time event streams from a message broker requiring continuous ingestion.
+        - id: apis
+          name: Third-Party APIs
+          description: External REST or GraphQL APIs (social media, financial data, weather, etc.) as data sources.
+        - id: web_scraping
+          name: Web Scraping
+          description: Extracting structured data from websites using scrapers (BeautifulSoup, Scrapy, Playwright).
+        - id: iot_sensors
+          name: IoT / Sensor Data
+          description: Time-series data from physical sensors, devices, or telemetry streams.
+        - id: documents
+          name: Documents (PDF / Word / HTML)
+          description: Unstructured text from documents for NLP, summarization, or RAG pipelines.
+        - id: images_video
+          name: Images / Video
+          description: Visual media for computer vision, object detection, or multi-modal AI models.
+
+    - id: data_pipeline_orchestrator
+      step: 10
+      question: "Which pipeline orchestration tool will you use?"
+      field: pipeline_orchestrator
+      multiSelect: false
+      depends_on:
+        project_category: data
+      options:
+        - id: airflow
+          name: Apache Airflow
+          description: The most widely adopted workflow orchestrator. DAG-based scheduling with a rich UI, hundreds of operators, and a large community.
+        - id: prefect
+          name: Prefect
+          description: Modern Python-native orchestration with a clean API, Prefect Cloud for observability, and dynamic workflow support.
+        - id: dagster
+          name: Dagster
+          description: Asset-centric orchestration framework that models pipelines as software-defined assets. Excellent for data platform teams.
+        - id: temporal
+          name: Temporal
+          description: Durable workflow engine for long-running, fault-tolerant workflows. Used for both data pipelines and application workflows.
+        - id: github_actions
+          name: GitHub Actions (simple schedules)
+          description: Use GitHub Actions cron triggers for simple scheduled batch jobs. No additional orchestration tool needed.
+        - id: no_orchestrator
+          name: No Orchestrator (ad-hoc scripts)
+          description: Run scripts manually or via simple cron. Appropriate for one-off migrations or research notebooks.
+
+    - id: data_model_serving
+      step: 11
+      question: "How will the ML model be served for inference?"
+      field: model_serving
+      multiSelect: false
+      depends_on:
+        project_category: data
+      options:
+        - id: fastapi
+          name: FastAPI (custom inference server)
+          description: Build a custom inference API with FastAPI. Full control over request handling, batching, and pre/post-processing.
+        - id: triton
+          name: NVIDIA Triton Inference Server
+          description: High-performance inference server supporting TensorRT, ONNX, TensorFlow, and PyTorch. Optimized for GPU serving at scale.
+        - id: torchserve
+          name: TorchServe
+          description: PyTorch's official model serving framework with A/B testing, model versioning, and REST/gRPC endpoints.
+        - id: tf_serving
+          name: TensorFlow Serving
+          description: TensorFlow's production serving system. Highly optimized for TF SavedModel format with versioning and batching.
+        - id: bentoml
+          name: BentoML
+          description: Unified model serving framework supporting all major ML frameworks. Build portable "Bentos" for any deployment target.
+        - id: ollama
+          name: Ollama (local LLM serving)
+          description: Run open-source LLMs locally with a simple API compatible with the OpenAI client. Ideal for development and privacy-first deployments.
+        - id: openai_api
+          name: OpenAI / Anthropic API (managed)
+          description: Use a managed LLM API without hosting your own model. Pay per token; no infrastructure to manage.
+        - id: sagemaker
+          name: AWS SageMaker Endpoints
+          description: Fully managed model hosting on AWS with auto-scaling, A/B testing, and built-in monitoring.
+        - id: vertex_ai
+          name: Google Vertex AI Prediction
+          description: Managed model serving on GCP with AutoML, custom containers, and online/batch prediction.
+        - id: no_serving
+          name: Batch Inference Only
+          description: No real-time serving — models are run on batches of data on a schedule. No live prediction endpoint required.
+
+  # ─────────────────────────────────────────────
+  # IOT
+  # ─────────────────────────────────────────────
+  iot:
+
+    - id: iot_communication_protocol
+      step: 8
+      question: "Which communication protocol will devices use?"
+      field: communication_protocol
+      multiSelect: true
+      depends_on:
+        project_category: iot
+      options:
+        - id: mqtt
+          name: MQTT
+          description: Lightweight pub/sub protocol designed for constrained devices. The dominant IoT protocol for telemetry and command delivery.
+        - id: coap
+          name: CoAP
+          description: Constrained Application Protocol — UDP-based REST-like protocol for very low-power devices with minimal overhead.
+        - id: http_rest
+          name: HTTP / REST
+          description: Standard HTTP for devices with sufficient resources. Simple to implement and debug but higher power consumption.
+        - id: ble
+          name: Bluetooth Low Energy (BLE)
+          description: Short-range wireless protocol for wearables, beacons, and local device communication with minimal power draw.
+        - id: zigbee
+          name: Zigbee
+          description: Low-power mesh networking protocol for home automation and industrial sensor networks.
+        - id: lorawan
+          name: LoRaWAN
+          description: Long-range, low-power WAN protocol for IoT devices in remote or wide-area deployments (agriculture, smart cities, utilities).
+        - id: modbus
+          name: Modbus (RS-485 / TCP)
+          description: Serial communication protocol dominant in industrial automation (PLCs, SCADA, energy meters). RTU for serial, TCP for Ethernet.
+        - id: opcua
+          name: OPC-UA
+          description: Industrial IoT standard for secure, platform-independent machine-to-machine communication. Used in manufacturing and Industry 4.0.
+        - id: websocket
+          name: WebSocket
+          description: Persistent bidirectional TCP connection for devices with network access needing real-time command delivery.
+
+    - id: iot_edge_runtime
+      step: 9
+      question: "Which edge runtime or RTOS will the device use?"
+      field: edge_runtime
+      multiSelect: false
+      depends_on:
+        project_category: iot
+      options:
+        - id: freertos
+          name: FreeRTOS
+          description: The most widely deployed RTOS for microcontrollers. Supports task scheduling, queues, semaphores, and a huge hardware ecosystem.
+        - id: zephyr
+          name: Zephyr RTOS
+          description: Open-source, scalable RTOS supported by the Linux Foundation. Strong hardware abstraction layer and built-in networking stacks.
+        - id: embassy
+          name: Embassy (Rust async embedded)
+          description: Modern async/await embedded framework in Rust. Type-safe hardware abstraction with no OS overhead. Growing community.
+        - id: esp_idf
+          name: ESP-IDF (Espressif)
+          description: Official IoT Development Framework for ESP32 chips. FreeRTOS-based with Wi-Fi, Bluetooth, and a rich peripheral driver library.
+        - id: arduino
+          name: Arduino Framework
+          description: Beginner-friendly embedded framework abstracting hardware into simple setup()/loop() patterns. Supports many microcontrollers via PlatformIO.
+        - id: micropython
+          name: MicroPython / CircuitPython
+          description: Python interpreter running on microcontrollers. Fastest prototyping path for hardware with sufficient resources (ESP32, RP2040).
+        - id: linux_embedded
+          name: Embedded Linux (Yocto / Buildroot)
+          description: Full Linux on capable hardware (Raspberry Pi, i.MX). Supports standard Linux networking, drivers, and application software.
+        - id: aws_greengrass
+          name: AWS IoT Greengrass
+          description: AWS edge runtime extending AWS Lambda and services to local devices. Runs on Linux hardware with sufficient resources.
+        - id: azure_iot_edge
+          name: Azure IoT Edge
+          description: Microsoft's edge runtime deploying Docker container workloads and cloud logic to gateway devices.
+        - id: balena
+          name: Balena
+          description: Container-based edge platform for Linux devices. Git-push deployment of Docker containers to a managed fleet.
+
+    - id: iot_sensor_types
+      step: 10
+      question: "What sensor or data types will the device handle?"
+      field: sensor_types
+      multiSelect: true
+      depends_on:
+        project_category: iot
+      options:
+        - id: temperature_humidity
+          name: Temperature / Humidity
+          description: Environmental sensors (DHT22, SHT31, BME280). Common in weather stations, HVAC, cold chain monitoring.
+        - id: gps_location
+          name: GPS / Location
+          description: GNSS modules for tracking assets, vehicles, or field devices. Outputs latitude, longitude, altitude, and speed.
+        - id: accelerometer_imu
+          name: Accelerometer / IMU / Gyroscope
+          description: Motion sensors for orientation, vibration detection, fall detection, and gesture recognition.
+        - id: gas_air_quality
+          name: Gas / Air Quality (CO2, VOC, particulate)
+          description: Environmental quality sensors for pollution monitoring, HVAC control, and safety systems.
+        - id: pressure_altitude
+          name: Pressure / Altitude / Barometric
+          description: Barometric pressure sensors for weather monitoring, altitude measurement, and fluid pressure in industrial systems.
+        - id: optical_camera
+          name: Optical / Camera
+          description: Image sensors for computer vision, QR code scanning, face detection, or general image capture.
+        - id: power_energy
+          name: Power / Energy (current, voltage, power)
+          description: Current transformers and voltage sensors for energy monitoring, smart metering, and electrical fault detection.
+        - id: proximity_lidar
+          name: Proximity / LiDAR / Ultrasonic
+          description: Distance measurement sensors for obstacle detection, occupancy sensing, and level measurement.
+        - id: biometric
+          name: Biometric (heart rate, SpO2, ECG)
+          description: Medical-grade biometric sensors for health monitoring devices and wearable wellness products.
+        - id: custom_analog
+          name: Custom / Analog (ADC)
+          description: Raw analog signals read via ADC pins for custom sensor types not covered by standard sensor categories.
+
+    - id: iot_cloud_integration
+      step: 11
+      question: "How will devices connect to the cloud?"
+      field: cloud_integration
+      multiSelect: false
+      depends_on:
+        project_category: iot
+      options:
+        - id: aws_iot_core
+          name: AWS IoT Core
+          description: AWS managed MQTT broker with device shadows, rules engine, and seamless integration with Lambda, DynamoDB, and S3.
+        - id: azure_iot_hub
+          name: Azure IoT Hub
+          description: Microsoft's managed IoT message broker with device twins, direct methods, and integration with Azure Stream Analytics and Event Hubs.
+        - id: google_iot
+          name: Google Cloud IoT / Pub/Sub
+          description: Device registry and MQTT bridge feeding into Google Cloud Pub/Sub for downstream stream processing and BigQuery analytics.
+        - id: supabase_realtime
+          name: Supabase (Postgres + Realtime)
+          description: Store device telemetry directly in PostgreSQL via Supabase with real-time subscriptions for dashboards.
+        - id: influxdb
+          name: InfluxDB Cloud
+          description: Purpose-built time-series database for IoT sensor data with Flux query language and built-in dashboards.
+        - id: timescaledb
+          name: TimescaleDB (PostgreSQL time-series)
+          description: PostgreSQL extension for time-series data. Hypertables auto-partition by time for efficient sensor data storage.
+        - id: hivemq
+          name: HiveMQ Cloud
+          description: Enterprise MQTT broker platform with clustering, access control, and extensions for data persistence.
+        - id: emqx
+          name: EMQX Cloud
+          description: Scalable open-source MQTT broker available as managed cloud or self-hosted. Supports rule engine and data bridge.
+        - id: custom_backend
+          name: Custom Backend (self-hosted)
+          description: Build your own IoT ingestion backend with a custom MQTT broker (Mosquitto) and API. Full control, more infrastructure work.

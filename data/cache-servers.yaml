@@ -1,0 +1,196 @@
+# Cache Servers - caching layer options for the scaffolding wizard
+# Used by AI to filter/rank cache options based on project type and platform selection
+
+cache_servers:
+
+  - id: redis
+    name: Redis
+    type: in-memory
+    description: The industry-standard in-memory data store. Supports rich data structures (lists, sets, sorted sets, streams) and is used for caching, session storage, pub/sub, and rate limiting.
+    serverless_compatible: false
+    suitable_project_types:
+      - web
+      - backend
+      - mobile
+      - game
+      - data
+    use_cases:
+      - Session storage
+      - Application-level caching
+      - Rate limiting
+      - Leaderboards (sorted sets)
+      - Pub/Sub messaging
+      - Job queues (BullMQ, Sidekiq)
+      - Real-time analytics
+    deployment_options:
+      - Self-hosted (Docker / bare metal)
+      - AWS ElastiCache for Redis
+      - Google Cloud Memorystore
+      - Azure Cache for Redis
+      - Redis Cloud
+      - Upstash Redis (serverless-compatible via REST)
+      - Railway
+      - Render
+    free_tier: true
+    latency: sub-millisecond
+    persistence: optional (RDB snapshots / AOF)
+    clustering: Redis Cluster / Sentinel
+
+  - id: memcached
+    name: Memcached
+    type: in-memory
+    description: Simple, high-performance distributed memory caching system. Ideal for straightforward key-value caching with minimal overhead. Lacks persistence and advanced data structures.
+    serverless_compatible: false
+    suitable_project_types:
+      - web
+      - backend
+    use_cases:
+      - Object caching (database query results, rendered HTML fragments)
+      - Session storage (simple use cases)
+      - Reducing database load on read-heavy workloads
+    deployment_options:
+      - Self-hosted
+      - AWS ElastiCache for Memcached
+      - Google Cloud Memorystore for Memcached
+    free_tier: false
+    latency: sub-millisecond
+    persistence: none (volatile only)
+    clustering: client-side consistent hashing
+
+  - id: varnish
+    name: Varnish Cache
+    type: http-cache
+    description: High-performance HTTP reverse proxy cache designed to sit in front of web servers. Uses VCL (Varnish Configuration Language) for fine-grained cache control of HTTP responses.
+    serverless_compatible: false
+    suitable_project_types:
+      - web
+      - backend
+    use_cases:
+      - Full-page HTTP response caching
+      - API response caching
+      - Static asset acceleration
+      - Edge-side includes (ESI)
+      - Request collapsing (stampede protection)
+    deployment_options:
+      - Self-hosted (Linux)
+      - Varnish Enterprise (commercial)
+      - Fastly CDN (Varnish-based)
+    free_tier: true
+    latency: microseconds (memory-backed)
+    persistence: none (memory only)
+    clustering: multi-server with custom routing
+
+  - id: cloudflare_cdn
+    name: Cloudflare CDN
+    type: cdn
+    description: Global CDN and reverse proxy with smart caching at 300+ edge locations worldwide. Provides DDoS protection, WAF, and Workers for edge compute alongside HTTP caching.
+    serverless_compatible: true
+    suitable_project_types:
+      - web
+      - mobile
+      - backend
+    use_cases:
+      - Static asset delivery (JS, CSS, images)
+      - Full-page caching for public content
+      - API response caching at the edge
+      - Image optimization and resizing
+      - Edge-side logic with Cloudflare Workers
+    deployment_options:
+      - Cloudflare Free / Pro / Business / Enterprise
+    free_tier: true
+    latency: single-digit ms (edge PoP proximity)
+    persistence: edge-cached (configurable TTL)
+    clustering: global distributed (300+ PoPs)
+    cache_rules: Cache Rules, Page Rules, Workers Cache API
+
+  - id: fastly
+    name: Fastly CDN
+    type: cdn
+    description: Programmable CDN built on Varnish with real-time purging, VCL customization, and Compute@Edge for serverless logic. Favored by high-traffic media and API providers.
+    serverless_compatible: true
+    suitable_project_types:
+      - web
+      - backend
+    use_cases:
+      - High-traffic asset delivery
+      - Streaming media caching
+      - API response caching with instant purge
+      - Edge compute for A/B testing, auth, personalization
+      - Image optimization
+    deployment_options:
+      - Fastly Cloud (managed CDN)
+      - Fastly Compute@Edge (serverless)
+    free_tier: false
+    latency: single-digit ms (edge PoP proximity)
+    persistence: edge-cached (configurable TTL, instant purge)
+    clustering: global distributed (80+ PoPs)
+    cache_rules: VCL, Compute@Edge Rust/JS/Go
+
+  - id: upstash_redis
+    name: Upstash Redis
+    type: managed
+    description: Serverless Redis-compatible cache accessible via REST API. Designed for edge and serverless environments where persistent TCP connections are unavailable.
+    serverless_compatible: true
+    suitable_project_types:
+      - web
+      - backend
+      - mobile
+    use_cases:
+      - Edge-compatible caching (Cloudflare Workers, Vercel Edge)
+      - Rate limiting in serverless functions
+      - Session storage in serverless environments
+      - Feature flags and remote configuration
+    deployment_options:
+      - Upstash Cloud (fully managed, per-request billing)
+    free_tier: true
+    latency: low ms (REST round-trip to nearest region)
+    persistence: optional (enabled on paid plans)
+    clustering: global replication option
+    rest_api: true
+
+  - id: elasticache
+    name: AWS ElastiCache
+    type: managed
+    description: AWS-managed in-memory caching service supporting both Redis and Memcached. Deeply integrated with the AWS ecosystem for VPC networking, IAM auth, and CloudWatch monitoring.
+    serverless_compatible: false
+    suitable_project_types:
+      - backend
+      - web
+      - data
+    use_cases:
+      - Application caching for AWS-hosted workloads
+      - Session storage in multi-instance deployments
+      - Real-time leaderboards and counters
+      - Queue-backed job processing
+    deployment_options:
+      - AWS ElastiCache for Redis (Cluster Mode enabled/disabled)
+      - AWS ElastiCache for Memcached
+      - ElastiCache Serverless (auto-scaling, pay per use)
+    free_tier: true
+    latency: sub-millisecond (within VPC)
+    persistence: optional (Redis RDB/AOF)
+    clustering: Redis Cluster / Multi-AZ with auto-failover
+
+  - id: none
+    name: No Cache Layer
+    type: none
+    description: Rely on database-level caching (e.g., PostgreSQL shared_buffers, query cache) and application-level memoization without a dedicated cache server. Appropriate for early-stage or low-traffic projects.
+    serverless_compatible: true
+    suitable_project_types:
+      - web
+      - backend
+      - mobile
+      - cli
+      - desktop
+      - iot
+    use_cases:
+      - Early-stage projects with low traffic
+      - Projects where database query volume is not yet a bottleneck
+      - CLIs and desktop apps with no network caching needs
+      - Prototypes and MVPs
+    deployment_options:
+      - N/A
+    free_tier: true
+    latency: depends on database
+    persistence: N/A
+    clustering: N/A

@@ -1,0 +1,403 @@
+# Databases - serverless and non-serverless options for the scaffolding wizard
+# Used by AI to filter/rank database options based on project type and platform selection
+
+databases:
+
+  serverless:
+
+    - id: supabase
+      name: Supabase
+      type: sql
+      serverless: true
+      description: Open-source Firebase alternative built on PostgreSQL. Provides a full suite including auth, storage, edge functions, and real-time subscriptions alongside the database.
+      suitable_project_types:
+        - web
+        - mobile
+        - backend
+      managed_options:
+        - Supabase Cloud (managed)
+        - self-hosted (Docker)
+      free_tier: true
+      orm_support: [Prisma, Drizzle, Supabase JS client, PostgREST auto-API]
+      connection_model: connection-pooling (pgBouncer / Supavisor)
+      regions: [us-east-1, us-west-1, eu-west-1, ap-southeast-1, ap-northeast-1, sa-east-1]
+      notable_features:
+        - Row Level Security (RLS)
+        - Realtime subscriptions via logical replication
+        - Auto-generated REST and GraphQL APIs
+        - Built-in auth with social providers
+        - Edge Functions (Deno)
+        - Vector/pgvector support for AI workloads
+
+    - id: planetscale
+      name: PlanetScale
+      type: sql
+      serverless: true
+      description: MySQL-compatible serverless database platform built on Vitess. Known for branching workflows (database branches like Git branches) and horizontal sharding at scale.
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+      managed_options:
+        - PlanetScale Cloud (fully managed)
+      free_tier: true
+      orm_support: [Prisma, Drizzle, Hibernate, raw MySQL drivers]
+      connection_model: serverless HTTP driver / connection pooling
+      regions: [us-east, us-west, eu-west, ap-southeast, ap-northeast]
+      notable_features:
+        - Database branching (dev/staging branches)
+        - Non-blocking schema changes
+        - Vitess horizontal sharding
+        - Automatic failover
+        - Query insights and analytics
+
+    - id: neon
+      name: Neon
+      type: sql
+      serverless: true
+      description: Serverless PostgreSQL with autoscaling, database branching, and scale-to-zero. Designed to minimize costs for intermittent workloads while providing full Postgres compatibility.
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+      managed_options:
+        - Neon Cloud (fully managed)
+      free_tier: true
+      orm_support: [Prisma, Drizzle, TypeORM, SQLAlchemy, raw pg drivers]
+      connection_model: serverless HTTP driver / WebSocket pooler
+      regions: [us-east-1, us-west-2, eu-central-1, ap-southeast-1]
+      notable_features:
+        - Scale-to-zero (no idle cost)
+        - Database branching for CI/CD
+        - Autoscaling compute
+        - Point-in-time restore
+        - pgvector support
+
+    - id: turso
+      name: Turso
+      type: sql
+      serverless: true
+      description: Edge-native SQLite distributed database built on libSQL (a SQLite fork). Offers ultra-low latency reads by replicating data to hundreds of edge locations worldwide.
+      suitable_project_types:
+        - web
+        - mobile
+        - cli
+      managed_options:
+        - Turso Cloud (fully managed)
+      free_tier: true
+      orm_support: [Drizzle, raw libSQL client]
+      connection_model: HTTP and WebSocket (libSQL protocol)
+      regions: [global edge (500+ PoPs)]
+      notable_features:
+        - Edge replication (multi-region reads)
+        - Embedded replicas (local SQLite + remote sync)
+        - Per-tenant databases at low cost
+        - libSQL fork (extended SQLite)
+
+    - id: firebase_firestore
+      name: Firebase Firestore
+      type: document
+      serverless: true
+      description: Google's NoSQL document database with real-time sync, offline support, and seamless integration with Firebase Auth and other Google Cloud services.
+      suitable_project_types:
+        - mobile
+        - web
+        - game
+      managed_options:
+        - Google Firebase (fully managed)
+      free_tier: true
+      orm_support: [Firebase SDK (JS/iOS/Android/Flutter), admin SDK]
+      connection_model: SDK (WebSocket real-time) / REST API
+      regions: [multi-region (nam5, eur3) and single-region (30+ locations)]
+      notable_features:
+        - Real-time listeners (live data sync)
+        - Offline-first with local cache
+        - Security Rules for access control
+        - Automatic scaling
+        - Firebase Extensions
+
+    - id: dynamodb
+      name: AWS DynamoDB
+      type: nosql
+      serverless: true
+      description: AWS's fully managed key-value and document NoSQL database designed for single-digit millisecond latency at any scale. Native to the AWS serverless ecosystem.
+      suitable_project_types:
+        - backend
+        - mobile
+        - iot
+      managed_options:
+        - AWS DynamoDB (fully managed)
+        - DynamoDB Local (dev)
+      free_tier: true
+      orm_support: [AWS SDK, Dynamoose, ElectroDB, DynamoDB Toolbox]
+      connection_model: HTTP (AWS SDK)
+      regions: [all AWS regions]
+      notable_features:
+        - Single-digit ms latency at any scale
+        - On-demand and provisioned capacity modes
+        - DynamoDB Streams for change data capture
+        - Global Tables (multi-region active-active)
+        - PartiQL SQL-compatible query interface
+        - Point-in-time recovery
+
+    - id: faunadb
+      name: Fauna
+      type: document
+      serverless: true
+      description: Distributed document-relational database with a strong consistency model and a built-in GraphQL API. Designed for globally distributed apps with ACID transaction guarantees.
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+      managed_options:
+        - Fauna Cloud (fully managed)
+      free_tier: true
+      orm_support: [Fauna JS/Python/Go/Java/C# drivers, GraphQL API]
+      connection_model: HTTP API (FQL v10)
+      regions: [global distributed (multi-region by default)]
+      notable_features:
+        - Globally distributed ACID transactions
+        - Temporal queries (time-travel)
+        - Built-in GraphQL API
+        - Document-relational model
+        - No ops (fully serverless)
+
+    - id: upstash_redis
+      name: Upstash Redis
+      type: kv
+      serverless: true
+      description: Serverless Redis-compatible database with per-request pricing and a REST API. Perfect for caching, rate limiting, and session storage in serverless and edge environments.
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+      managed_options:
+        - Upstash Cloud (fully managed)
+      free_tier: true
+      orm_support: [Upstash Redis SDK, ioredis (with REST adapter), @vercel/kv]
+      connection_model: REST API / Redis protocol
+      regions: [us-east-1, us-west-1, eu-west-1, ap-southeast-1, ap-northeast-1]
+      notable_features:
+        - Per-request pricing (no idle cost)
+        - REST API for edge compatibility
+        - Global replication option
+        - Redis-compatible commands
+        - QStash (message queue companion)
+        - Rate limiting helpers
+
+  non_serverless:
+
+    - id: postgresql
+      name: PostgreSQL
+      type: sql
+      serverless: false
+      description: The world's most advanced open-source relational database. Battle-tested, feature-rich, and extensible—the default choice for most serious web and backend applications.
+      suitable_project_types:
+        - web
+        - backend
+        - desktop
+        - data
+      managed_options:
+        - AWS RDS / Aurora PostgreSQL
+        - Google Cloud SQL
+        - Azure Database for PostgreSQL
+        - Supabase (managed Postgres)
+        - Neon (serverless Postgres)
+        - Railway
+        - Render
+      free_tier: true
+      orm_support: [Prisma, Drizzle, TypeORM, Sequelize, SQLAlchemy, ActiveRecord, Hibernate]
+      connection_model: TCP (persistent connections / pgBouncer pooling)
+      regions: [all major cloud regions]
+      notable_features:
+        - ACID compliant
+        - JSONB for semi-structured data
+        - Full-text search
+        - PostGIS for geospatial data
+        - pgvector for vector similarity search
+        - Logical replication
+        - Row Level Security
+        - Rich extension ecosystem
+
+    - id: mysql
+      name: MySQL
+      type: sql
+      serverless: false
+      description: The world's most popular open-source relational database. Widely used in LAMP stacks and known for reliability, large ecosystem support, and broad hosting availability.
+      suitable_project_types:
+        - web
+        - backend
+      managed_options:
+        - AWS RDS MySQL / Aurora MySQL
+        - Google Cloud SQL for MySQL
+        - Azure Database for MySQL
+        - PlanetScale (MySQL-compatible)
+        - Railway
+        - Render
+      free_tier: true
+      orm_support: [Prisma, Drizzle, TypeORM, Sequelize, SQLAlchemy, ActiveRecord, Hibernate]
+      connection_model: TCP (persistent connections / ProxySQL pooling)
+      regions: [all major cloud regions]
+      notable_features:
+        - ACID compliant (InnoDB)
+        - Wide hosting availability
+        - MySQL Group Replication
+        - JSON data type
+        - Broad ORM support
+
+    - id: mongodb
+      name: MongoDB
+      type: document
+      serverless: false
+      description: The leading NoSQL document database. Stores data as flexible JSON-like documents, making it ideal for rapidly evolving schemas and hierarchical data structures.
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+        - data
+      managed_options:
+        - MongoDB Atlas (managed, includes serverless option)
+        - AWS DocumentDB (compatible)
+        - Azure Cosmos DB (compatible)
+        - Railway
+      free_tier: true
+      orm_support: [Mongoose, Prisma, Motor (async Python), Spring Data MongoDB]
+      connection_model: MongoDB Wire Protocol (TCP)
+      regions: [all major cloud regions via Atlas]
+      notable_features:
+        - Flexible document schema
+        - Aggregation pipeline
+        - Atlas Search (Lucene full-text)
+        - Change streams
+        - Time series collections
+        - Atlas Vector Search
+
+    - id: sqlite
+      name: SQLite
+      type: sql
+      serverless: false
+      description: Lightweight, file-based SQL database requiring zero configuration. Ideal for local development, testing, embedded applications, and single-user desktop tools.
+      suitable_project_types:
+        - desktop
+        - mobile
+        - cli
+        - iot
+      managed_options:
+        - Self-contained (no server)
+        - Turso (distributed libSQL)
+      free_tier: true
+      orm_support: [Drizzle, Prisma (via libSQL), better-sqlite3, SQLAlchemy, GORM]
+      connection_model: file system (embedded)
+      regions: [local / edge]
+      notable_features:
+        - Zero configuration
+        - Single file database
+        - Cross-platform
+        - ACID compliant
+        - Ideal for testing and prototypes
+        - WAL mode for concurrent reads
+
+    - id: mariadb
+      name: MariaDB
+      type: sql
+      serverless: false
+      description: Community-developed fork of MySQL with enhanced features, better performance, and stronger open-source commitment. Drop-in compatible with MySQL in most scenarios.
+      suitable_project_types:
+        - web
+        - backend
+      managed_options:
+        - AWS RDS MariaDB
+        - Google Cloud SQL for MariaDB
+        - MariaDB SkySQL (managed)
+        - Hostinger / shared hosting providers
+      free_tier: true
+      orm_support: [Prisma, TypeORM, Sequelize, SQLAlchemy, ActiveRecord, Hibernate]
+      connection_model: TCP (persistent connections)
+      regions: [all major cloud regions]
+      notable_features:
+        - MySQL-compatible
+        - Aria storage engine
+        - ColumnStore for analytics
+        - Galera Cluster (multi-master)
+        - Enhanced JSON functions
+
+    - id: cockroachdb
+      name: CockroachDB
+      type: sql
+      serverless: false
+      description: Distributed SQL database designed for global-scale applications with multi-region deployments, ACID transactions, and PostgreSQL wire compatibility.
+      suitable_project_types:
+        - backend
+        - web
+      managed_options:
+        - CockroachDB Serverless (managed)
+        - CockroachDB Dedicated (managed)
+        - self-hosted
+      free_tier: true
+      orm_support: [Prisma, Drizzle, GORM, SQLAlchemy, Hibernate (via Postgres driver)]
+      connection_model: PostgreSQL wire protocol
+      regions: [multi-region (AWS, GCP, Azure)]
+      notable_features:
+        - Distributed ACID transactions
+        - Horizontal sharding (auto)
+        - Multi-region active-active
+        - PostgreSQL-compatible
+        - Geo-partitioning for data residency
+
+    - id: redis
+      name: Redis
+      type: kv
+      serverless: false
+      description: In-memory data structure store used as a database, cache, and message broker. Extremely fast for session storage, leaderboards, pub/sub, queues, and real-time analytics.
+      suitable_project_types:
+        - backend
+        - web
+        - game
+        - data
+      managed_options:
+        - AWS ElastiCache for Redis
+        - Google Cloud Memorystore
+        - Azure Cache for Redis
+        - Redis Cloud (managed)
+        - Upstash Redis (serverless)
+        - Railway
+        - Render
+      free_tier: true
+      orm_support: [ioredis, redis (node), redis-py, Jedis, StackExchange.Redis, RESP3]
+      connection_model: Redis protocol (TCP)
+      regions: [all major cloud regions]
+      notable_features:
+        - Sub-millisecond latency
+        - Rich data structures (lists, sets, sorted sets, streams, hashes)
+        - Pub/Sub messaging
+        - Redis Streams for event sourcing
+        - Lua scripting
+        - Redis Search and JSON modules
+        - Cluster and Sentinel for HA
+
+    - id: cassandra
+      name: Apache Cassandra
+      type: nosql
+      serverless: false
+      description: Highly scalable, distributed wide-column NoSQL database designed for high write throughput and linear scalability across many nodes with no single point of failure.
+      suitable_project_types:
+        - backend
+        - data
+        - iot
+      managed_options:
+        - AWS Keyspaces (Cassandra-compatible)
+        - DataStax Astra DB (managed)
+        - Azure Managed Instance for Cassandra
+        - self-hosted
+      free_tier: true
+      orm_support: [cassandra-driver (JS/Python/Java/Go), DataStax drivers, Spring Data Cassandra]
+      connection_model: CQL binary protocol (TCP)
+      regions: [multi-datacenter (self-managed), all major cloud regions (managed)]
+      notable_features:
+        - Linear horizontal scalability
+        - Tunable consistency (CAP flexibility)
+        - High write throughput
+        - Multi-datacenter replication
+        - Time-to-live (TTL) on rows
+        - CQL (SQL-like query language)
+        - Ideal for time-series and IoT data

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "harness-marketplace",
+  "description": "Generate project-specific development pipeline harness skills via interactive scaffolding wizard. Supports web, mobile, backend, desktop, game, CLI, data/ML, and IoT project types.",
+  "owner": {
+    "name": "Book2Roy"
+  },
+  "plugins": [
+    {
+      "name": "harness-marketplace",
+      "description": "Interactive scaffolding wizard → project-config.yaml + plan/implement/verify skills + agents + guides. Hybrid generation: template structure + AI-generated specialists.",
+      "version": "0.1.0",
+      "source": "./",
+      "category": "productivity",
+      "tags": [
+        "harness",
+        "scaffolding",
+        "pipeline",
+        "project-setup",
+        "code-generation",
+        "multi-agent",
+        "development-workflow"
+      ]
+    }
+  ]
+}

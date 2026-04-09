@@ -1,0 +1,726 @@
+# Deployment Platforms - organized by category for the scaffolding wizard
+# Used by AI to filter/rank platform options based on project type, language, and serverless preference
+
+platforms:
+
+  cloud:
+
+    - id: aws
+      name: AWS (Amazon Web Services)
+      category: cloud
+      description: The largest cloud platform with the broadest service catalog. Offers compute (EC2, ECS, Lambda), managed databases, AI/ML services, and global infrastructure across 30+ regions.
+      serverless_support: true
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+        - data
+        - iot
+        - game
+      free_tier: true
+      regions:
+        - us-east-1 (N. Virginia)
+        - us-east-2 (Ohio)
+        - us-west-1 (N. California)
+        - us-west-2 (Oregon)
+        - eu-west-1 (Ireland)
+        - eu-central-1 (Frankfurt)
+        - ap-southeast-1 (Singapore)
+        - ap-northeast-1 (Tokyo)
+        - ap-south-1 (Mumbai)
+        - sa-east-1 (São Paulo)
+        - + 20 more
+      notable_services:
+        - EC2, ECS, EKS, Fargate
+        - Lambda, API Gateway, Step Functions
+        - RDS, DynamoDB, ElastiCache, S3
+        - CloudFront CDN
+        - SQS, SNS, EventBridge
+        - Bedrock (AI/ML)
+        - IoT Core
+      iac_tools: [AWS CDK, Terraform, CloudFormation, Pulumi, SST]
+
+    - id: gcp
+      name: GCP (Google Cloud Platform)
+      category: cloud
+      description: Google's cloud platform with strengths in Kubernetes (GKE), big data (BigQuery), AI/ML (Vertex AI), and global fiber networking. Competitive pricing with sustained use discounts.
+      serverless_support: true
+      suitable_project_types:
+        - web
+        - backend
+        - data
+        - mobile
+        - iot
+      free_tier: true
+      regions:
+        - us-central1 (Iowa)
+        - us-east1 (South Carolina)
+        - us-west1 (Oregon)
+        - europe-west1 (Belgium)
+        - europe-west4 (Netherlands)
+        - asia-east1 (Taiwan)
+        - asia-northeast1 (Tokyo)
+        - asia-southeast1 (Singapore)
+        - + 15 more
+      notable_services:
+        - Compute Engine, GKE, Cloud Run
+        - Cloud Functions, App Engine
+        - Cloud SQL, Firestore, BigQuery, Spanner
+        - Cloud Storage, Cloud CDN
+        - Pub/Sub, Cloud Tasks
+        - Vertex AI, Gemini API
+        - IoT Core (legacy) / Pub/Sub for IoT
+      iac_tools: [Terraform, Pulumi, Google Cloud Deployment Manager]
+
+    - id: azure
+      name: Microsoft Azure
+      category: cloud
+      description: Microsoft's cloud platform deeply integrated with Active Directory, Office 365, and Windows Server. Strong in enterprise, .NET workloads, hybrid cloud, and AI services via Azure OpenAI.
+      serverless_support: true
+      suitable_project_types:
+        - web
+        - backend
+        - desktop
+        - data
+        - mobile
+        - iot
+      free_tier: true
+      regions:
+        - East US
+        - East US 2
+        - West US
+        - West US 2
+        - North Europe
+        - West Europe
+        - Southeast Asia
+        - Japan East
+        - Australia East
+        - + 30 more
+      notable_services:
+        - Virtual Machines, AKS, App Service
+        - Azure Functions, Logic Apps
+        - Azure SQL, Cosmos DB, Azure Cache for Redis
+        - Azure Blob Storage, CDN
+        - Service Bus, Event Hubs
+        - Azure OpenAI Service
+        - IoT Hub, IoT Edge
+        - Active Directory B2C
+      iac_tools: [Azure Bicep, Terraform, Pulumi, ARM Templates]
+
+    - id: oracle_cloud
+      name: Oracle Cloud Infrastructure (OCI)
+      category: cloud
+      description: Oracle's IaaS/PaaS platform with competitive pricing (always-free tier is generous), high-performance bare metal instances, and tight integration with Oracle Database.
+      serverless_support: true
+      suitable_project_types:
+        - backend
+        - data
+        - web
+      free_tier: true
+      regions:
+        - US East (Ashburn)
+        - US West (Phoenix)
+        - EU Frankfurt
+        - EU Amsterdam
+        - UK London
+        - AP Tokyo
+        - AP Seoul
+        - + 10 more
+      notable_services:
+        - Compute, Container Engine for Kubernetes (OKE)
+        - Functions (serverless)
+        - Oracle Autonomous Database, MySQL HeatWave
+        - Object Storage
+        - API Gateway, Streaming
+      iac_tools: [Terraform, Pulumi, OCI Resource Manager]
+
+    - id: digitalocean
+      name: DigitalOcean
+      category: cloud
+      description: Developer-friendly cloud platform known for simplicity, predictable pricing, and excellent documentation. Offers Droplets (VMs), managed Kubernetes (DOKS), managed databases, and App Platform.
+      serverless_support: false
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+      free_tier: false
+      regions:
+        - NYC1, NYC3 (New York)
+        - SFO2, SFO3 (San Francisco)
+        - AMS3 (Amsterdam)
+        - FRA1 (Frankfurt)
+        - LON1 (London)
+        - SGP1 (Singapore)
+        - BLR1 (Bangalore)
+        - TOR1 (Toronto)
+        - SYD1 (Sydney)
+      notable_services:
+        - Droplets (VMs), DOKS (Kubernetes)
+        - App Platform (PaaS)
+        - Managed PostgreSQL, MySQL, MongoDB, Redis
+        - Spaces (S3-compatible object storage)
+        - Load Balancers, CDN
+      iac_tools: [Terraform, Pulumi, doctl]
+
+    - id: alibaba_cloud
+      name: Alibaba Cloud
+      category: cloud
+      description: Asia's largest cloud provider with dominant market share in China and Southeast Asia. Essential for applications requiring data residency or low latency in the APAC region.
+      serverless_support: true
+      suitable_project_types:
+        - web
+        - backend
+        - data
+        - iot
+      free_tier: true
+      regions:
+        - China (Hangzhou, Beijing, Shanghai, Shenzhen)
+        - AP Southeast (Singapore, Sydney, Jakarta)
+        - AP Northeast (Tokyo, Seoul)
+        - EU (Frankfurt, London)
+        - US (Silicon Valley, Virginia)
+      notable_services:
+        - ECS, ACK (Kubernetes)
+        - Function Compute (serverless)
+        - ApsaraDB (RDS, PolarDB, TableStore)
+        - OSS (object storage), CDN
+        - IoT Platform
+        - Alibaba AI/ML services
+      iac_tools: [Terraform, Pulumi, Alibaba Cloud Resource Orchestration Service]
+
+  paas:
+
+    - id: vercel
+      name: Vercel
+      category: paas
+      description: The premier platform for frontend frameworks (Next.js, Nuxt, SvelteKit, etc.) with zero-config deployments, Edge Network, preview URLs per branch, and integrated analytics.
+      serverless_support: true
+      suitable_project_types:
+        - web
+        - backend
+      free_tier: true
+      regions:
+        - Global Edge Network (30+ regions)
+        - Serverless Functions (us-east-1 default, configurable)
+      notable_features:
+        - Git-push deployments with preview URLs
+        - Vercel Edge Functions (Cloudflare Workers-based)
+        - Vercel KV, Postgres, Blob (built-in storage)
+        - Image optimization (next/image)
+        - Analytics and Web Vitals monitoring
+        - ISR / On-Demand Revalidation
+      iac_tools: [Vercel CLI, Terraform (Vercel provider)]
+
+    - id: netlify
+      name: Netlify
+      category: paas
+      description: Static site and JAMstack platform with instant global CDN, serverless functions, edge functions, form handling, and identity management built in.
+      serverless_support: true
+      suitable_project_types:
+        - web
+      free_tier: true
+      regions:
+        - Global CDN (6 regions + edge)
+      notable_features:
+        - Instant cache invalidation on deploy
+        - Netlify Functions (AWS Lambda-backed)
+        - Netlify Edge Functions (Deno-based)
+        - Branch deploy previews
+        - Built-in form handling
+        - Netlify Identity (auth)
+        - Netlify CMS
+      iac_tools: [Netlify CLI, Terraform (Netlify provider)]
+
+    - id: railway
+      name: Railway
+      category: paas
+      description: Developer-first PaaS that deploys any language or framework from a Git repo with near-zero config. Includes managed databases, private networking, and per-service resource controls.
+      serverless_support: false
+      suitable_project_types:
+        - web
+        - backend
+        - data
+      free_tier: true
+      regions:
+        - US West (Oregon)
+        - US East (Virginia)
+        - EU West (Amsterdam)
+        - AP Southeast (Singapore)
+      notable_features:
+        - Deploy from Dockerfile or Nixpacks
+        - Managed PostgreSQL, MySQL, MongoDB, Redis
+        - Private networking between services
+        - Cron jobs
+        - Environment variable management
+        - Usage-based billing
+      iac_tools: [Railway CLI, Terraform (community provider)]
+
+    - id: render
+      name: Render
+      category: paas
+      description: Unified cloud platform offering web services, background workers, cron jobs, static sites, and managed databases with auto-deploy on Git push and free TLS.
+      serverless_support: false
+      suitable_project_types:
+        - web
+        - backend
+      free_tier: true
+      regions:
+        - Oregon (US West)
+        - Ohio (US East)
+        - Frankfurt (EU)
+        - Singapore (AP)
+      notable_features:
+        - Auto-deploy on Git push
+        - Free TLS certificates
+        - Managed PostgreSQL and Redis
+        - Private services (not publicly accessible)
+        - Background workers
+        - Preview environments
+        - Infrastructure as Code (render.yaml)
+      iac_tools: [render.yaml, Terraform (community)]
+
+    - id: flyio
+      name: Fly.io
+      category: paas
+      description: Platform that runs Docker containers as micro-VMs on hardware close to users globally. Excellent for latency-sensitive apps that need to run near users without full cloud complexity.
+      serverless_support: false
+      suitable_project_types:
+        - web
+        - backend
+        - data
+      free_tier: true
+      regions:
+        - 30+ regions globally (ams, cdg, dfw, ewr, gru, hkg, iad, lax, lhr, maa, mad, mia, nrt, ord, sea, sin, sjc, syd, yyz, + more)
+      notable_features:
+        - Fly Machines (micro-VM container runtime)
+        - Global anycast load balancing
+        - Fly Postgres (managed, distributed)
+        - LiteFS (distributed SQLite)
+        - Private networking (WireGuard)
+        - Multi-region deployment
+      iac_tools: [fly.toml, flyctl CLI, Terraform (Fly provider)]
+
+    - id: heroku
+      name: Heroku
+      category: paas
+      description: Pioneer of the PaaS model with a simple Git-push deployment workflow. Now part of Salesforce. Best for teams familiar with the Heroku ecosystem or needing its extensive add-on marketplace.
+      serverless_support: false
+      suitable_project_types:
+        - web
+        - backend
+      free_tier: false
+      regions:
+        - US (Virginia)
+        - EU (Ireland)
+      notable_features:
+        - Buildpack-based deployment
+        - Heroku Add-ons marketplace (hundreds of services)
+        - Heroku Postgres, Redis
+        - Review Apps (PR previews)
+        - Heroku Pipelines (CI/CD)
+      iac_tools: [Heroku CLI, Terraform (Heroku provider)]
+
+    - id: deno_deploy
+      name: Deno Deploy
+      category: paas
+      description: Globally distributed serverless runtime for TypeScript and JavaScript powered by the Deno runtime. Deploys edge functions to 35+ regions instantly with zero cold-start design.
+      serverless_support: true
+      suitable_project_types:
+        - web
+        - backend
+      free_tier: true
+      regions:
+        - 35+ regions globally (Deno Deploy edge network)
+      notable_features:
+        - Deno runtime (TypeScript-native, secure by default)
+        - Zero cold starts
+        - KV store (globally replicated)
+        - Queues and Cron (beta)
+        - Deploy from GitHub or CLI
+      iac_tools: [deployctl CLI]
+
+    - id: coolify
+      name: Coolify
+      category: paas
+      description: Open-source, self-hostable PaaS alternative to Heroku/Netlify/Vercel. Runs on your own VPS with Docker-based deployments, managed databases, and a web UI for managing services.
+      serverless_support: false
+      suitable_project_types:
+        - web
+        - backend
+        - data
+      free_tier: true
+      regions:
+        - Any VPS / bare metal you control
+      notable_features:
+        - Self-hosted on any VPS
+        - Nixpacks and Dockerfile support
+        - Managed PostgreSQL, MySQL, MongoDB, Redis, MinIO
+        - Automatic SSL (Let's Encrypt)
+        - Git-based deployments
+        - Multi-server support
+      iac_tools: [Coolify UI / API]
+
+  serverless:
+
+    - id: aws_lambda
+      name: AWS Lambda
+      category: serverless
+      description: The original serverless compute service. Runs code in response to events (HTTP, S3, SQS, DynamoDB Streams, etc.) with automatic scaling and pay-per-invocation pricing.
+      serverless_support: true
+      suitable_project_types:
+        - backend
+        - web
+        - data
+        - iot
+      free_tier: true
+      regions:
+        - All AWS regions (30+)
+      notable_features:
+        - Up to 15-minute execution timeout
+        - 10 GB memory / 10 GB ephemeral storage
+        - Lambda Layers for shared code
+        - SnapStart for Java cold-start reduction
+        - Lambda@Edge for CloudFront integration
+        - Container image support (up to 10 GB)
+      runtimes: [Node.js, Python, Java, .NET, Go, Ruby, custom runtime]
+      iac_tools: [AWS SAM, SST, Serverless Framework, AWS CDK, Terraform]
+
+    - id: cloudflare_workers
+      name: Cloudflare Workers
+      category: serverless
+      description: Edge serverless runtime running JavaScript/TypeScript/WASM at Cloudflare's 300+ edge locations with near-zero cold starts and access to KV, R2, D1, and Durable Objects.
+      serverless_support: true
+      suitable_project_types:
+        - web
+        - backend
+      free_tier: true
+      regions:
+        - 300+ edge locations globally
+      notable_features:
+        - Near-zero cold starts (V8 isolates, not containers)
+        - KV (global key-value store)
+        - R2 (S3-compatible object storage, no egress fees)
+        - D1 (SQLite-based edge database)
+        - Durable Objects (stateful, consistent coordination)
+        - Queues
+        - Pages (static + functions)
+      runtimes: [JavaScript, TypeScript, WebAssembly, Python (beta)]
+      iac_tools: [Wrangler CLI, Terraform (Cloudflare provider), Pulumi]
+
+    - id: azure_functions
+      name: Azure Functions
+      category: serverless
+      description: Microsoft's serverless compute platform with deep Azure service integration, Durable Functions for stateful workflows, and support for many runtimes including .NET and PowerShell.
+      serverless_support: true
+      suitable_project_types:
+        - backend
+        - data
+        - web
+      free_tier: true
+      regions:
+        - All Azure regions (60+)
+      notable_features:
+        - Durable Functions (orchestration / stateful)
+        - Wide runtime support including PowerShell
+        - Deep Azure Service Bus / Event Hub integration
+        - Flex Consumption plan (fast scaling)
+        - Deployment slots
+      runtimes: [C#, JavaScript, TypeScript, Python, Java, PowerShell, Go (custom)]
+      iac_tools: [Azure Bicep, Terraform, Azure Functions Core Tools, Pulumi]
+
+    - id: google_cloud_functions
+      name: Google Cloud Functions
+      category: serverless
+      description: Google's serverless compute offering for event-driven workloads. Cloud Functions (2nd gen) is built on Cloud Run, enabling container-based functions with longer timeouts and more memory.
+      serverless_support: true
+      suitable_project_types:
+        - backend
+        - data
+        - web
+      free_tier: true
+      regions:
+        - All GCP regions (30+)
+      notable_features:
+        - 2nd gen built on Cloud Run (up to 60 min timeout)
+        - Pub/Sub, Eventarc, and HTTP triggers
+        - Concurrency (multiple requests per instance)
+        - Direct VPC access
+      runtimes: [Node.js, Python, Go, Java, Ruby, PHP, .NET]
+      iac_tools: [Terraform, Pulumi, Google Cloud SDK, Cloud Deploy]
+
+  container:
+
+    - id: docker
+      name: Docker
+      category: container
+      description: The universal container runtime and image format. Build once, run anywhere. Essential for local development parity and as the packaging format for all major container orchestration platforms.
+      serverless_support: false
+      suitable_project_types:
+        - web
+        - backend
+        - data
+        - desktop
+        - iot
+        - cli
+      free_tier: true
+      regions:
+        - Local / any infrastructure
+      notable_features:
+        - Docker Compose for local multi-service dev
+        - Docker Hub image registry
+        - Multi-stage builds for small images
+        - BuildKit for fast, cacheable builds
+        - Dev Containers (VS Code / GitHub Codespaces)
+      iac_tools: [Dockerfile, Docker Compose, docker buildx]
+
+    - id: kubernetes
+      name: Kubernetes (K8s)
+      category: container
+      description: The de facto container orchestration platform for production workloads. Provides auto-scaling, self-healing, rolling deployments, and service discovery for containerized applications.
+      serverless_support: false
+      suitable_project_types:
+        - backend
+        - web
+        - data
+        - game
+      free_tier: false
+      regions:
+        - Any cloud or on-premises
+      notable_features:
+        - Horizontal Pod Autoscaling
+        - Rolling and canary deployments
+        - Persistent volume claims
+        - Helm chart package management
+        - RBAC and Network Policies
+        - Ingress controllers (Nginx, Traefik)
+        - Service mesh support (Istio, Linkerd)
+      managed_options:
+        - GKE (Google)
+        - EKS (AWS)
+        - AKS (Azure)
+        - DOKS (DigitalOcean)
+        - Linode LKE
+      iac_tools: [Helm, Kustomize, Argo CD, Flux CD, Terraform, Pulumi]
+
+    - id: ecs
+      name: AWS ECS (Elastic Container Service)
+      category: container
+      description: AWS-native container orchestration service simpler than Kubernetes. Run containers on EC2 or serverlessly on Fargate with deep AWS ecosystem integration.
+      serverless_support: true
+      suitable_project_types:
+        - backend
+        - web
+        - data
+      free_tier: false
+      regions:
+        - All AWS regions
+      notable_features:
+        - Fargate (serverless containers, no EC2 management)
+        - Deep ALB / NLB integration
+        - Service Connect (service mesh lite)
+        - ECS Exec (container shell access)
+        - CloudWatch Container Insights
+      iac_tools: [AWS CDK, Terraform, Pulumi, Copilot CLI, SST]
+
+    - id: cloud_run
+      name: Google Cloud Run
+      category: container
+      description: Fully managed container runtime on GCP that scales to zero and up instantly. Deploy any HTTP-serving container without managing infrastructure. Supports Jobs for batch workloads.
+      serverless_support: true
+      suitable_project_types:
+        - backend
+        - web
+        - data
+      free_tier: true
+      regions:
+        - All GCP regions
+      notable_features:
+        - Scale to zero (pay for actual requests)
+        - Up to 32 GB memory / 8 vCPU per instance
+        - Cloud Run Jobs (batch / scheduled)
+        - Concurrency control
+        - Direct VPC egress
+        - Multi-region with Global Load Balancer
+      iac_tools: [Terraform, Pulumi, Google Cloud SDK, Cloud Deploy]
+
+    - id: fargate
+      name: AWS Fargate
+      category: container
+      description: Serverless compute engine for containers on AWS (works with both ECS and EKS). Eliminates the need to provision or manage EC2 instances for container workloads.
+      serverless_support: true
+      suitable_project_types:
+        - backend
+        - web
+        - data
+      free_tier: false
+      regions:
+        - All AWS regions
+      notable_features:
+        - No EC2 management
+        - Per-task CPU / memory billing
+        - Works with ECS and EKS
+        - Fargate Spot for cost savings
+        - Integrated with AWS security (VPC, IAM, Secrets Manager)
+      iac_tools: [AWS CDK, Terraform, Pulumi, Copilot CLI]
+
+  self_hosted:
+
+    - id: vps
+      name: VPS (Virtual Private Server)
+      category: self_hosted
+      description: A virtual machine rented from a cloud or hosting provider (Hetzner, Linode, DigitalOcean Droplet, Vultr, etc.) where you manage the OS and software stack yourself.
+      serverless_support: false
+      suitable_project_types:
+        - web
+        - backend
+        - data
+        - game
+      free_tier: false
+      regions:
+        - Provider-dependent (Hetzner: EU/US, Linode: global, Vultr: global)
+      notable_features:
+        - Full OS control
+        - Cost-effective for steady-state workloads
+        - Run any software stack
+        - Hetzner Cloud: exceptional price/performance in EU
+      providers: [Hetzner, Linode/Akamai, Vultr, OVHcloud, DigitalOcean Droplets]
+      iac_tools: [Ansible, Terraform, Pulumi, Kamal, Dokku, Coolify]
+
+    - id: bare_metal
+      name: Bare Metal Server
+      category: self_hosted
+      description: Dedicated physical server without virtualization overhead. Maximum performance for compute-intensive workloads like game servers, ML training, and high-frequency trading.
+      serverless_support: false
+      suitable_project_types:
+        - game
+        - data
+        - backend
+      free_tier: false
+      regions:
+        - Provider-dependent (OVHcloud, Hetzner, Equinix Metal, AWS Outposts)
+      notable_features:
+        - No hypervisor overhead
+        - Full hardware access (GPU, FPGA, NVMe)
+        - Single-tenant isolation
+        - Consistent latency for real-time workloads
+      providers: [OVHcloud, Hetzner Dedicated, Equinix Metal, Leaseweb]
+      iac_tools: [Ansible, Terraform, PXE/iPXE, cloud-init]
+
+    - id: dokku
+      name: Dokku
+      category: self_hosted
+      description: Open-source mini-Heroku built on Docker. Deploy apps with Git push on your own VPS with buildpack or Dockerfile support, managed services via plugins, and automatic SSL.
+      serverless_support: false
+      suitable_project_types:
+        - web
+        - backend
+      free_tier: true
+      regions:
+        - Any VPS / bare metal you control
+      notable_features:
+        - Git push deploy (Heroku-like)
+        - Plugin ecosystem (Postgres, MySQL, Redis, Let's Encrypt)
+        - Zero-downtime deploys
+        - Persistent storage
+        - Process scaling
+      iac_tools: [Dokku CLI, Ansible]
+
+  app_store:
+
+    - id: steam
+      name: Steam
+      category: app_store
+      description: Valve's PC gaming platform and storefront with 130M+ active users. The primary distribution channel for PC, Mac, and Linux games with Workshop mod support, achievements, and cloud saves.
+      serverless_support: false
+      suitable_project_types:
+        - game
+        - desktop
+      free_tier: false
+      regions:
+        - Global (Steam network, 30+ content servers)
+      notable_features:
+        - Steamworks SDK (achievements, cloud saves, multiplayer)
+        - Steam Workshop (user mods)
+        - Steam Deck compatibility rating
+        - Early Access program
+        - SteamPipe CDN for updates
+        - DRM options (optional)
+      submission_fee: $100 USD per game (recoupable)
+
+    - id: epic_games_store
+      name: Epic Games Store
+      category: app_store
+      description: Epic's PC gaming storefront with a developer-friendly 88% revenue share (vs Steam's 70–88%). Offers free weekly games driving user acquisition and Epic Online Services for backend.
+      serverless_support: false
+      suitable_project_types:
+        - game
+      free_tier: false
+      regions:
+        - Global
+      notable_features:
+        - 88% revenue share for developers
+        - Epic Online Services (EOS) for crossplay, auth, lobbies
+        - Self-publishing portal
+        - Unreal Engine integration
+      submission_fee: Free (curated, application-based)
+
+    - id: apple_app_store
+      name: Apple App Store
+      category: app_store
+      description: Apple's curated marketplace for iOS, iPadOS, macOS, tvOS, and watchOS apps. Required for distribution on Apple devices. Strict review process ensures quality and safety standards.
+      serverless_support: false
+      suitable_project_types:
+        - mobile
+        - desktop
+        - game
+      free_tier: false
+      regions:
+        - Global (175 countries)
+      notable_features:
+        - Required for iOS/macOS distribution
+        - App Review (1–2 day average)
+        - In-App Purchase (15–30% commission)
+        - TestFlight for beta distribution
+        - App Store Connect analytics
+        - Universal Purchase (iOS + macOS)
+      annual_fee: $99 USD (Apple Developer Program)
+
+    - id: google_play
+      name: Google Play Store
+      category: app_store
+      description: Google's Android app marketplace serving 2.5B+ Android devices. More permissive review process than Apple, supports side-loading, and offers Play Console for analytics and testing.
+      serverless_support: false
+      suitable_project_types:
+        - mobile
+        - game
+      free_tier: false
+      regions:
+        - Global (190 countries)
+      notable_features:
+        - Required for most Android distribution
+        - Open Testing and Internal Testing tracks
+        - Android App Bundle (AAB) for smaller downloads
+        - Play Console analytics and crash reporting
+        - In-App Billing (15–30% commission)
+        - Play Games Services (achievements, leaderboards)
+      one_time_fee: $25 USD
+
+    - id: microsoft_store
+      name: Microsoft Store
+      category: app_store
+      description: Microsoft's app marketplace for Windows 10/11 apps, games, and PWAs. Lower commission (12% for games) and no mandatory review for Win32 apps packaged with MSIX.
+      serverless_support: false
+      suitable_project_types:
+        - desktop
+        - game
+        - mobile
+      free_tier: false
+      regions:
+        - Global (240 countries)
+      notable_features:
+        - 12% revenue share for games (vs 30% industry standard)
+        - Win32 app support via MSIX packaging
+        - Xbox Game Pass integration
+        - PWA submission support
+        - Windows 11 redesigned store prominence
+      submission_fee: Free (one-time $19 individual / $99 company registration)

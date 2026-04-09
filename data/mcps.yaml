@@ -1,0 +1,327 @@
+# MCP Servers - Model Context Protocol servers recommended per project type
+# Conditions are evaluated by the wizard AI based on prior answers
+# condition syntax: boolean expressions using wizard answer fields
+
+mcps:
+
+  - id: sequential_thinking
+    name: sequential-thinking
+    description: Enables structured multi-step reasoning and hypothesis-driven problem solving. Breaks complex decisions into explicit reasoning chains, making the AI's planning and debugging process transparent and auditable.
+    condition: "always"
+    priority: required
+    install_method: npx
+    install_command: "npx -y @modelcontextprotocol/server-sequential-thinking"
+    package: "@modelcontextprotocol/server-sequential-thinking"
+    config_key: sequential-thinking
+    use_cases:
+      - Architectural planning and trade-off analysis
+      - Debugging multi-step issues
+      - Complex refactoring decisions
+      - Performance bottleneck investigation
+      - Security threat modeling
+    suitable_project_types:
+      - web
+      - backend
+      - mobile
+      - desktop
+      - game
+      - cli
+      - data
+      - iot
+    tags: [reasoning, planning, debugging, always-available]
+
+  - id: context7
+    name: context7
+    description: Fetches up-to-date, version-specific documentation for libraries and frameworks directly from official sources. Prevents hallucinated APIs by grounding code generation in real, current documentation.
+    condition: "always"
+    priority: required
+    install_method: npx
+    install_command: "npx -y @upstash/context7-mcp"
+    package: "@upstash/context7-mcp"
+    config_key: context7
+    use_cases:
+      - Looking up framework APIs (React, Next.js, Vue, etc.)
+      - Database driver documentation
+      - Third-party SDK usage patterns
+      - Migration guides between versions
+      - Official best practices for any library
+    suitable_project_types:
+      - web
+      - backend
+      - mobile
+      - desktop
+      - game
+      - cli
+      - data
+      - iot
+    tags: [documentation, frameworks, libraries, always-available]
+
+  - id: chrome_devtools
+    name: chrome-devtools-mcp
+    description: Gives the AI direct access to Chrome DevTools Protocol for live browser inspection, DOM querying, console evaluation, network request monitoring, and performance profiling during development.
+    condition: "has_ui == true"
+    priority: recommended
+    install_method: npx
+    install_command: "npx -y chrome-devtools-mcp"
+    package: "chrome-devtools-mcp"
+    config_key: chrome-devtools-mcp
+    use_cases:
+      - Visual QA — inspect layout, spacing, overflow issues in real browser
+      - Console error monitoring during AI-driven development
+      - Network request inspection for API integration debugging
+      - Performance profiling (LCP, CLS, FID)
+      - Accessibility audit via DevTools a11y panel
+      - DOM manipulation verification after UI changes
+    suitable_project_types:
+      - web
+      - desktop
+      - game
+    condition_fields:
+      has_ui: true
+    tags: [browser, ui, visual-qa, devtools, debugging]
+
+  - id: playwright
+    name: playwright
+    description: Full browser automation for end-to-end testing across Chromium, Firefox, and WebKit. The AI can write, run, and analyze E2E tests, take screenshots, intercept network traffic, and validate user flows in real browsers.
+    condition: "has_ui == true && testing_strategy contains 'e2e'"
+    priority: recommended
+    install_method: npx
+    install_command: "npx -y @playwright/mcp"
+    package: "@playwright/mcp"
+    config_key: playwright
+    use_cases:
+      - End-to-end test generation and execution
+      - Cross-browser compatibility validation
+      - Visual regression screenshot comparison
+      - Form submission and user journey testing
+      - Accessibility validation (WCAG automated checks)
+      - API mocking in browser context
+    suitable_project_types:
+      - web
+      - desktop
+    condition_fields:
+      has_ui: true
+      testing_strategy: [e2e, playwright, browser-testing]
+    tags: [e2e, browser, testing, automation, visual]
+
+  - id: filesystem
+    name: filesystem
+    description: Gives the AI secure, sandboxed read/write access to the project directory. Enables autonomous file generation, configuration scaffolding, and multi-file edits without leaving the AI context.
+    condition: "always"
+    priority: required
+    install_method: npx
+    install_command: "npx -y @modelcontextprotocol/server-filesystem"
+    package: "@modelcontextprotocol/server-filesystem"
+    config_key: filesystem
+    use_cases:
+      - Reading existing project files for context
+      - Generating boilerplate files (components, configs, tests)
+      - Batch file creation during scaffolding
+      - Configuration file management (.env, tsconfig, etc.)
+    suitable_project_types:
+      - web
+      - backend
+      - mobile
+      - desktop
+      - game
+      - cli
+      - data
+      - iot
+    tags: [filesystem, scaffolding, file-generation, always-available]
+
+  - id: github
+    name: github
+    description: Connects the AI to GitHub for reading issues, pull requests, repository contents, and CI status. Enables AI-driven code review assistance, issue triage, and PR workflow automation.
+    condition: "vcs == 'github'"
+    priority: recommended
+    install_method: npx
+    install_command: "npx -y @modelcontextprotocol/server-github"
+    package: "@modelcontextprotocol/server-github"
+    config_key: github
+    env_required:
+      - GITHUB_PERSONAL_ACCESS_TOKEN
+    use_cases:
+      - Reading GitHub issues as development context
+      - Creating pull request descriptions from diff analysis
+      - Checking CI/CD status from the AI context
+      - Repository file browsing without local clone
+      - Code review assistance
+    suitable_project_types:
+      - web
+      - backend
+      - mobile
+      - desktop
+      - game
+      - cli
+      - data
+      - iot
+    condition_fields:
+      vcs: github
+    tags: [github, vcs, pr, issues, ci-cd]
+
+  - id: postgres
+    name: postgres
+    description: Gives the AI a read-only connection to a PostgreSQL database for schema introspection, query testing, and data exploration. The AI can understand your data model and generate accurate queries.
+    condition: "database == 'postgresql' || database == 'supabase' || database == 'neon' || database == 'cockroachdb'"
+    priority: recommended
+    install_method: npx
+    install_command: "npx -y @modelcontextprotocol/server-postgres"
+    package: "@modelcontextprotocol/server-postgres"
+    config_key: postgres
+    env_required:
+      - POSTGRES_CONNECTION_STRING
+    use_cases:
+      - Schema introspection for accurate ORM type generation
+      - Query testing and optimization
+      - Data exploration during debugging
+      - Migration planning based on current schema
+    suitable_project_types:
+      - web
+      - backend
+      - data
+    condition_fields:
+      database: [postgresql, supabase, neon, cockroachdb]
+    tags: [database, postgresql, schema, sql]
+
+  - id: supabase
+    name: supabase
+    description: Full Supabase project management via MCP — manage tables, RLS policies, Edge Functions, storage buckets, auth configuration, and query your database directly from the AI context.
+    condition: "database == 'supabase'"
+    priority: required
+    install_method: npx
+    install_command: "npx -y @supabase/mcp-server-supabase"
+    package: "@supabase/mcp-server-supabase"
+    config_key: supabase
+    env_required:
+      - SUPABASE_ACCESS_TOKEN
+    use_cases:
+      - Create and manage database tables and relationships
+      - Configure Row Level Security policies
+      - Deploy and test Edge Functions
+      - Manage storage buckets and policies
+      - Inspect auth configuration and providers
+      - Run SQL queries against project database
+    suitable_project_types:
+      - web
+      - backend
+      - mobile
+    condition_fields:
+      database: supabase
+    tags: [supabase, database, rls, edge-functions, auth]
+
+  - id: redis_mcp
+    name: redis
+    description: Read/write access to a Redis instance from the AI context. Enables key inspection, cache debugging, and testing Redis data structures (lists, sets, sorted sets, streams) during development.
+    condition: "cache == 'redis' || cache == 'upstash_redis' || database == 'redis'"
+    priority: optional
+    install_method: npx
+    install_command: "npx -y @modelcontextprotocol/server-redis"
+    package: "@modelcontextprotocol/server-redis"
+    config_key: redis
+    env_required:
+      - REDIS_URL
+    use_cases:
+      - Cache key inspection and debugging
+      - Testing Pub/Sub message flows
+      - Queue depth monitoring during development
+      - Session data inspection
+    suitable_project_types:
+      - web
+      - backend
+      - game
+    condition_fields:
+      cache: [redis, upstash_redis]
+    tags: [redis, cache, debugging, pubsub]
+
+  - id: puppeteer
+    name: puppeteer
+    description: Headless Chrome automation for web scraping, PDF generation, and screenshot capture. Lighter alternative to Playwright when cross-browser support is not required.
+    condition: "has_ui == true && testing_strategy contains 'visual'"
+    priority: optional
+    install_method: npx
+    install_command: "npx -y @modelcontextprotocol/server-puppeteer"
+    package: "@modelcontextprotocol/server-puppeteer"
+    config_key: puppeteer
+    use_cases:
+      - Screenshot generation for visual testing
+      - PDF export from web pages
+      - Web scraping during development
+      - Automated form testing (Chromium only)
+    suitable_project_types:
+      - web
+    condition_fields:
+      has_ui: true
+      testing_strategy: [visual, screenshot]
+    tags: [browser, puppeteer, screenshot, pdf, scraping]
+
+  - id: aws_kb
+    name: aws-kb-retrieval
+    description: Connects the AI to AWS Bedrock Knowledge Bases for RAG (Retrieval-Augmented Generation). Enables the AI to answer questions grounded in your organization's private documentation stored in Bedrock.
+    condition: "platform contains 'aws' && project_type == 'data' && purpose contains 'rag'"
+    priority: optional
+    install_method: npx
+    install_command: "npx -y @modelcontextprotocol/server-aws-kb-retrieval"
+    package: "@modelcontextprotocol/server-aws-kb-retrieval"
+    config_key: aws-kb-retrieval
+    env_required:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_REGION
+    use_cases:
+      - RAG over private organizational documents
+      - Knowledge base search during AI agent development
+      - Grounding LLM responses in proprietary data
+    suitable_project_types:
+      - data
+      - backend
+    condition_fields:
+      platform: aws
+      project_type: data
+    tags: [aws, rag, bedrock, knowledge-base, ai]
+
+  - id: docker_mcp
+    name: docker
+    description: Manage Docker containers, images, volumes, and networks from the AI context. Useful for AI-assisted container debugging, Docker Compose service management, and image optimization.
+    condition: "platform == 'docker' || platform == 'kubernetes' || platform == 'ecs' || platform == 'fargate'"
+    priority: optional
+    install_method: npx
+    install_command: "npx -y @docker/mcp-server"
+    package: "@docker/mcp-server"
+    config_key: docker
+    use_cases:
+      - Container health inspection during debugging
+      - Docker Compose service management
+      - Image layer analysis for size optimization
+      - Log streaming from running containers
+    suitable_project_types:
+      - backend
+      - web
+      - data
+    condition_fields:
+      platform: [docker, kubernetes, ecs, fargate, cloud_run]
+    tags: [docker, containers, devops, debugging]
+
+  - id: sentry
+    name: sentry
+    description: Connects the AI to Sentry for error monitoring context. The AI can read recent error traces, stack frames, and affected user counts to assist with debugging and root cause analysis.
+    condition: "monitoring == 'sentry'"
+    priority: optional
+    install_method: npx
+    install_command: "npx -y @sentry/mcp-server"
+    package: "@sentry/mcp-server"
+    config_key: sentry
+    env_required:
+      - SENTRY_AUTH_TOKEN
+      - SENTRY_ORG
+    use_cases:
+      - Reading recent production errors as debugging context
+      - Stack trace analysis for bug fixes
+      - Performance issue identification
+      - Release health monitoring
+    suitable_project_types:
+      - web
+      - backend
+      - mobile
+    condition_fields:
+      monitoring: sentry
+    tags: [monitoring, errors, debugging, observability]

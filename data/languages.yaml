@@ -1,0 +1,364 @@
+# Programming Languages - metadata for the scaffolding wizard
+# Used by AI to filter/rank language options based on project type selection
+
+languages:
+
+  - id: typescript
+    name: TypeScript
+    description: Strongly-typed superset of JavaScript that compiles to plain JS. The de facto standard for large-scale web and Node.js projects.
+    suitable_project_types:
+      - web
+      - mobile
+      - backend
+      - cli
+      - desktop
+      - data
+    frameworks:
+      - Next.js
+      - React
+      - Vue
+      - Svelte
+      - Angular
+      - Astro
+      - Remix
+      - Nuxt
+      - Express
+      - Fastify
+      - Hono
+      - tRPC
+      - NestJS
+      - Electron
+      - Tauri
+      - React Native
+      - Expo
+    serverless_support: true
+    popularity_rank: 1
+    type_system: static
+    paradigms: [oop, functional, procedural]
+    package_manager: npm
+    runtime: Node.js / Bun / Deno
+
+  - id: javascript
+    name: JavaScript
+    description: The native language of the web browser. Widely used for both front-end and server-side (Node.js) development without a compilation step.
+    suitable_project_types:
+      - web
+      - mobile
+      - backend
+      - cli
+      - desktop
+    frameworks:
+      - React
+      - Vue
+      - Svelte
+      - Express
+      - Fastify
+      - Electron
+      - React Native
+      - Expo
+    serverless_support: true
+    popularity_rank: 2
+    type_system: dynamic
+    paradigms: [oop, functional, procedural]
+    package_manager: npm
+    runtime: Node.js / Bun / Deno
+
+  - id: python
+    name: Python
+    description: High-level, readable language dominant in data science, ML, and scripting. Also widely used for backend APIs and automation.
+    suitable_project_types:
+      - backend
+      - data
+      - cli
+      - iot
+    frameworks:
+      - FastAPI
+      - Django
+      - Flask
+      - Starlette
+      - LangChain
+      - LlamaIndex
+      - PyTorch
+      - TensorFlow
+      - scikit-learn
+      - Airflow
+      - Prefect
+      - Dagster
+      - Typer
+      - Click
+    serverless_support: true
+    popularity_rank: 3
+    type_system: dynamic
+    paradigms: [oop, functional, procedural]
+    package_manager: pip / uv / poetry
+    runtime: CPython / PyPy
+
+  - id: java
+    name: Java
+    description: Mature, strongly-typed OOP language with a massive ecosystem. Standard in enterprise backend, Android development, and large distributed systems.
+    suitable_project_types:
+      - backend
+      - mobile
+      - data
+    frameworks:
+      - Spring Boot
+      - Quarkus
+      - Micronaut
+      - Jakarta EE
+      - Netflix DGS
+      - Apache Kafka (client)
+      - Apache Spark
+    serverless_support: true
+    popularity_rank: 5
+    type_system: static
+    paradigms: [oop, functional]
+    package_manager: Maven / Gradle
+    runtime: JVM (HotSpot / GraalVM)
+
+  - id: kotlin
+    name: Kotlin
+    description: Modern JVM language fully interoperable with Java. The preferred language for Android development and increasingly used for backend services.
+    suitable_project_types:
+      - backend
+      - mobile
+    frameworks:
+      - Spring Boot
+      - Ktor
+      - Jetpack Compose
+      - Android Views
+      - Coroutines
+      - Hilt
+    serverless_support: true
+    popularity_rank: 8
+    type_system: static
+    paradigms: [oop, functional]
+    package_manager: Gradle
+    runtime: JVM / Native (Kotlin/Native)
+
+  - id: go
+    name: Go
+    description: Statically typed, compiled language designed for simplicity and high performance. Excellent for cloud-native backends, CLIs, and network services.
+    suitable_project_types:
+      - backend
+      - cli
+      - iot
+    frameworks:
+      - Gin
+      - Echo
+      - Chi
+      - Fiber
+      - gRPC
+      - Cobra
+    serverless_support: true
+    popularity_rank: 6
+    type_system: static
+    paradigms: [procedural, oop]
+    package_manager: Go modules
+    runtime: native binary
+
+  - id: rust
+    name: Rust
+    description: Systems language guaranteeing memory safety without a garbage collector. Ideal for performance-critical backends, CLIs, WebAssembly, and embedded systems.
+    suitable_project_types:
+      - backend
+      - cli
+      - desktop
+      - iot
+      - game
+    frameworks:
+      - Axum
+      - Actix-web
+      - Tauri
+      - Bevy
+      - Embassy
+      - Clap
+      - tokio
+    serverless_support: true
+    popularity_rank: 7
+    type_system: static
+    paradigms: [procedural, functional, oop]
+    package_manager: Cargo
+    runtime: native binary / WASM
+
+  - id: csharp
+    name: C#
+    description: Microsoft's modern OOP language for the .NET ecosystem. First-class choice for Windows desktop, enterprise backends, game development with Unity, and cross-platform mobile via MAUI.
+    suitable_project_types:
+      - backend
+      - desktop
+      - game
+      - mobile
+    frameworks:
+      - ASP.NET Core
+      - Blazor
+      - Unity
+      - MAUI
+      - WPF
+      - WinUI
+      - SignalR
+    serverless_support: true
+    popularity_rank: 9
+    type_system: static
+    paradigms: [oop, functional]
+    package_manager: NuGet
+    runtime: .NET CLR / Native AOT
+
+  - id: swift
+    name: Swift
+    description: Apple's modern, safe language for iOS, macOS, watchOS, and tvOS development. Fast, expressive, and deeply integrated with Apple platform APIs.
+    suitable_project_types:
+      - mobile
+      - desktop
+    frameworks:
+      - SwiftUI
+      - UIKit
+      - Combine
+      - Swift Concurrency
+      - WidgetKit
+    serverless_support: false
+    popularity_rank: 11
+    type_system: static
+    paradigms: [oop, functional, protocol-oriented]
+    package_manager: Swift Package Manager
+    runtime: native binary (LLVM)
+
+  - id: dart
+    name: Dart
+    description: Google's optimized language for the Flutter framework. Compiles to native ARM/x86 code for mobile and desktop, and to JavaScript for web.
+    suitable_project_types:
+      - mobile
+      - web
+      - desktop
+    frameworks:
+      - Flutter
+    serverless_support: false
+    popularity_rank: 12
+    type_system: static
+    paradigms: [oop, functional]
+    package_manager: pub
+    runtime: Dart VM / native (AOT)
+
+  - id: cpp
+    name: C++
+    description: High-performance systems language with direct memory control. Essential for game engines, embedded firmware, real-time systems, and performance-critical applications.
+    suitable_project_types:
+      - game
+      - desktop
+      - iot
+    frameworks:
+      - Unreal Engine
+      - Qt
+      - OpenGL / Vulkan
+      - ESP-IDF
+      - FreeRTOS
+    serverless_support: false
+    popularity_rank: 4
+    type_system: static
+    paradigms: [oop, procedural, generic]
+    package_manager: CMake / Conan / vcpkg
+    runtime: native binary
+
+  - id: ruby
+    name: Ruby
+    description: Expressive, developer-friendly scripting language with a vibrant web ecosystem centered on Ruby on Rails. Prized for rapid prototyping and convention-over-configuration.
+    suitable_project_types:
+      - backend
+      - cli
+      - web
+    frameworks:
+      - Ruby on Rails
+      - Sinatra
+      - Hanami
+      - Sorbet
+    serverless_support: true
+    popularity_rank: 14
+    type_system: dynamic
+    paradigms: [oop, functional]
+    package_manager: Bundler / RubyGems
+    runtime: MRI / JRuby / YJIT
+
+  - id: php
+    name: PHP
+    description: Server-side scripting language powering a large portion of the web. Modern PHP with Composer and frameworks like Laravel is a productive choice for web backends.
+    suitable_project_types:
+      - backend
+      - web
+    frameworks:
+      - Laravel
+      - Symfony
+      - WordPress
+      - Livewire
+      - Filament
+    serverless_support: true
+    popularity_rank: 13
+    type_system: dynamic
+    paradigms: [oop, procedural]
+    package_manager: Composer
+    runtime: FPM / Swoole / FrankenPHP
+
+  - id: elixir
+    name: Elixir
+    description: Functional language on the battle-tested Erlang VM (BEAM). Exceptional for highly concurrent, fault-tolerant real-time systems, APIs, and distributed applications.
+    suitable_project_types:
+      - backend
+      - web
+    frameworks:
+      - Phoenix
+      - Phoenix LiveView
+      - Oban
+      - Nx
+    serverless_support: false
+    popularity_rank: 16
+    type_system: dynamic
+    paradigms: [functional]
+    package_manager: Mix / Hex
+    runtime: BEAM (Erlang VM)
+
+  - id: zig
+    name: Zig
+    description: Low-level systems language focused on simplicity, performance, and explicit control. An emerging alternative to C/C++ for embedded, game engines, and tooling.
+    suitable_project_types:
+      - iot
+      - cli
+      - game
+    frameworks:
+      - none (stdlib-centric)
+    serverless_support: false
+    popularity_rank: 18
+    type_system: static
+    paradigms: [procedural, generic]
+    package_manager: Zig package manager (build.zig.zon)
+    runtime: native binary / WASM
+
+  - id: scala
+    name: Scala
+    description: Strongly-typed JVM language blending OOP and functional programming. A top choice for large-scale data engineering with Apache Spark and Akka-based distributed systems.
+    suitable_project_types:
+      - data
+      - backend
+    frameworks:
+      - Apache Spark
+      - Akka
+      - Play Framework
+      - ZIO
+      - Cats Effect
+    serverless_support: true
+    popularity_rank: 17
+    type_system: static
+    paradigms: [oop, functional]
+    package_manager: sbt / Mill
+    runtime: JVM / Scala Native
+
+  - id: gdscript
+    name: GDScript
+    description: Python-like scripting language built into the Godot game engine. Tightly integrated with Godot's node system, making it the fastest path for Godot game development.
+    suitable_project_types:
+      - game
+    frameworks:
+      - Godot Engine
+    serverless_support: false
+    popularity_rank: 20
+    type_system: dynamic
+    paradigms: [oop, procedural]
+    package_manager: Godot Asset Library
+    runtime: Godot runtime / native (GDNative)

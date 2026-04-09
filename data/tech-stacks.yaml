@@ -1,0 +1,1001 @@
+# Tech Stacks - organized by domain for the scaffolding wizard
+# Used by AI to filter/rank stack options based on project type, language, and framework selection
+
+tech_stacks:
+
+  architecture:
+
+    - id: fsd
+      name: Feature-Sliced Design (FSD)
+      domain: architecture
+      description: A modern frontend architectural methodology that organizes code by business features and layers (app, pages, widgets, features, entities, shared). Prevents cross-dependency chaos in large SPAs.
+      suitable_project_types:
+        - web
+        - mobile
+      compatible_frameworks:
+        - React
+        - Vue
+        - Angular
+        - Svelte
+      key_benefits:
+        - Clear ownership boundaries per feature
+        - Predictable import direction (never upward)
+        - Scales well for large teams
+        - Works with any UI framework
+      key_concerns:
+        - Learning curve for teams unfamiliar with sliced design
+        - Over-engineering risk for small projects
+      complexity: medium
+      team_size: medium-to-large
+
+    - id: clean_architecture
+      name: Clean Architecture
+      domain: architecture
+      description: Robert Martin's concentric-ring architecture separating domain logic from infrastructure. The domain/use-case core has zero framework or database dependencies, enabling testability and long-term maintainability.
+      suitable_project_types:
+        - backend
+        - web
+        - desktop
+        - mobile
+      compatible_frameworks:
+        - Express
+        - Fastify
+        - NestJS
+        - Spring Boot
+        - ASP.NET Core
+        - FastAPI
+      key_benefits:
+        - Framework-agnostic domain logic
+        - Highly testable (no infrastructure in domain)
+        - Enforces separation of concerns
+      key_concerns:
+        - Significant boilerplate (interfaces, mappers, DTOs)
+        - Over-engineering risk for CRUD-heavy services
+      complexity: high
+      team_size: medium-to-large
+
+    - id: hexagonal
+      name: Hexagonal Architecture (Ports & Adapters)
+      domain: architecture
+      description: Alistair Cockburn's pattern that isolates the application core behind ports (interfaces) and connects it to the outside world via adapters. Enables swapping databases, UIs, and messaging systems with no core changes.
+      suitable_project_types:
+        - backend
+        - desktop
+      compatible_frameworks:
+        - Express
+        - Fastify
+        - NestJS
+        - Spring Boot
+        - Ktor
+        - FastAPI
+      key_benefits:
+        - Highly swappable infrastructure adapters
+        - Excellent for domain-driven design (DDD)
+        - Easy to test with mock adapters
+      key_concerns:
+        - Abstractions add indirection
+        - Naming conventions vary across teams
+      complexity: high
+      team_size: medium-to-large
+
+    - id: mvc
+      name: MVC (Model-View-Controller)
+      domain: architecture
+      description: Classic pattern separating data (Model), presentation (View), and logic (Controller). Universally understood, well-supported by most web frameworks, and appropriate for most web applications.
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+        - desktop
+      compatible_frameworks:
+        - Rails
+        - Django
+        - Laravel
+        - Spring MVC
+        - ASP.NET Core MVC
+        - Nuxt
+        - Adonis.js
+      key_benefits:
+        - Universally understood pattern
+        - Built into most full-stack frameworks
+        - Low ceremony for standard CRUD apps
+      key_concerns:
+        - Controllers can become fat in large apps
+        - Limited guidance on complex domain logic placement
+      complexity: low
+      team_size: any
+
+    - id: mvvm
+      name: MVVM (Model-View-ViewModel)
+      domain: architecture
+      description: Pattern common in mobile and desktop apps where the ViewModel exposes data streams the View binds to reactively. Enables two-way data binding and separates UI state from business logic.
+      suitable_project_types:
+        - mobile
+        - desktop
+        - web
+      compatible_frameworks:
+        - SwiftUI
+        - Jetpack Compose
+        - Angular
+        - Vue
+        - WPF
+        - MAUI
+      key_benefits:
+        - Clear separation of UI state from business logic
+        - Two-way data binding reduces boilerplate
+        - Highly testable ViewModels (no UI dependency)
+      key_concerns:
+        - Can lead to complex ViewModel hierarchies
+        - Data binding debugging can be challenging
+      complexity: medium
+      team_size: any
+
+    - id: layered
+      name: Layered Architecture (N-Tier)
+      domain: architecture
+      description: Traditional horizontal layering: Presentation → Business Logic → Data Access → Database. Simple, widely understood, and appropriate for most enterprise CRUD backends.
+      suitable_project_types:
+        - backend
+        - web
+        - desktop
+      compatible_frameworks:
+        - Spring Boot
+        - ASP.NET Core
+        - Django
+        - Laravel
+        - NestJS
+        - Rails
+      key_benefits:
+        - Familiar to most developers
+        - Clear layer responsibilities
+        - Easy to onboard new team members
+      key_concerns:
+        - Strict layer dependencies can become artificial
+        - Data models often leak across layers
+      complexity: low
+      team_size: any
+
+  monorepo:
+
+    - id: turborepo
+      name: Turborepo
+      domain: monorepo
+      description: Vercel's high-performance monorepo build system with remote caching and intelligent task scheduling. Optimizes build times by caching task outputs and only re-running what changed.
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+      compatible_frameworks:
+        - Next.js
+        - React
+        - Vue
+        - SvelteKit
+        - Express
+        - Fastify
+        - React Native
+        - Expo
+      key_benefits:
+        - Remote caching (Vercel or self-hosted) dramatically reduces CI times
+        - Incremental builds (only rebuild changed packages)
+        - Task pipeline dependency graph
+        - Works with any package manager
+      key_concerns:
+        - Remote cache requires Vercel account or self-hosting
+        - Less opinionated than Nx (bring your own tooling)
+      language: TypeScript / JavaScript
+      package_managers: [npm, yarn, pnpm, bun]
+
+    - id: nx
+      name: Nx
+      domain: monorepo
+      description: Powerful monorepo toolkit with deep code generation, project graph visualization, affected-command optimization, and support for virtually any language and framework.
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+      compatible_frameworks:
+        - React
+        - Angular
+        - Next.js
+        - NestJS
+        - Vue
+        - React Native
+        - Expo
+        - Express
+      key_benefits:
+        - Rich code generators (nx g)
+        - Project dependency graph visualization
+        - Affected commands (only test/build what changed)
+        - First-class Angular and NestJS support
+        - Nx Cloud for remote caching
+      key_concerns:
+        - Steeper learning curve than Turborepo
+        - More opinionated structure
+      language: TypeScript / JavaScript (polyglot support via plugins)
+      package_managers: [npm, yarn, pnpm]
+
+    - id: lerna
+      name: Lerna
+      domain: monorepo
+      description: The original JavaScript monorepo tool for versioning and publishing multiple npm packages from a single repository. Now maintained by Nx team with Turborepo-style caching added.
+      suitable_project_types:
+        - web
+        - backend
+      compatible_frameworks:
+        - React
+        - Vue
+        - Angular
+        - Express
+        - Fastify
+      key_benefits:
+        - Industry-standard for npm package publishing from monorepos
+        - Automated changelog generation
+        - Independent or fixed versioning modes
+      key_concerns:
+        - Primarily a publishing tool, not a build optimizer
+        - Less useful for apps (vs library packages)
+      language: TypeScript / JavaScript
+      package_managers: [npm, yarn, pnpm]
+
+    - id: pnpm_workspaces
+      name: pnpm Workspaces
+      domain: monorepo
+      description: pnpm's built-in monorepo support using a workspace protocol. Extremely fast installs via a global content-addressed store and hard links. Works well with Turborepo or Nx for task orchestration.
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+      compatible_frameworks:
+        - any JavaScript/TypeScript framework
+      key_benefits:
+        - Fastest package installs (content-addressed store)
+        - Strict dependency isolation (no phantom dependencies)
+        - Native workspace protocol
+        - Pairs well with Turborepo or Nx
+      key_concerns:
+        - Some packages incompatible with pnpm's strict hoisting
+      language: TypeScript / JavaScript
+      package_managers: [pnpm]
+
+    - id: yarn_workspaces
+      name: Yarn Workspaces
+      domain: monorepo
+      description: Yarn's built-in monorepo support (both Classic and Berry/v4). Mature ecosystem with PnP (Plug'n'Play) for zero-install workflows and good integration with Turborepo.
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+      compatible_frameworks:
+        - any JavaScript/TypeScript framework
+      key_benefits:
+        - Mature and battle-tested
+        - PnP mode (zero-install, no node_modules)
+        - Good integration with Turborepo
+        - Stable workspace protocol
+      key_concerns:
+        - PnP compatibility issues with some tools
+        - Slower than pnpm for large installs
+      language: TypeScript / JavaScript
+      package_managers: [yarn]
+
+  ui_library:
+
+    - id: shadcn_ui
+      name: shadcn/ui
+      domain: ui_library
+      description: Copy-paste component collection built on Radix UI primitives and Tailwind CSS. Components are owned by your project (not a dependency), giving full customization control with accessibility built in.
+      suitable_project_types:
+        - web
+        - desktop
+      compatible_frameworks:
+        - React
+        - Next.js
+        - Remix
+        - Astro
+      key_benefits:
+        - Full ownership (copy components into your codebase)
+        - Radix UI accessibility built in
+        - Tailwind-based theming
+        - No version lock-in
+        - CLI for adding individual components
+      key_concerns:
+        - React-only (no Vue/Svelte version officially)
+        - Manual updates required
+      styling: Tailwind CSS
+      accessibility: WCAG 2.1 AA (via Radix UI)
+
+    - id: material_ui
+      name: Material UI (MUI)
+      domain: ui_library
+      description: Google Material Design implementation for React. The most popular React component library with a comprehensive set of components, theming system, and enterprise-grade support.
+      suitable_project_types:
+        - web
+        - desktop
+        - mobile
+      compatible_frameworks:
+        - React
+        - Next.js
+      key_benefits:
+        - Largest React component library
+        - Comprehensive theming system
+        - Material Design or custom theme
+        - MUI X for data grids and date pickers
+        - Strong accessibility
+      key_concerns:
+        - Bundle size can be large
+        - Material Design aesthetic may need heavy customization
+      styling: Emotion / styled-components / Tailwind (via MUI System)
+      accessibility: WCAG 2.1 AA
+
+    - id: ant_design
+      name: Ant Design
+      domain: ui_library
+      description: Enterprise-grade UI component library from Alibaba's Ant Group. Comprehensive set of production-ready components for data-heavy admin dashboards and enterprise applications.
+      suitable_project_types:
+        - web
+      compatible_frameworks:
+        - React
+        - Vue (Ant Design Vue)
+      key_benefits:
+        - Extremely comprehensive component set
+        - Built-in data table, forms, date pickers, charts
+        - Strong i18n support
+        - Proven in large enterprise applications
+      key_concerns:
+        - Opinionated visual style (enterprise aesthetic)
+        - Large bundle size
+        - Customization requires deep CSS overrides
+      styling: Less / CSS-in-JS
+      accessibility: partial WCAG 2.1
+
+    - id: chakra_ui
+      name: Chakra UI
+      domain: ui_library
+      description: Accessible, composable React component library with a style-props API (pass design tokens directly as props). Great developer experience with a focus on accessibility and customizability.
+      suitable_project_types:
+        - web
+      compatible_frameworks:
+        - React
+        - Next.js
+      key_benefits:
+        - Style props API (no separate CSS files)
+        - Strong default accessibility
+        - Responsive styles with breakpoint arrays
+        - Dark mode built in
+        - Chakra UI v3 now uses Panda CSS
+      key_concerns:
+        - Style props pattern can clutter JSX
+        - Smaller ecosystem than MUI
+      styling: Panda CSS (v3) / Emotion (v2)
+      accessibility: WCAG 2.1 AA
+
+    - id: radix_ui
+      name: Radix UI (Primitives)
+      domain: ui_library
+      description: Unstyled, accessible component primitives for React. Handles all the complex ARIA, keyboard navigation, and focus management so you can apply any visual style. The foundation for shadcn/ui.
+      suitable_project_types:
+        - web
+      compatible_frameworks:
+        - React
+        - Next.js
+        - Remix
+      key_benefits:
+        - Fully unstyled (bring your own CSS)
+        - Best-in-class accessibility (WAI-ARIA)
+        - Handles focus traps, keyboard nav, portal rendering
+        - Tree-shakeable (install only what you need)
+      key_concerns:
+        - No visual styles included (requires styling work)
+        - Lower-level API than full component libraries
+      styling: any (CSS Modules, Tailwind, styled-components)
+      accessibility: WAI-ARIA 1.2 compliant
+
+    - id: daisyui
+      name: DaisyUI
+      domain: ui_library
+      description: Tailwind CSS component library that adds semantic class names (btn, card, modal) on top of Tailwind utility classes. Zero runtime JS, works with any framework, and includes 30+ built-in themes.
+      suitable_project_types:
+        - web
+      compatible_frameworks:
+        - any (framework-agnostic HTML class-based)
+        - React
+        - Vue
+        - Svelte
+        - Astro
+      key_benefits:
+        - Framework-agnostic (pure CSS classes)
+        - 30+ built-in themes with one-line switching
+        - Tiny footprint (CSS only, no JS runtime)
+        - Familiar Tailwind workflow
+      key_concerns:
+        - Limited complex interactive components
+        - Accessibility not built in (no Radix-level primitives)
+      styling: Tailwind CSS
+      accessibility: basic (manual ARIA required for complex components)
+
+    - id: headless_ui
+      name: Headless UI
+      domain: ui_library
+      description: Tailwind Labs' set of fully unstyled, accessible UI components (dropdowns, modals, listboxes, etc.) designed to integrate with Tailwind CSS. Available for React and Vue.
+      suitable_project_types:
+        - web
+      compatible_frameworks:
+        - React
+        - Vue
+        - Next.js
+        - Nuxt
+      key_benefits:
+        - Built by Tailwind CSS team (seamless integration)
+        - Fully accessible with keyboard nav
+        - Minimal API surface
+        - Works perfectly with shadcn/ui components
+      key_concerns:
+        - Limited component count (focus on interactive primitives)
+        - No visual styles included
+      styling: Tailwind CSS
+      accessibility: WAI-ARIA compliant
+
+  state_management:
+
+    - id: zustand
+      name: Zustand
+      domain: state_management
+      description: Minimal, unopinionated state management for React with a hooks-based API. No boilerplate, no providers, just create a store and use it anywhere. Scales from simple to complex with middleware support.
+      suitable_project_types:
+        - web
+        - desktop
+      compatible_frameworks:
+        - React
+        - Next.js
+        - Remix
+        - Electron
+        - React Native
+        - Expo
+      key_benefits:
+        - Minimal boilerplate
+        - No Provider wrapper needed (uses subscriptions)
+        - Works outside React (middleware, vanilla JS)
+        - Devtools integration
+        - Immer middleware for immutable updates
+      key_concerns:
+        - No built-in async patterns (use with TanStack Query)
+        - Less opinionated (can lead to inconsistent patterns in large teams)
+      bundle_size: ~1 KB gzipped
+      react_version: 16.8+
+
+    - id: redux_toolkit
+      name: Redux Toolkit (RTK)
+      domain: state_management
+      description: The official, opinionated toolset for Redux development. Eliminates Redux boilerplate with createSlice, RTK Query for data fetching, and built-in Immer for immutable updates.
+      suitable_project_types:
+        - web
+        - mobile
+        - desktop
+      compatible_frameworks:
+        - React
+        - Next.js
+        - React Native
+        - Expo
+      key_benefits:
+        - Battle-tested at enterprise scale
+        - RTK Query for server state (caching, invalidation)
+        - Excellent DevTools (time-travel debugging)
+        - Predictable state machine
+        - Strong TypeScript support
+      key_concerns:
+        - More boilerplate than Zustand/Jotai
+        - Overkill for small apps
+      bundle_size: ~11 KB gzipped (toolkit) + ~2 KB (react-redux)
+      react_version: 16.8+
+
+    - id: recoil
+      name: Recoil
+      domain: state_management
+      description: Facebook's experimental atomic state management library for React. Atoms (units of state) and selectors (derived state) compose naturally with React's concurrent features.
+      suitable_project_types:
+        - web
+      compatible_frameworks:
+        - React
+        - Next.js
+      key_benefits:
+        - Atom-based model is intuitive
+        - Fine-grained subscriptions (only re-render on relevant atom changes)
+        - Async selectors for derived async state
+        - React Concurrent Mode compatible
+      key_concerns:
+        - Still in experimental status (slow release cadence)
+        - Smaller community than Zustand/RTK
+        - Meta (Facebook) may deprioritize
+      bundle_size: ~21 KB gzipped
+      react_version: 16.8+
+
+    - id: jotai
+      name: Jotai
+      domain: state_management
+      description: Primitive and flexible atomic state management for React. Inspired by Recoil but with a simpler API, no Provider needed, and excellent TypeScript inference.
+      suitable_project_types:
+        - web
+        - desktop
+      compatible_frameworks:
+        - React
+        - Next.js
+        - Remix
+        - React Native
+      key_benefits:
+        - Minimal API (create atom, use atom)
+        - No Provider required
+        - Composable atoms (derived, async, family)
+        - Works with Zustand, TanStack Query, and XState
+        - Excellent TypeScript inference
+      key_concerns:
+        - Atomic model requires different thinking
+        - No DevTools as powerful as Redux
+      bundle_size: ~3 KB gzipped
+      react_version: 16.8+
+
+    - id: pinia
+      name: Pinia
+      domain: state_management
+      description: The official state management library for Vue 3. Replaces Vuex with a simpler, type-safe API using the Composition API. Supports Options and Setup store styles.
+      suitable_project_types:
+        - web
+      compatible_frameworks:
+        - Vue 3
+        - Nuxt 3
+      key_benefits:
+        - Official Vue 3 state management
+        - Excellent TypeScript support
+        - Devtools integration
+        - Modular stores (no nested modules like Vuex)
+        - SSR-friendly
+      key_concerns:
+        - Vue-only
+        - Less ecosystem than React state libraries
+      bundle_size: ~1.5 KB gzipped
+      vue_version: 3+
+
+    - id: mobx
+      name: MobX
+      domain: state_management
+      description: Observable-based reactive state management. State mutations automatically propagate to all derived values and UI components, making it feel like spreadsheet-style reactivity.
+      suitable_project_types:
+        - web
+        - mobile
+        - desktop
+      compatible_frameworks:
+        - React
+        - Vue
+        - Angular
+        - React Native
+      key_benefits:
+        - Minimal boilerplate (mutate state directly)
+        - Automatic dependency tracking
+        - Works well for complex object graphs
+        - Framework-agnostic core
+      key_concerns:
+        - "Magic" reactivity can be hard to debug
+        - Decorators (optional) require Babel config
+        - Less popular than Zustand/RTK in new projects
+      bundle_size: ~16 KB gzipped
+      react_version: 16.8+
+
+    - id: xstate
+      name: XState
+      domain: state_management
+      description: State machines and statecharts for JavaScript and TypeScript. Models complex UI and application logic as explicit state machines, eliminating impossible states and race conditions.
+      suitable_project_types:
+        - web
+        - mobile
+        - backend
+        - desktop
+      compatible_frameworks:
+        - React
+        - Vue
+        - Svelte
+        - Angular
+        - React Native
+        - Node.js
+      key_benefits:
+        - Explicit states eliminate impossible state bugs
+        - Visual state machine editor (Stately)
+        - Handles async, guards, actions, and delays
+        - Framework-agnostic (use anywhere)
+        - Excellent for multi-step forms, wizards, auth flows
+      key_concerns:
+        - Learning curve (state machine concepts)
+        - Verbose for simple toggle states
+      bundle_size: ~25 KB gzipped
+      react_version: any
+
+  css:
+
+    - id: tailwind_css
+      name: Tailwind CSS
+      domain: css
+      description: Utility-first CSS framework that replaces custom CSS with composable utility classes. Generates only the CSS you use via PurgeCSS, resulting in tiny production bundles.
+      suitable_project_types:
+        - web
+        - mobile
+        - desktop
+      compatible_frameworks:
+        - any (React, Vue, Svelte, Angular, Astro, etc.)
+      key_benefits:
+        - No context switching (styles in markup)
+        - Consistent design tokens (spacing, color, typography)
+        - Tiny production CSS (PurgeCSS tree-shaking)
+        - Responsive, dark mode, and state variants built in
+        - JIT compiler for instant dev builds
+      key_concerns:
+        - HTML can look cluttered with many utility classes
+        - Requires Tailwind familiarity
+        - Some complex CSS not easily expressed as utilities
+      bundle_size: <10 KB gzipped (after purge)
+      version: v4 (Oxide engine, CSS-native config)
+
+    - id: css_modules
+      name: CSS Modules
+      domain: css
+      description: CSS files where class names are locally scoped by default. Zero runtime overhead, works with any CSS preprocessor, and eliminates global style conflicts without a JS-in-CSS approach.
+      suitable_project_types:
+        - web
+        - desktop
+      compatible_frameworks:
+        - React
+        - Vue (scoped styles)
+        - Svelte (scoped styles)
+        - Angular (view encapsulation)
+        - Next.js
+      key_benefits:
+        - Zero runtime (compiled to unique class names)
+        - Write standard CSS (or SCSS)
+        - Eliminates class name conflicts
+        - Works with any build tool
+        - Native framework support (Next.js, Vite, CRA)
+      key_concerns:
+        - Less convenient for dynamic styling than CSS-in-JS
+        - Naming composition can require extra thought
+      bundle_size: zero runtime overhead
+
+    - id: styled_components
+      name: Styled Components
+      domain: css
+      description: CSS-in-JS library that allows writing CSS directly in JavaScript using tagged template literals. Components are styled at definition time with automatic class name generation and theming.
+      suitable_project_types:
+        - web
+        - mobile
+        - desktop
+      compatible_frameworks:
+        - React
+        - React Native
+        - Next.js
+        - Electron
+      key_benefits:
+        - Component-scoped styles (no class name conflicts)
+        - Dynamic styling with props
+        - Theme provider for consistent design tokens
+        - CSS syntax (not objects)
+        - SSR support
+      key_concerns:
+        - Runtime overhead (style injection)
+        - Slower than zero-runtime alternatives (vanilla-extract)
+        - Server/client hydration complexity
+      bundle_size: ~15 KB gzipped (runtime)
+
+    - id: emotion
+      name: Emotion
+      domain: css
+      description: High-performance CSS-in-JS library with object and string syntax. Powers MUI's styling system and used widely in design systems that require programmatic styling.
+      suitable_project_types:
+        - web
+      compatible_frameworks:
+        - React
+        - Next.js
+      key_benefits:
+        - Both object and string syntax
+        - Source maps for easier debugging
+        - High-performance (smaller runtime than styled-components)
+        - SSR support
+        - Powers Material UI theming
+      key_concerns:
+        - Runtime overhead
+        - Similar trade-offs to styled-components
+      bundle_size: ~8 KB gzipped (runtime)
+
+    - id: vanilla_extract
+      name: vanilla-extract
+      domain: css
+      description: Zero-runtime CSS-in-TypeScript. Write styles in TypeScript with full type safety, and they compile to static CSS at build time—no runtime style injection, no flash of unstyled content.
+      suitable_project_types:
+        - web
+      compatible_frameworks:
+        - React
+        - Vue
+        - Svelte
+        - Next.js
+        - Remix
+        - Astro
+      key_benefits:
+        - Zero runtime (all styles compiled at build time)
+        - Full TypeScript type safety for styles
+        - Sprinkles API for atomic CSS generation
+        - Works with Vite, webpack, esbuild
+        - No FOUC
+      key_concerns:
+        - No dynamic styles based on runtime values (use CSS custom properties)
+        - Smaller ecosystem than Tailwind or styled-components
+      bundle_size: zero runtime overhead
+
+    - id: unocss
+      name: UnoCSS
+      domain: css
+      description: Instant, on-demand atomic CSS engine. Compatible with Tailwind, Windi CSS, and Bootstrap utilities but with a fully configurable preset system and dramatically faster build times.
+      suitable_project_types:
+        - web
+      compatible_frameworks:
+        - Vue
+        - Svelte
+        - React
+        - Astro
+        - Nuxt
+        - SvelteKit
+      key_benefits:
+        - Fastest build time of any utility CSS engine
+        - Fully configurable presets (Tailwind-compatible)
+        - Attributify mode (styles as HTML attributes)
+        - Icons preset (100K+ icons as utility classes)
+        - Inspector tool for generated CSS
+      key_concerns:
+        - Less community resources than Tailwind
+        - Configuration can be complex for custom presets
+      bundle_size: <10 KB gzipped (after tree-shaking)
+
+  testing:
+
+    - id: vitest
+      name: Vitest
+      domain: testing
+      description: Vite-native unit test framework compatible with the Jest API. Extremely fast due to Vite's ESM transform pipeline and module caching. First-class TypeScript support without config.
+      suitable_project_types:
+        - web
+        - backend
+        - cli
+      compatible_frameworks:
+        - React
+        - Vue
+        - Svelte
+        - SolidJS
+        - Vanilla TS/JS
+        - Node.js backends (Fastify, Hono, etc.)
+      key_benefits:
+        - Near-instant watch mode (HMR-style test rerun)
+        - Jest-compatible API (easy migration)
+        - First-class TypeScript with no config
+        - Browser mode for real DOM testing
+        - In-source testing
+      key_concerns:
+        - Primarily for Vite projects (works outside but less optimized)
+
+    - id: jest
+      name: Jest
+      domain: testing
+      description: The most widely adopted JavaScript testing framework. Batteries-included with assertions, mocking, coverage, and snapshot testing. Mature ecosystem with integrations for every major library.
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+        - cli
+      compatible_frameworks:
+        - React
+        - Vue
+        - Angular
+        - React Native
+        - Express
+        - NestJS
+      key_benefits:
+        - Largest ecosystem and most Stack Overflow answers
+        - Excellent snapshot testing
+        - Built-in code coverage (V8 / Istanbul)
+        - Automatic mocking system
+        - Works with CRA, Next.js, CJS projects
+      key_concerns:
+        - Slower than Vitest for ESM projects
+        - Config can be complex for modern ESM stacks
+
+    - id: playwright
+      name: Playwright
+      domain: testing
+      description: Microsoft's end-to-end testing framework supporting Chromium, Firefox, and WebKit. Auto-wait, network interception, and component testing make it the most capable E2E tool available.
+      suitable_project_types:
+        - web
+        - desktop
+      compatible_frameworks:
+        - any web framework
+        - Electron (experimental)
+      key_benefits:
+        - Cross-browser (Chromium, Firefox, WebKit / Safari)
+        - Auto-wait eliminates flaky tests
+        - Network interception and mocking
+        - Component testing (React, Vue, Svelte)
+        - Trace viewer for debugging
+        - Codegen (record interactions as code)
+      key_concerns:
+        - Slower than unit tests (full browser launch)
+        - Requires test environment with browser binaries
+
+    - id: cypress
+      name: Cypress
+      domain: testing
+      description: Developer-friendly E2E testing tool with a real-time interactive test runner, time-travel debugging, and automatic screenshots on failure. Great developer experience for web app testing.
+      suitable_project_types:
+        - web
+      compatible_frameworks:
+        - any web framework
+      key_benefits:
+        - Interactive test runner (see tests run in real time)
+        - Time-travel debugging (DOM snapshots per step)
+        - Component testing support
+        - Excellent documentation and community
+        - Cypress Cloud for parallel test runs
+      key_concerns:
+        - Chromium-only (no cross-browser parity with Playwright)
+        - Slower than Playwright for large suites
+        - No multi-tab support
+
+    - id: testing_library
+      name: Testing Library
+      domain: testing
+      description: Framework-agnostic utilities (React Testing Library, Vue Testing Library, etc.) for testing UI components in a user-centric way. Encourages testing behavior over implementation details.
+      suitable_project_types:
+        - web
+        - mobile
+      compatible_frameworks:
+        - React
+        - Vue
+        - Angular
+        - Svelte
+        - React Native
+      key_benefits:
+        - Tests behavior, not implementation (resilient to refactors)
+        - Accessibility-first queries (getByRole, getByLabel)
+        - Works with Jest and Vitest
+        - React Native Testing Library for mobile
+      key_concerns:
+        - Intentionally limited API (by design)
+        - Requires async handling for state updates
+
+    - id: storybook
+      name: Storybook
+      domain: testing
+      description: UI component development environment and visual testing tool. Document components in isolation, run visual regression tests, and review component states without a full app.
+      suitable_project_types:
+        - web
+        - mobile
+        - desktop
+      compatible_frameworks:
+        - React
+        - Vue
+        - Angular
+        - Svelte
+        - Web Components
+        - React Native (via Storybook RN)
+      key_benefits:
+        - Component isolation (build UI without backend)
+        - Visual documentation for design systems
+        - Chromatic integration for visual regression testing
+        - Interaction testing (play functions)
+        - Addons ecosystem (a11y, viewport, controls)
+      key_concerns:
+        - Setup complexity for non-standard build configs
+        - Maintenance overhead for large story suites
+
+  bundler:
+
+    - id: vite
+      name: Vite
+      domain: bundler
+      description: Next-generation frontend build tool using native ES modules for instant dev server startup and esbuild/Rollup for optimized production builds. The modern standard for new web projects.
+      suitable_project_types:
+        - web
+        - desktop
+      compatible_frameworks:
+        - React
+        - Vue
+        - Svelte
+        - SolidJS
+        - Lit
+        - Vanilla TS/JS
+        - Electron (via electron-vite)
+        - Tauri
+      key_benefits:
+        - Instant dev server (no bundling on start, ESM)
+        - Fast HMR (module-level, not full reload)
+        - Rollup-based production build (tree-shaking)
+        - Rich plugin ecosystem (Vite plugins + Rollup plugins)
+        - First-class TypeScript support
+      key_concerns:
+        - Not ideal for large Node.js backend bundles (use esbuild/tsup)
+        - CJS/ESM interop can cause issues with some packages
+
+    - id: webpack
+      name: Webpack
+      domain: bundler
+      description: The most widely deployed JavaScript bundler with an enormous plugin ecosystem. Powers Create React App, Angular CLI, and many enterprise build systems. The safe choice for complex existing setups.
+      suitable_project_types:
+        - web
+        - desktop
+        - mobile
+      compatible_frameworks:
+        - React
+        - Vue
+        - Angular
+        - Svelte
+        - Electron
+        - React Native (Metro is preferred)
+      key_benefits:
+        - Largest ecosystem (plugins for everything)
+        - Maximum configurability
+        - Module federation for micro-frontends
+        - Mature tooling and documentation
+      key_concerns:
+        - Slow build times vs Vite and Rspack
+        - Complex configuration
+        - Being phased out in favor of Vite in new projects
+
+    - id: esbuild
+      name: esbuild
+      domain: bundler
+      description: Extremely fast JavaScript/TypeScript bundler and minifier written in Go. Used as the transform engine inside Vite and as a standalone bundler for Node.js libraries and CLIs.
+      suitable_project_types:
+        - backend
+        - cli
+        - web
+      compatible_frameworks:
+        - any (framework-agnostic)
+        - used inside Vite, Tsup, unbuild
+      key_benefits:
+        - 10-100x faster than webpack/Rollup
+        - TypeScript and JSX support out of the box
+        - Excellent for bundling Node.js applications and CLIs
+        - Simple API
+      key_concerns:
+        - Limited plugin ecosystem vs webpack/Rollup
+        - No tree-shaking for CommonJS (ESM only)
+        - Less suited for complex SPA builds alone
+
+    - id: turbopack
+      name: Turbopack
+      domain: bundler
+      description: Vercel's Rust-based successor to webpack, built by the creator of webpack. Incremental architecture caches at the function level for extremely fast rebuilds. Now stable in Next.js 14+.
+      suitable_project_types:
+        - web
+      compatible_frameworks:
+        - Next.js (primary target)
+      key_benefits:
+        - Up to 96% faster HMR than webpack (in Next.js)
+        - Incremental computation (function-level caching)
+        - Designed for large Next.js applications
+        - Rust-based performance
+      key_concerns:
+        - Currently Next.js-only (not a general-purpose bundler)
+        - Plugin ecosystem still maturing
+
+    - id: rspack
+      name: Rspack
+      domain: bundler
+      description: Rust-based webpack-compatible bundler from ByteDance. Drop-in replacement for webpack with 5-10x build speed improvements and compatibility with most webpack plugins and loaders.
+      suitable_project_types:
+        - web
+      compatible_frameworks:
+        - React
+        - Vue
+        - Angular (via custom config)
+        - any webpack-configured project
+      key_benefits:
+        - Webpack-compatible (easy migration)
+        - 5-10x faster than webpack
+        - Module federation support
+        - Works with existing webpack loaders
+        - Nx and Rsbuild integration
+      key_concerns:
+        - Not all webpack plugins are compatible
+        - Smaller community than webpack or Vite
