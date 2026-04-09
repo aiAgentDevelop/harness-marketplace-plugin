@@ -9,7 +9,7 @@
     {
       "name": "harness-marketplace",
       "description": "Interactive scaffolding wizard → project-config.yaml + plan/implement/verify skills + agents + guides. Hybrid generation: template structure + AI-generated specialists.",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "source": "./",
       "category": "productivity",
       "tags": [

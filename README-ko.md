@@ -167,6 +167,25 @@ AI 추천:
 
 `project-config.yaml`, hook의 Custom Rules, `learning-log.yaml`을 보존하면서 템플릿 기반 파일만 최신 버전으로 업데이트합니다.
 
+### 팀 학습 저장 및 공유
+
+```bash
+/harness-marketplace:learn "plugin.json skills 필드 제거하면 안 됨"
+/harness-marketplace:learn --consolidate
+```
+
+개발 과정에서의 학습(문제, 원인, 해결책)을 `.harness/learnings/`에 git-tracked 파일로 저장합니다. 팀원들은 `git pull`로 지식을 공유합니다. 선택적으로 재발 방지 hook 규칙을 제안합니다. `--consolidate`로 INDEX.md가 커졌을 때 중복을 통합합니다.
+
+### GitHub 워크플로우 자동화
+
+```bash
+/harness-marketplace:gh "위자드 한국어 레이블 오타 수정"
+/harness-marketplace:gh --no-issue "README 업데이트"
+/harness-marketplace:gh --draft "인증 기능 추가"
+```
+
+Issue → Branch → Commit → PR 워크플로우를 자동 수행하되 매 단계마다 사용자 승인을 받습니다. PR 머지는 절대 자동 수행하지 않습니다.
+
 ### CI/CD 독립 설정
 
 ```bash
@@ -328,7 +347,9 @@ harness-marketplace/
 ├── skills/
 │   ├── wizard/SKILL.md            # 메인 위자드 (3모드: 인터뷰, 수동, 자동감지)
 │   ├── upgrade/SKILL.md           # Harness 업그레이드 (Custom Rules + 학습 로그 보존)
-│   └── ci-cd/SKILL.md             # 독립 CI/CD 설정
+│   ├── ci-cd/SKILL.md             # 독립 CI/CD 설정
+│   ├── learn/SKILL.md             # 팀 공유 학습 (git-tracked 지식 베이스)
+│   └── gh/SKILL.md                # GitHub 워크플로우 자동화 (Issue → Branch → PR)
 ├── templates/                     # Harness 골격 템플릿
 │   ├── orchestrator.md            # 파이프라인 오케스트레이터
 │   ├── plan.md                    # 계획 단계
