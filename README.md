@@ -167,6 +167,25 @@ When a project description is provided (manual mode) or interview is used, AI ta
 
 Preserves your `project-config.yaml`, hook Custom Rules, and `learning-log.yaml` while updating template-based skill files to the latest version.
 
+### Save and share team learnings
+
+```bash
+/harness-marketplace:learn "plugin.json skills field must not be removed"
+/harness-marketplace:learn --consolidate
+```
+
+Record development learnings (problems, causes, solutions) to git-tracked files under `.harness/learnings/`. Team members share knowledge via `git pull`. Optionally proposes hook rules to prevent recurrence. Use `--consolidate` to merge duplicates when INDEX.md grows large.
+
+### GitHub workflow automation
+
+```bash
+/harness-marketplace:gh "fix wizard Korean label typo"
+/harness-marketplace:gh --no-issue "update README"
+/harness-marketplace:gh --draft "add authentication"
+```
+
+Automates Issue → Branch → Commit → PR workflow with user approval at every step. PR merge is never performed automatically.
+
 ### Configure CI/CD independently
 
 ```bash
@@ -328,7 +347,9 @@ harness-marketplace/
 ├── skills/
 │   ├── wizard/SKILL.md            # Main wizard (3 modes: interview, manual, auto-detect)
 │   ├── upgrade/SKILL.md           # Harness upgrade (preserves Custom Rules + learning log)
-│   └── ci-cd/SKILL.md             # Standalone CI/CD configuration
+│   ├── ci-cd/SKILL.md             # Standalone CI/CD configuration
+│   ├── learn/SKILL.md             # Team-shared learnings (git-tracked knowledge base)
+│   └── gh/SKILL.md                # GitHub workflow automation (Issue → Branch → PR)
 ├── templates/                     # Harness skeleton templates
 │   ├── orchestrator.md            # Pipeline orchestrator
 │   ├── plan.md                    # Planning phase
