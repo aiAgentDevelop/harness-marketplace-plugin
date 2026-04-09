@@ -181,6 +181,8 @@ AI 추천:
 /harness-marketplace:upgrade
 ```
 
+GitHub에서 최신 버전을 자동으로 확인하고 템플릿을 직접 가져옵니다 — 플러그인을 먼저 수동 업데이트할 필요 없이 한 번에 완료됩니다. 오프라인 시 로컬 플러그인 캐시를 사용합니다 (`--offline`).
+
 `project-config.yaml`, hook의 Custom Rules, `learning-log.yaml`을 보존하면서 템플릿 기반 파일만 최신 버전으로 업데이트합니다.
 
 ---
