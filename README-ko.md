@@ -51,6 +51,30 @@
 cp -r harness-marketplace/ ~/.claude/plugins/cache/harness-marketplace/harness-marketplace/1.0.0/
 ```
 
+## 문제 해결
+
+### `/` 자동완성에 스킬이 표시되지 않을 때
+
+`/harness-marketplace:` 입력 시 wizard, upgrade, ci-cd가 드롭다운에 나타나지 않는 경우:
+
+1. **세션 완전 재시작 필요** — `/reload-plugins`에는 알려진 버그([#35641](https://github.com/anthropics/claude-code/issues/35641))가 있어 commands만 reload하고 skills는 reload하지 않습니다. VS Code를 완전히 종료 후 재시작하거나 CLI 세션을 새로 시작하세요.
+
+2. **강제 재설치** — 재시작 후에도 스킬이 없으면:
+   ```bash
+   /plugin uninstall harness-marketplace
+   /plugin install harness-marketplace
+   ```
+   그 후 세션을 완전히 재시작하세요.
+
+3. **수동 입력은 항상 동작** — 자동완성이 안 되더라도 전체 명령어를 직접 입력하면 동작합니다:
+   ```
+   /harness-marketplace:wizard
+   /harness-marketplace:upgrade
+   /harness-marketplace:ci-cd
+   ```
+
+> **참고:** Claude Code의 미해결 이슈([#18949](https://github.com/anthropics/claude-code/issues/18949), [#35641](https://github.com/anthropics/claude-code/issues/35641))로 인해 마켓플레이스 플러그인 스킬이 자동완성에 표시되지 않을 수 있습니다. 이는 플러그인 버그가 아닌 Claude Code 런타임 제한사항입니다. 세션 완전 재시작이 가장 확실한 우회 방법입니다.
+
 ## 사용법
 
 ### 새 harness 생성
@@ -299,7 +323,7 @@ self_learning:            # Layer 3 — 자기 학습
 ```
 harness-marketplace/
 ├── .claude-plugin/
-│   ├── plugin.json                # 플러그인 매니페스트
+│   ├── plugin.json                # 플러그인 매니페스트 (skills 경로 선언)
 │   └── marketplace.json           # 마켓플레이스 메타데이터
 ├── skills/
 │   ├── wizard/SKILL.md            # 메인 위자드 (3모드: 인터뷰, 수동, 자동감지)

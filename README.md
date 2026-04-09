@@ -51,6 +51,30 @@ Or install manually:
 cp -r harness-marketplace/ ~/.claude/plugins/cache/harness-marketplace/harness-marketplace/1.0.0/
 ```
 
+## Troubleshooting
+
+### Skills don't appear in `/` auto-completion
+
+If typing `/harness-marketplace:` does not show wizard, upgrade, and ci-cd in the dropdown:
+
+1. **Full session restart required** — `/reload-plugins` has a known bug ([#35641](https://github.com/anthropics/claude-code/issues/35641)) where it reloads commands but not skills. Close and reopen VS Code or restart the Claude Code CLI session entirely.
+
+2. **Force reinstall** — If skills are still missing after restart:
+   ```bash
+   /plugin uninstall harness-marketplace
+   /plugin install harness-marketplace
+   ```
+   Then fully restart the session.
+
+3. **Manual invocation always works** — Even without auto-completion, typing the full command works:
+   ```
+   /harness-marketplace:wizard
+   /harness-marketplace:upgrade
+   /harness-marketplace:ci-cd
+   ```
+
+> **Note:** There are open Claude Code issues ([#18949](https://github.com/anthropics/claude-code/issues/18949), [#35641](https://github.com/anthropics/claude-code/issues/35641)) where marketplace plugin skills may not appear in auto-completion. This is a Claude Code runtime limitation, not a plugin bug. Full session restart is the most reliable workaround.
+
 ## Usage
 
 ### Generate a new harness
@@ -299,7 +323,7 @@ self_learning:            # Layer 3 — Self-learning
 ```
 harness-marketplace/
 ├── .claude-plugin/
-│   ├── plugin.json                # Plugin manifest
+│   ├── plugin.json                # Plugin manifest (skills path declaration)
 │   └── marketplace.json           # Marketplace metadata
 ├── skills/
 │   ├── wizard/SKILL.md            # Main wizard (3 modes: interview, manual, auto-detect)

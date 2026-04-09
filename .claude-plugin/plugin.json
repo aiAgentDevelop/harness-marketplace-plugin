@@ -1,6 +1,6 @@
 {
   "name": "harness-marketplace",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Scaffolding wizard that generates project-specific development pipeline harness skills",
   "author": {
     "name": "DONGWAN-LEE"
@@ -14,5 +14,6 @@
     "project-setup",
     "code-generation",
     "multi-agent"
-  ]
+  ],
+  "skills": "./skills/"
 }

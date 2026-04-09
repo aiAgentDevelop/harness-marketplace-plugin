@@ -1,6 +1,6 @@
 {
   "name": "harness-marketplace",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "Claude Code plugin: scaffolding wizard for project-specific harness skill generation",
   "keywords": [
     "claude-code",
