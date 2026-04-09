@@ -259,10 +259,18 @@ The `guides` list in `project-config.yaml` determines which guides are loaded fo
 
 ## Learning Loop (after regression fix)
 
-When a fix was applied during regression loop, automatically suggest guide improvements.
-Same procedure as project-implement:
+When a fix was applied during regression loop, automatically suggest guide improvements and enforcement rules.
+Extended procedure (same as project-implement, with hook rule support):
 
-1. Classify root cause → determine relevant guide
-2. Draft recurrence-prevention note
-3. AskUserQuestion for user approval
-4. On approval: append to guide's `## Notes (Learned Lessons)` section
+1. **Classify root cause** → determine category (PATTERN_VIOLATION, UNSAFE_OPERATION, CONVENTION_BREAK, TYPE_ERROR, SECURITY_ISSUE, LOGIC_ERROR) and relevant guide
+2. **Draft guide note** for recurrence prevention
+3. **Analyze for hook potential** (when `self_learning.enabled` is true):
+   - Can this be auto-detected by regex or shell command?
+   - If yes → draft hook rule (name, event, matcher, check command, message)
+   - If LOGIC_ERROR → guide note only
+4. **AskUserQuestion** for user approval:
+   - "Add guide note + hook rule" (when hook was drafted)
+   - "Add guide note only"
+   - "Add hook rule only" (when hook was drafted)
+   - "Skip"
+5. **Apply**: Append guide note, hook Custom Rules entry, and learning-log.yaml entry

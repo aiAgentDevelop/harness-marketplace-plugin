@@ -63,6 +63,49 @@ forbidden: trace + deep-dive (deep-dive includes trace)
 
 ---
 
+## Enforcement System
+
+{{CONDITION:enforcement_active}}
+Code enforcement is active at level **{{ENFORCEMENT_LEVEL}}**.
+
+**Active Hooks:**
+| Hook | Event | Purpose |
+|------|-------|---------|
+{{ENFORCEMENT_HOOKS_TABLE}}
+
+Hook scripts are located in `.claude/skills/project-harness/hooks/`.
+Hook configuration is in `.claude/skills/project-harness/hooks-config.json`.
+
+**Self-Learning:** {{SELF_LEARNING_STATUS}}
+When self-learning is enabled, the Learning Loop in implement and verify phases can propose
+new hook rules based on regression patterns. Rules are appended to the "Custom Rules" section
+of hook scripts and logged in `state/learning-log.yaml`.
+{{/CONDITION:enforcement_active}}
+
+{{CONDITION:enforcement_none}}
+Enforcement is disabled. The harness operates in markdown-only mode (agents follow guidelines without code-level enforcement).
+To enable enforcement, re-run the wizard or edit `enforcement.level` in project-config.yaml.
+{{/CONDITION:enforcement_none}}
+
+---
+
+## CI/CD Pipelines
+
+{{CONDITION:cicd_active}}
+CI/CD platform: **{{CICD_PLATFORM}}**
+
+**Generated Pipelines:**
+{{CICD_PIPELINES_LIST}}
+
+Workflow files are located in `.github/workflows/` (GitHub Actions) or `.gitlab-ci.yml` (GitLab CI).
+{{/CONDITION:cicd_active}}
+
+{{CONDITION:cicd_none}}
+No CI/CD pipelines configured. To add CI/CD, re-run the wizard or manually create workflow files.
+{{/CONDITION:cicd_none}}
+
+---
+
 ## Execution Flow
 
 ### Step 0: Load project-config.yaml

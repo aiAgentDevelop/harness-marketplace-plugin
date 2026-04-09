@@ -627,6 +627,264 @@ properties:
         default: "npm install"
         example: "pnpm install"
 
+  # ─── Enforcement ──────────────────────────────────────────────────────────
+
+  enforcement:
+    type: object
+    description: >
+      Code enforcement configuration via Claude Code hooks.
+      Controls automatic validation, protected file guards, and convention enforcement
+      that run as PreToolUse/PostToolUse hooks during development.
+    additionalProperties: false
+    properties:
+
+      level:
+        type: string
+        description: >
+          Enforcement preset level. Controls which hooks are activated.
+          strict: All hooks (protected files, lint, typecheck, format, patterns, secrets).
+          standard: Core hooks (protected files, lint, typecheck).
+          minimal: Protected files only.
+          none: No hooks — markdown-only harness (backward compatible).
+        enum: [strict, standard, minimal, none]
+        default: standard
+        example: "standard"
+
+      protected_files:
+        type: array
+        description: >
+          Glob patterns for files that AI should not modify directly.
+          PreToolUse hook blocks Edit/Write operations on matching paths.
+        items:
+          type: string
+        example:
+          - "**/.env*"
+          - "package-lock.json"
+          - "yarn.lock"
+          - "pnpm-lock.yaml"
+
+      protected_patterns:
+        type: array
+        description: >
+          Architecture and convention patterns enforced via PreToolUse hooks.
+          Each pattern defines a check command that runs before file edits.
+        items:
+          type: object
+          required:
+            - name
+            - description
+          additionalProperties: false
+          properties:
+            name:
+              type: string
+              description: Short identifier for the pattern rule.
+              example: "fsd-layer-imports"
+            description:
+              type: string
+              description: Human-readable explanation of the rule.
+              example: "shared/ cannot import from features/, widgets/, or pages/"
+            check_command:
+              type: string
+              description: >
+                Shell command that exits non-zero on violation.
+                Available variables: $CLAUDE_FILE_PATH (target file path).
+              example: "bash .claude/skills/project-harness/hooks/pattern-guard.sh"
+            applicable_to:
+              type: array
+              description: Tech stack identifiers where this rule applies.
+              items:
+                type: string
+              example: ["fsd"]
+        example:
+          - name: "fsd-layer-imports"
+            description: "FSD layer import direction enforcement"
+            applicable_to: ["fsd"]
+
+      custom_rules:
+        type: array
+        description: >
+          User-defined or self-learning-generated enforcement rules.
+          Each rule maps to a Claude Code hook event.
+        items:
+          type: object
+          required:
+            - name
+            - event
+            - description
+          additionalProperties: false
+          properties:
+            name:
+              type: string
+              description: Short identifier for the rule.
+              example: "no-direct-sql-in-services"
+            event:
+              type: string
+              description: Claude Code hook event type.
+              enum: [PreToolUse, PostToolUse, SessionStart]
+              example: "PreToolUse"
+            matcher:
+              type: string
+              description: >
+                Tool name matcher for the hook. Pipe-separated for multiple tools.
+                Examples: "Edit", "Edit|Write", "Bash".
+              example: "Edit|Write"
+            script:
+              type: string
+              description: Path to the hook shell script (relative to project root).
+              example: ".claude/skills/project-harness/hooks/pattern-guard.sh"
+            description:
+              type: string
+              description: What this rule enforces and why.
+              example: "Block direct SQL queries in service layer files"
+            source:
+              type: string
+              description: Origin of this rule.
+              enum: [wizard, self-learning, user]
+              default: "wizard"
+        example:
+          - name: "no-direct-sql-in-services"
+            event: "PreToolUse"
+            matcher: "Edit"
+            script: ".claude/skills/project-harness/hooks/pattern-guard.sh"
+            description: "Block direct SQL queries in service layer"
+            source: "wizard"
+
+  # ─── CI/CD ───────────────────────────────────────────────────────────────
+
+  ci_cd:
+    type: object
+    description: >
+      CI/CD pipeline configuration. Drives generation of workflow files
+      (e.g., .github/workflows/) during wizard scaffolding.
+      Note: additional.ci_cd stores the platform string for backward compatibility.
+    additionalProperties: false
+    properties:
+
+      platform:
+        type: string
+        description: CI/CD platform for workflow generation.
+        enum: [github-actions, gitlab-ci, circleci, none]
+        default: "none"
+        example: "github-actions"
+
+      pipelines:
+        type: array
+        description: >
+          List of pipeline types to generate. Each pipeline corresponds to
+          a workflow file in the target CI/CD platform.
+        items:
+          type: object
+          required:
+            - type
+            - enabled
+          additionalProperties: false
+          properties:
+            type:
+              type: string
+              description: Pipeline type identifier.
+              enum: [ci, ai-review, deploy-preview, deploy-prod, security]
+            enabled:
+              type: boolean
+              description: Whether this pipeline should be generated.
+        example:
+          - type: "ci"
+            enabled: true
+          - type: "ai-review"
+            enabled: true
+          - type: "security"
+            enabled: true
+
+      ai_review:
+        type: object
+        description: >
+          Configuration for AI-powered code review pipeline.
+          Only applicable when pipelines includes ai-review.
+        additionalProperties: false
+        properties:
+          model:
+            type: string
+            description: Claude model to use for code review.
+            default: "claude-sonnet-4-6"
+            example: "claude-sonnet-4-6"
+          auto_approve:
+            type: boolean
+            description: >
+              Automatically approve PRs when no critical issues are found.
+            default: false
+            example: false
+          block_on_critical:
+            type: boolean
+            description: >
+              Block PR merge when critical issues are detected by AI review.
+            default: true
+            example: true
+
+      node_version:
+        type: string
+        description: Node.js version for CI runners.
+        default: "20"
+        example: "20"
+
+      package_manager:
+        type: string
+        description: Package manager command used in CI scripts.
+        enum: [npm, yarn, pnpm, bun]
+        default: "npm"
+        example: "pnpm"
+
+  # ─── Self-Learning ──────────────────────────────────────────────────────
+
+  self_learning:
+    type: object
+    description: >
+      Self-learning mechanism configuration. When enabled, the harness evolves
+      by analyzing regression patterns and proposing new enforcement rules
+      (hook additions + guide updates) to prevent recurrence.
+    additionalProperties: false
+    properties:
+
+      enabled:
+        type: boolean
+        description: Whether self-learning is active.
+        default: false
+        example: true
+
+      mode:
+        type: string
+        description: >
+          approval: AI proposes new rules, user must approve via AskUserQuestion.
+          automatic: AI applies rules automatically (logged to learning-log.yaml).
+          disabled: No self-learning, static harness.
+        enum: [approval, automatic, disabled]
+        default: "approval"
+        example: "approval"
+
+      max_auto_rules:
+        type: integer
+        description: >
+          Maximum number of rules that can be added by self-learning.
+          Prevents unbounded rule accumulation. Applies to both modes.
+        minimum: 1
+        maximum: 100
+        default: 20
+        example: 20
+
+      modifiable_targets:
+        type: array
+        description: >
+          File patterns that self-learning is allowed to modify.
+          Locked to hooks and guides by default — cannot modify SKILL.md or core config.
+        items:
+          type: string
+        default:
+          - "hooks/*.sh"
+          - "guides/*.md"
+          - "state/learning-log.yaml"
+        example:
+          - "hooks/*.sh"
+          - "guides/*.md"
+          - "state/learning-log.yaml"
+
   # ─── Run Options ──────────────────────────────────────────────────────────
 
   run_options:

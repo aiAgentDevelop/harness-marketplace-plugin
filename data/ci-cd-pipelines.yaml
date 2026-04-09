@@ -1,0 +1,172 @@
+# CI/CD Pipeline Catalog
+# Used by the wizard to show pipeline options and by generation to select templates.
+# Each pipeline entry defines a workflow that can be generated into the target CI/CD platform.
+
+pipelines:
+
+  # ─────────────────────────────────────────────
+  # GITHUB ACTIONS
+  # ─────────────────────────────────────────────
+  github-actions:
+
+    - id: ci
+      name: "CI (Test + Lint + Build)"
+      description: >
+        Standard continuous integration pipeline. Runs tests, lint, typecheck, and
+        build on every push and pull request. Ensures code quality gates are enforced
+        before merging. Caches node_modules/pip packages for faster runs.
+      template: "templates/ci-cd/github-actions/ci.yml.template"
+      triggers:
+        - push
+        - pull_request
+      required_commands:
+        - build
+        - lint
+        - typecheck
+        - test
+      conditions:
+        - always
+      platform_specific: false
+
+    - id: ai_review
+      name: "AI Code Review (Claude)"
+      description: >
+        Automated AI-powered code review using the Claude API. On every pull request,
+        fetches the diff, sends it to Claude for analysis, and posts inline review
+        comments highlighting bugs, security concerns, performance issues, and
+        style violations. Configurable model and review depth.
+      template: "templates/ci-cd/github-actions/ai-review.yml.template"
+      triggers:
+        - pull_request
+      required_secrets:
+        - ANTHROPIC_API_KEY
+      conditions:
+        - always
+      platform_specific: false
+
+    - id: deploy_preview
+      name: "Deploy Preview (Per-PR)"
+      description: >
+        Deploys a unique preview environment for each pull request, enabling visual
+        review and QA before merge. Automatically tears down the preview when the PR
+        is closed. Supports Vercel, Netlify, Railway, and Fly.io as deployment targets.
+      template: "templates/ci-cd/github-actions/deploy-preview.yml.template"
+      triggers:
+        - pull_request
+      conditions:
+        - deployment_platform_in: [vercel, netlify, railway, fly]
+      platform_specific: true
+
+    - id: deploy_prod
+      name: "Deploy Production (Merge to Main)"
+      description: >
+        Production deployment triggered on push to the main branch. Runs the full
+        build pipeline, then deploys to the configured platform. Includes optional
+        smoke test after deployment and Slack/Discord notification on success or failure.
+      template: "templates/ci-cd/github-actions/deploy-prod.yml.template"
+      triggers:
+        - push:
+            branches: [main]
+      conditions:
+        - deployment_platform_any
+      platform_specific: true
+
+    - id: security
+      name: "Security (Audit + Secret Scan)"
+      description: >
+        Runs dependency vulnerability audits and secret scanning on a weekly schedule
+        and on every pull request. Uses npm audit / pip-audit for dependency checks
+        and gitleaks or trufflehog for secret detection. Opens issues or fails the
+        PR check when vulnerabilities are found above the configured severity threshold.
+      template: "templates/ci-cd/github-actions/security.yml.template"
+      triggers:
+        - schedule:
+            cron: "0 9 * * 1"
+        - pull_request
+      conditions:
+        - always
+      platform_specific: false
+
+  # ─────────────────────────────────────────────
+  # GITLAB CI
+  # ─────────────────────────────────────────────
+  gitlab-ci:
+
+    - id: ci
+      name: "CI (Test + Lint + Build)"
+      description: >
+        Standard continuous integration pipeline for GitLab. Defines stages for lint,
+        typecheck, test, and build. Runs on every push and merge request. Uses GitLab
+        CI cache for dependency directories to speed up subsequent runs.
+      template: "templates/ci-cd/gitlab-ci/ci.gitlab-ci.yml.template"
+      triggers:
+        - push
+        - merge_request
+      required_commands:
+        - build
+        - lint
+        - typecheck
+        - test
+      conditions:
+        - always
+      platform_specific: false
+
+    - id: ai_review
+      name: "AI Code Review (Claude)"
+      description: >
+        Automated AI-powered merge request review using the Claude API on GitLab CI.
+        Triggered on merge requests, it fetches the diff via GitLab API, sends it to
+        Claude for analysis, and posts review comments as merge request notes.
+        Requires ANTHROPIC_API_KEY and GITLAB_TOKEN CI/CD variables.
+      template: "templates/ci-cd/gitlab-ci/ai-review.gitlab-ci.yml.template"
+      triggers:
+        - merge_request
+      required_secrets:
+        - ANTHROPIC_API_KEY
+        - GITLAB_TOKEN
+      conditions:
+        - always
+      platform_specific: false
+
+    - id: deploy_preview
+      name: "Deploy Review App (Per-MR)"
+      description: >
+        Deploys a review app environment for each merge request using GitLab
+        Environments. The review app is automatically stopped when the MR is merged
+        or closed. Supports dynamic environment URLs for easy team review.
+      template: "templates/ci-cd/gitlab-ci/deploy-preview.gitlab-ci.yml.template"
+      triggers:
+        - merge_request
+      conditions:
+        - deployment_platform_in: [vercel, netlify, railway, fly]
+      platform_specific: true
+
+    - id: deploy_prod
+      name: "Deploy Production (Merge to Main)"
+      description: >
+        Production deployment stage triggered on pushes to the main branch.
+        Runs after the CI stages pass. Uses GitLab Environments with production
+        protection rules. Includes optional manual approval gate and rollback support.
+      template: "templates/ci-cd/gitlab-ci/deploy-prod.gitlab-ci.yml.template"
+      triggers:
+        - push:
+            branches: [main]
+      conditions:
+        - deployment_platform_any
+      platform_specific: true
+
+    - id: security
+      name: "Security (Audit + Secret Scan)"
+      description: >
+        Scheduled and merge-request-triggered security pipeline for GitLab CI. Runs
+        dependency audits and secret scanning using GitLab SAST templates or custom
+        tools (gitleaks, npm audit). Results appear in the GitLab Security Dashboard
+        when using GitLab Ultimate, or as pipeline artifacts on other tiers.
+      template: "templates/ci-cd/gitlab-ci/security.gitlab-ci.yml.template"
+      triggers:
+        - schedules:
+            cron: "0 9 * * 1"
+        - merge_request
+      conditions:
+        - always
+      platform_specific: false

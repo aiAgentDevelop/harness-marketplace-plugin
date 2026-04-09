@@ -259,30 +259,48 @@ The `guides` list in `project-config.yaml` determines which guides are loaded an
 
 ## Learning Loop (after bugfix completion)
 
-After bugfix implementation, automatically suggest guide improvements to prevent recurrence.
+After bugfix implementation, automatically suggest guide improvements and enforcement rules to prevent recurrence.
 
 ### Procedure
 
-1. **Classify root cause**: Determine which guide file applies
+1. **Classify root cause**: Determine category and which guide file applies
    - UI defect → UI guidelines guide
    - Architecture violation → architecture guide
    - Security issue → security guide
    - Other → global rules guide
+   - Categories: PATTERN_VIOLATION, UNSAFE_OPERATION, CONVENTION_BREAK, TYPE_ERROR, SECURITY_ISSUE, LOGIC_ERROR
 
-2. **Draft note**: Write a `> ⚠️ Note:` block for recurrence prevention
+2. **Draft guide note**: Write a `> ⚠️ Note:` block for recurrence prevention
 
-3. **Request user approval**:
+3. **Analyze for hook potential** (when `self_learning.enabled` is true):
+   - Can this mistake be detected automatically by a shell command or regex?
+   - Is there a file path pattern that narrows the scope?
+   - Would a PreToolUse hook prevent it, or PostToolUse catch it?
+   - If auto-detectable → draft a hook rule (name, event, matcher, check command, message)
+   - If LOGIC_ERROR → guide note only (no hook)
+
+4. **Request user approval**:
 ```
 AskUserQuestion:
-  question: "Add a note to the guide to prevent this bug from recurring?"
+  question: "A bug was fixed. To prevent recurrence:"
+  header: "Learning Loop"
   options:
-    - "Add" → append to guide's `## Notes (Learned Lessons)` section
-    - "Revise then add" → incorporate user feedback then add
-    - "Skip" → do not add
+    - "Add guide note + hook rule" → both (only shown when hook rule was drafted)
+    - "Add guide note only" → append to guide's Notes section
+    - "Add hook rule only" → add to hook Custom Rules section (only shown when hook rule was drafted)
+    - "Skip" → do not learn from this fix
 ```
 
-4. **Format**:
-```markdown
-> ⚠️ **[date]** concise title
-> Detailed description + resolution
-```
+5. **Apply approved changes**:
+   - **Guide note format**:
+   ```markdown
+   > ⚠️ **[date]** concise title
+   > Detailed description + resolution
+   ```
+   - **Hook rule**: Append to the target hook script's Custom Rules section:
+   ```bash
+   # [LEARNED {date}] {name}
+   # Root cause: {description}
+   {check_logic}
+   ```
+   - **Learning log**: Append entry to `state/learning-log.yaml` with date, type, root_cause, category, prevention, approved_by
