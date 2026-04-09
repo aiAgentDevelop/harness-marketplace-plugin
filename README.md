@@ -55,7 +55,7 @@ cp -r harness-marketplace/ ~/.claude/plugins/cache/harness-marketplace/harness-m
 
 ### Skills don't appear in `/` auto-completion
 
-If typing `/harness-marketplace:` does not show wizard, upgrade, and ci-cd in the dropdown:
+If typing `/harness-marketplace:` does not show skills in the dropdown:
 
 1. **Full session restart required** — `/reload-plugins` has a known bug ([#35641](https://github.com/anthropics/claude-code/issues/35641)) where it reloads commands but not skills. Close and reopen VS Code or restart the Claude Code CLI session entirely.
 
@@ -71,11 +71,25 @@ If typing `/harness-marketplace:` does not show wizard, upgrade, and ci-cd in th
    /harness-marketplace:wizard
    /harness-marketplace:upgrade
    /harness-marketplace:ci-cd
+   /harness-marketplace:learn
+   /harness-marketplace:gh
    ```
 
 > **Note:** There are open Claude Code issues ([#18949](https://github.com/anthropics/claude-code/issues/18949), [#35641](https://github.com/anthropics/claude-code/issues/35641)) where marketplace plugin skills may not appear in auto-completion. This is a Claude Code runtime limitation, not a plugin bug. Full session restart is the most reliable workaround.
 
 ## Usage
+
+### 5 Skills at a Glance
+
+| Skill | Command | Purpose |
+|-------|---------|---------|
+| **Wizard** | `/harness-marketplace:wizard` | Generate a full harness from scratch |
+| **Upgrade** | `/harness-marketplace:upgrade` | Update harness templates while preserving config |
+| **CI/CD** | `/harness-marketplace:ci-cd` | Configure CI/CD pipelines independently |
+| **Learn** | `/harness-marketplace:learn` | Save team-shared learnings to git-tracked files |
+| **GH** | `/harness-marketplace:gh` | Automate GitHub workflow (Issue → Branch → PR) |
+
+---
 
 ### Generate a new harness
 
@@ -130,7 +144,7 @@ Detected:
   [Accept all] [Accept with modifications] [Switch to manual]
 ```
 
-#### Manual Mode Steps
+#### Wizard Steps (Manual Mode)
 
 | Step | Question | Example Choices |
 |------|----------|----------------|
@@ -159,6 +173,8 @@ Detected:
 
 When a project description is provided (manual mode) or interview is used, AI tags the best options with `(Recommended — reason)` labels. All options are still shown.
 
+---
+
 ### Upgrade an existing harness
 
 ```bash
@@ -167,6 +183,18 @@ When a project description is provided (manual mode) or interview is used, AI ta
 
 Preserves your `project-config.yaml`, hook Custom Rules, and `learning-log.yaml` while updating template-based skill files to the latest version.
 
+---
+
+### Configure CI/CD independently
+
+```bash
+/harness-marketplace:ci-cd
+```
+
+Configure or reconfigure CI/CD pipelines without re-running the full wizard. Works on projects that deferred CI/CD setup or want to change their pipeline configuration.
+
+---
+
 ### Save and share team learnings
 
 ```bash
@@ -174,7 +202,24 @@ Preserves your `project-config.yaml`, hook Custom Rules, and `learning-log.yaml`
 /harness-marketplace:learn --consolidate
 ```
 
-Record development learnings (problems, causes, solutions) to git-tracked files under `.harness/learnings/`. Team members share knowledge via `git pull`. Optionally proposes hook rules to prevent recurrence. Use `--consolidate` to merge duplicates when INDEX.md grows large.
+Record development learnings (problems, causes, solutions) to git-tracked files under `.harness/learnings/`. Team members share knowledge via `git pull`.
+
+**How it works:**
+
+```
+.harness/learnings/
+├── INDEX.md                                  ← Always loaded, one-line summaries (≤200 lines)
+├── 20260409-143022-scott-plugin-config.md    ← Individual learning (≤50 lines)
+├── 20260410-091200-john-git-workflow.md
+└── archive/                                  ← Originals after consolidation
+```
+
+- **Conflict-free**: Timestamp + author in filenames prevents team collisions
+- **Size-managed**: INDEX.md stays under 200 lines; `--consolidate` merges duplicates
+- **Optional hook proposals**: AI can suggest hook rules to prevent recurrence
+- **Git commit with approval**: Never auto-pushes
+
+---
 
 ### GitHub workflow automation
 
@@ -184,15 +229,24 @@ Record development learnings (problems, causes, solutions) to git-tracked files 
 /harness-marketplace:gh --draft "add authentication"
 ```
 
-Automates Issue → Branch → Commit → PR workflow with user approval at every step. PR merge is never performed automatically.
+Automates Issue → Branch → Commit → PR workflow:
 
-### Configure CI/CD independently
-
-```bash
-/harness-marketplace:ci-cd
+```
+/harness-marketplace:gh "description"
+  │
+  ├─ Step 1: Create GitHub Issue (user approves title/body)
+  ├─ Step 2: Create feature branch (fix/4-description-slug)
+  ├─ Step 3: Make changes (self, with AI help, or already done)
+  ├─ Step 4: Commit (user approves message)
+  ├─ Step 5: Push & Create PR (user approves)
+  └─ Step 6: STOP — PR URL presented, merge is user's responsibility
 ```
 
-Configure or reconfigure CI/CD pipelines without re-running the full wizard. Works on projects that deferred CI/CD setup or want to change their pipeline configuration.
+- **Every step requires approval** — nothing is auto-executed
+- **Never merges PRs** — always stops after PR creation
+- **Flags**: `--no-issue` skips issue creation, `--draft` creates draft PR
+
+---
 
 ### Use the generated harness
 
@@ -228,7 +282,7 @@ Claude Code hooks that **prevent mistakes before they happen** — not just guid
 | **Strict** | All hooks: protected files, lint, typecheck, format, patterns, secrets, DB safety |
 | **Standard** | Core hooks: protected files, lint, typecheck, secrets |
 | **Minimal** | Protected files only |
-| **None** | No hooks — markdown-only harness (v0.1.0 compatible) |
+| **None** | No hooks — markdown-only harness |
 
 ### Layer 2: CI/CD Pipeline Generation
 
@@ -366,6 +420,7 @@ harness-marketplace/
 ├── scripts/
 │   ├── validate-harness.js        # Full validation (structure, hooks, CI/CD, self-learning)
 │   └── merge-hooks.js             # Non-destructive settings.json hook merger
+├── CHANGELOG.md                   # Version history
 ├── CLAUDE.md                      # Project instructions
 ├── LICENSE                        # Apache-2.0
 ├── NOTICE                         # Attribution
