@@ -181,6 +181,8 @@ When a project description is provided (manual mode) or interview is used, AI ta
 /harness-marketplace:upgrade
 ```
 
+Automatically checks GitHub for the latest version and fetches templates directly — no need to manually update the plugin first. One command does everything. Falls back to local plugin cache when offline (`--offline`).
+
 Preserves your `project-config.yaml`, hook Custom Rules, and `learning-log.yaml` while updating template-based skill files to the latest version.
 
 ---

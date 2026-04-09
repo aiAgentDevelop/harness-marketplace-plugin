@@ -1,11 +1,13 @@
 ---
 name: upgrade
 description: Upgrade existing project-harness to latest marketplace templates while preserving project-config.yaml
-argument-hint: "[--preview] [--backup-only] [project-path]"
+argument-hint: "[--preview] [--backup-only] [--offline] [project-path]"
 ---
 
 <Purpose>
-Upgrade an existing project-harness to the latest harness-marketplace templates. Preserves the project's `project-config.yaml` (wizard answers, agents, guides) while replacing template-based files (SKILL.md orchestrator, plan, implement, visual-qa, verify) with the latest versions.
+Upgrade an existing project-harness to the latest harness-marketplace templates. Automatically checks GitHub for the latest version and fetches templates directly — no need to update the plugin first.
+
+Preserves the project's `project-config.yaml` (wizard answers, agents, guides) while replacing template-based files (SKILL.md orchestrator, plan, debug, implement, visual-qa, verify) with the latest versions. Falls back to local plugin cache when offline.
 </Purpose>
 
 <Use_When>
@@ -32,10 +34,43 @@ Upgrade an existing project-harness to the latest harness-marketplace templates.
    - Extract: version, generated_by, flags, agents, guides, run_options
    - Store as `existing_config`
 
-3. **Compare versions**:
-   - Read current marketplace plugin version from plugin metadata
-   - Compare with `existing_config.generated_by` version
-   - If same version → warn: "Already at latest version. Continue anyway?"
+3. **Compare versions (local + remote)**:
+   a. Read local plugin version from plugin metadata (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`)
+   b. Fetch latest version from remote (skip if `--offline`):
+      - Determine repo URL:
+        1. Read `~/.claude/plugins/installed_plugins.json`
+        2. Find `harness-marketplace@harness-marketplace` entry
+        3. Read `~/.claude/plugins/known_marketplaces.json` for the marketplace repo URL
+        4. Fallback: use `https://github.com/DONGWAN-LEE/harness-marketplace-plugin.git`
+      - Bash: `git ls-remote <repo-url> HEAD` → verify remote is reachable
+      - WebFetch: `https://raw.githubusercontent.com/<owner>/<repo>/main/.claude-plugin/plugin.json`
+      - Parse `version` field from fetched JSON → `remote_version`
+      - If WebFetch fails → set `remote_version = null`, fall back to local
+   c. Determine `upgrade_version` = max(remote_version, local_plugin_version)
+   d. Compare `upgrade_version` vs `existing_config.generated_by`:
+      - If upgrade_version > existing → proceed: "Upgrading: {existing} → {upgrade_version}"
+      - If same → warn: "Already at latest version. Continue anyway?"
+   e. Determine `template_source`:
+      - If remote_version > local_plugin_version → use remote (Phase 0.5)
+      - Else → use local: `template_source = ${CLAUDE_PLUGIN_ROOT}`
+
+## Phase 0.5: Fetch Remote Templates (when remote is newer)
+
+Skip this phase if `template_source` is local or `--offline` is set.
+
+```
+1. Generate temp path: /tmp/harness-marketplace-{timestamp}/
+2. Bash: git clone --depth 1 <repo-url> /tmp/harness-marketplace-{timestamp}/
+3. If clone succeeds:
+   - Set template_source = /tmp/harness-marketplace-{timestamp}/
+   - remote_fetched = true
+   - Progress: "✅ Fetched latest templates (v{remote_version}) from remote"
+4. If clone fails:
+   - Fall back to local plugin cache
+   - Set template_source = ${CLAUDE_PLUGIN_ROOT}
+   - remote_fetched = false
+   - Progress: "⚠️ Remote fetch failed. Using local plugin cache (v{local_plugin_version})"
+```
 
 ## Phase 1: Preview Changes (--preview)
 
@@ -44,6 +79,7 @@ If `--preview` flag or user wants to see changes first:
 1. **List files that will be replaced** (template-based):
    - `SKILL.md` (orchestrator)
    - `plan/SKILL.md`
+   - `debug/SKILL.md` (new in v0.4.0, created if missing)
    - `implement/SKILL.md`
    - `visual-qa/SKILL.md` (if has_ui)
    - `verify/SKILL.md`
@@ -76,7 +112,7 @@ If `--preview` flag or user wants to see changes first:
 ## Phase 3: Upgrade Templates
 
 1. **Re-generate template files** using existing `project-config.yaml`:
-   - Load templates from marketplace plugin's `templates/` directory
+   - Load templates from `template_source/templates/` directory (remote or local fallback)
    - Apply template variable substitution using existing config
    - Replace conditional blocks based on config flags
    - Write updated SKILL.md files
@@ -123,20 +159,30 @@ If `--preview` flag or user wants to see changes first:
    - Backup location
    - [Confirm / Rollback to backup / Re-run wizard]
 
+## Phase 4.5: Cleanup Remote Temp Directory
+
+```
+If remote_fetched == true:
+  Bash: rm -rf /tmp/harness-marketplace-{timestamp}/
+  Progress: "🧹 Cleaned up temporary files"
+```
+
 ## Phase 5: Rollback (if needed)
 
 If validation fails or user requests rollback:
 1. Remove current project-harness
 2. Restore from backup directory
 3. Remove backup directory
-4. Report: "Rolled back to previous version"
+4. If remote_fetched: rm -rf /tmp/harness-marketplace-{timestamp}/
+5. Report: "Rolled back to previous version"
 
 </Steps>
 
 <Tool_Usage>
-- Use `Read` to parse existing project-config.yaml
+- Use `Read` to parse existing project-config.yaml and plugin metadata
+- Use `WebFetch` to check remote plugin.json version from GitHub raw URL
+- Use `Bash` to `git clone --depth 1` for remote templates, copy backup, run validation, cleanup temp dir
 - Use `Write` to create upgraded files
-- Use `Bash` to copy backup and run validation script
 - Use `AskUserQuestion` for upgrade confirmation and rollback decisions
 - Use `Agent(subagent_type="Explore")` to verify file structure
 </Tool_Usage>
