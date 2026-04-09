@@ -30,10 +30,7 @@ Chains four sub-skills (`project-plan`, `project-implement`, `project-visual-qa`
 
 ```
 allowed: /project-harness ralph interview "task"     — interview → full + ralph validation
-allowed: /project-harness autopilot ultrawork "task" — auto-approve + parallel implement
-allowed: /project-harness deep-dive ralph "task"     — trace → interview → full + ralph
-forbidden: interview + deep-dive (deep-dive includes interview)
-forbidden: trace + deep-dive (deep-dive includes trace)
+allowed: /project-harness autopilot "task"           — auto-approve all confirmation gates
 ```
 
 ---
@@ -58,7 +55,7 @@ forbidden: trace + deep-dive (deep-dive includes trace)
   ├─ Regression loop → when VerificationResult.regression_needed
   │                      → project-implement → project-visual-qa → project-verify re-run
   │
-  └─ Cleanup ───────→ TeamDelete + state_clear
+  └─ Cleanup ───────→ TeamDelete + remove state files
 ```
 
 ---
@@ -117,11 +114,13 @@ No CI/CD pipelines configured. To add CI/CD, re-run the wizard or manually creat
    - Read classification rules from .claude/skills/project-harness/references/classification.md
 3. Derive flags automatically:
    - has_ui, has_backend, has_database, has_cache, has_auth, has_realtime, visual_qa_capable
-4. state_write(mode="project-pipeline", state={
+4. Write state/pipeline-state.json with:
+   {
+     "mode": "project-pipeline",
      "config_loaded": true,
      "classification": <Classification JSON>,
      "task_description": "<task description>"
-   })
+   }
 ```
 
 ### Step 1: Team Creation
@@ -130,15 +129,14 @@ Unless `--no-team`, create a single team and maintain it across the entire pipel
 
 ```
 TeamCreate: "project-harness-{slug}"
-state_write(mode="pipeline", state={
+Write state/pipeline-state.json with:
+{
+  "mode": "pipeline",
   "linked_team": true,
   "team_name": "project-harness-{slug}",
-  "task_description": "<task description>"
-})
-state_write(mode="team", state={
-  "linked_harness": true,
-  "current_stage": "team-plan"
-})
+  "task_description": "<task description>",
+  "current_phase": "team-plan"
+}
 ```
 
 ### Step 2: project-plan Invocation
@@ -150,8 +148,8 @@ args: "--team-name project-harness-{slug} --config <Classification JSON> <task d
   (with --no-team: "--no-team --config <Classification JSON> <task description>")
 ```
 
-**Output**: PlanResult (notepad key: `project-plan-result`)
-**State update**: state_write(current_phase="project-plan-done")
+**Output**: PlanResult (written to `state/results/plan.json`)
+**State update**: Update `current_phase` to `"project-plan-done"` in `state/pipeline-state.json`
 
 **`--dry-run` exits here.**
 
@@ -159,12 +157,12 @@ args: "--team-name project-harness-{slug} --config <Classification JSON> <task d
 
 ```
 Skill: project-implement
-args: "--team-name project-harness-{slug} --plan-result project-plan-result --config <Classification JSON> <task description>"
-  (with --no-team: "--no-team --plan-result project-plan-result --config <Classification JSON> <task description>")
+args: "--team-name project-harness-{slug} --plan-result state/results/plan.json --config <Classification JSON> <task description>"
+  (with --no-team: "--no-team --plan-result state/results/plan.json --config <Classification JSON> <task description>")
 ```
 
-**Output**: ImplementationResult (notepad key: `project-implement-result`)
-**State update**: state_write(current_phase="project-implement-done")
+**Output**: ImplementationResult (written to `state/results/implement.json`)
+**State update**: Update `current_phase` to `"project-implement-done"` in `state/pipeline-state.json`
 
 ### Step 4: project-visual-qa Invocation (Conditional)
 
@@ -179,8 +177,8 @@ args: "--classification <PlanResult.classification JSON> <target page paths>"
 - Extract modified/created page paths from PlanResult.design
 - If extraction fails → AskUserQuestion for target page
 
-**Output**: VisualQAResult (notepad key: `project-visual-qa-result`)
-**State update**: state_write(current_phase="project-visual-qa-done")
+**Output**: VisualQAResult (written to `state/results/visual-qa.json`)
+**State update**: Update `current_phase` to `"project-visual-qa-done"` in `state/pipeline-state.json`
 
 ### Step 5: project-verify Invocation
 
@@ -192,8 +190,8 @@ args: "--team-name project-harness-{slug} --classification <PlanResult.classific
   (with --no-team: "--no-team --classification <JSON>")
 ```
 
-**Output**: VerificationResult (notepad key: `project-verify-result`)
-**State update**: state_write(current_phase="project-verify-done")
+**Output**: VerificationResult (written to `state/results/verify.json`)
+**State update**: Update `current_phase` to `"project-verify-done"` in `state/pipeline-state.json`
 
 ### Step 6: Regression Loop (if needed)
 
@@ -224,9 +222,7 @@ Progress output:
 2. Wait for worker shutdown_response (30s timeout)
 3. TeamDelete: "project-harness-{slug}"
 
-4. state_clear(mode="pipeline")
-5. state_clear(mode="team")
-6. (if ralph linked) state_clear(mode="ralph")
+4. Bash: rm -f state/pipeline-state.json state/handoffs/*.md state/results/*.json
 ```
 
 ---
@@ -242,39 +238,45 @@ TaskCreate: { subject: "project-harness: project-visual-qa", activeForm: "browse
 TaskCreate: { subject: "project-harness: project-verify", activeForm: "verifying" }
 ```
 
-### Layer 2: OMC Pipeline State + Team State
+### Layer 2: Pipeline State File
 
-```
-state_write(mode="pipeline", state={
+`state/pipeline-state.json`
+
+```json
+{
+  "mode": "pipeline",
   "active": true,
   "current_skill": "project-implement",
+  "current_phase": "team-exec",
   "task_description": "<task description>",
   "classification": { ... },
   "linked_team": true,
   "team_name": "project-harness-{slug}",
   "skills_completed": ["project-plan"],
   "skills_remaining": ["project-implement", "project-visual-qa", "project-verify"]
-})
+}
 ```
 
-### Layer 3: Notepad Working Memory
+### Layer 3: Result Files
+
+`state/results/{name}.json`
 
 ```
-project-plan-result           # project-plan final result
-project-implement-result      # project-implement final result
-project-visual-qa-result      # project-visual-qa final result (when has_ui)
-project-verify-result         # project-verify final result
+state/results/plan.json           # project-plan final result
+state/results/implement.json      # project-implement final result
+state/results/visual-qa.json      # project-visual-qa final result (when has_ui)
+state/results/verify.json         # project-verify final result
 ```
 
 ### Layer 4: Handoff Files
 
-`.omc/handoffs/{stage}.md`
+`state/handoffs/{stage}.md`
 
 ```
-.omc/handoffs/team-plan.md    # project-plan exploration result
-.omc/handoffs/team-prd.md     # project-plan design result
-.omc/handoffs/team-exec.md    # project-implement result
-.omc/handoffs/team-verify.md  # project-verify result
+state/handoffs/plan.md    # project-plan exploration result
+state/handoffs/prd.md     # project-plan design result
+state/handoffs/exec.md    # project-implement result
+state/handoffs/verify.md  # project-verify result
 ```
 
 ---
@@ -286,13 +288,13 @@ Resumes an interrupted pipeline.
 ### Recovery Procedure
 
 ```
-1. state_read(mode: "pipeline") → load last state
-   - If state missing/corrupt → report to user + offer new pipeline
-2. state_read(mode: "team") → check existing team
+1. Read state/pipeline-state.json → load last state
+   - If file missing/corrupt → report to user + offer new pipeline
+2. Check team_name field in pipeline state → verify existing team
    - If team missing → switch to --no-team mode
-3. Read handoff files in .omc/handoffs/
-4. Restore each skill result from Notepad
-   - If notepad key missing → fallback from handoff file
+3. Read handoff files in state/handoffs/
+4. Restore each skill result from state/results/
+   - If result file missing → fallback from handoff file
    - If handoff also missing → re-run from that skill
 5. Resume from the skill after the last completed one:
    - project-plan done → resume from project-implement
@@ -369,30 +371,32 @@ Resuming at: project-implement
 `/project-harness ralph "task"`:
 
 ```
-state_write(mode="pipeline", state={ "linked_team": true, "linked_ralph": true })
-state_write(mode="team", state={ "linked_harness": true, "linked_ralph": true })
-state_write(mode="ralph", state={ "linked_team": true, "linked_harness": true })
+Update state/pipeline-state.json with:
+{
+  "linked_team": true,
+  "linked_ralph": true
+}
 ```
 
 project-verify passes → ralph architect validation → final completion.
-Cleanup adds: `state_clear(mode="ralph")`
+Cleanup removes ralph fields from `state/pipeline-state.json`.
 
 ### Interview Integration
 
 `/project-harness interview "task"`:
 
-**Phase -1** (before project-plan): invoke `oh-my-claudecode:deep-interview`.
+**Phase -1** (before project-plan): run an interview agent to crystallize requirements.
 
 ```
-Step 0: Skill: oh-my-claudecode:deep-interview
+Step 0: Agent (model="sonnet", description="Deep requirements interview")
         args: "<task description>"
-        → save interview result to notepad key `project-interview-result`
+        → Write interview result to state/results/interview.json
 
 Step 1: include interview result when invoking project-plan
-        args: "--interview-result project-interview-result --config <Classification JSON> <task description>"
+        args: "--interview-result state/results/interview.json --config <Classification JSON> <task description>"
 ```
 
-Cleanup: clear `project-interview-result` notepad key.
+Cleanup: `rm -f state/results/interview.json`
 
 ### Autopilot Integration
 
@@ -401,68 +405,10 @@ Cleanup: clear `project-interview-result` notepad key.
 Auto-approves all user confirmation gates across the pipeline.
 
 ```
-state_write(mode="pipeline", state={ "autopilot": true })
+Update state/pipeline-state.json with: { "autopilot": true }
 ```
 
 **Note**: Regression loops also auto-proceed. Auto-exits after max 2 regressions.
-
-### Ultrawork Integration
-
-`/project-harness ultrawork "task"`:
-
-Activates parallel execution engine in project-implement phase.
-
-```
-Step 3 (project-implement):
-  Skill: oh-my-claudecode:ultrawork
-  args: "<task list from project-plan-result>"
-```
-
-### UltraQA Integration
-
-`/project-harness ultraqa "task"`:
-
-Activates aggressive auto-fix loop after project-verify.
-
-```
-Step 5 (after project-verify):
-  Skill: oh-my-claudecode:ultraqa
-  args: "<verification failure items>"
-  → test → fix → retest → repeat until pass (max 10 attempts)
-```
-
-### Trace Integration
-
-`/project-harness trace "task"`:
-
-**Phase -1** (before project-plan): run bug-tracing agent.
-
-```
-Step 0: Skill: oh-my-claudecode:trace
-        args: "<bug description>"
-        → save trace result to notepad key `project-trace-result`
-
-Step 1: project-plan uses trace result as starting point for classify/explore
-```
-
-Best combined with `--type bugfix`: `/project-harness trace --type bugfix "error description"`
-
-### Deep-Dive Integration
-
-`/project-harness deep-dive "task"`:
-
-**Phase -2 → -1**: trace(root-cause) → deep-interview(requirement crystallization) → project-plan → rest.
-
-```
-Step 0a: Skill: oh-my-claudecode:trace
-         → save to notepad key `project-trace-result`
-
-Step 0b: Skill: oh-my-claudecode:deep-interview
-         args: "<refined questions based on trace>"
-         → save to notepad key `project-interview-result`
-
-Steps 1-7: normal pipeline (trace + interview results injected)
-```
 
 ---
 

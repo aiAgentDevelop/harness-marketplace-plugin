@@ -66,25 +66,25 @@ Run sequentially:
 **Team Stage**: team-verify
 
 1. If no `--team-name`: TeamCreate: `project-verify-{slug}`
-2. state_write: mode="team", current_phase="team-verify"
+2. Update state/pipeline-state.json: set current_phase="team-verify"
 3. TaskCreate + spawn workers:
 
 **Fixed workers (4)**:
 
 | Role | subagent_type | Responsibility |
 |------|--------------|---------------|
-| arch-auditor | oh-my-claudecode:architect | Architecture audit (layer violations, circular deps, size limits). Inject architecture checklist from config. |
-| code-reviewer | oh-my-claudecode:code-reviewer | AI code review (logic bugs, type safety, anti-patterns). Inject coding standards from config. |
-| type-linter | oh-my-claudecode:verifier | `{config.commands.typecheck} && {config.commands.lint}` |
-| deploy-validator | oh-my-claudecode:verifier | Build verification + deployment impact analysis (`{config.commands.build}`) |
+| arch-auditor | Agent (model="opus", description="Architecture audit") | Architecture audit (layer violations, circular deps, size limits). Inject architecture checklist from config. |
+| code-reviewer | Agent (model="opus", description="Code review") | AI code review (logic bugs, type safety, anti-patterns). Inject coding standards from config. |
+| type-linter | Agent (model="sonnet", description="Verification") | `{config.commands.typecheck} && {config.commands.lint}` |
+| deploy-validator | Agent (model="sonnet", description="Verification") | Build verification + deployment impact analysis (`{config.commands.build}`) |
 
 **Conditional workers (from config flags)**:
 
 {{CONDITION:has_ui}}
 | Condition | Role | subagent_type | Responsibility |
 |-----------|------|--------------|---------------|
-| has_ui | ux-reviewer | oh-my-claudecode:designer | UX checklist static analysis (overflow, spacing, alignment) |
-| has_ui | design-reviewer | oh-my-claudecode:designer | Design system/token compliance review |
+| has_ui | ux-reviewer | Agent (model="sonnet", description="UI/UX design") | UX checklist static analysis (overflow, spacing, alignment) |
+| has_ui | design-reviewer | Agent (model="sonnet", description="UI/UX design") | Design system/token compliance review |
 {{/CONDITION:has_ui}}
 
 {{CONDITION:has_backend}}
@@ -100,7 +100,7 @@ Run sequentially:
 {{/CONDITION:has_auth}}
 
 {{CONDITION:has_realtime}}
-| has_realtime | realtime-auditor | oh-my-claudecode:code-reviewer | WebSocket/SSE event correctness, connection leak detection |
+| has_realtime | realtime-auditor | Agent (model="opus", description="Code review") | WebSocket/SSE event correctness, connection leak detection |
 {{/CONDITION:has_realtime}}
 
 **Config agents workers**:
@@ -122,20 +122,20 @@ Run sequentially:
                                             [leader aggregates → unified report]
 ```
 
-**Notepad keys for intermediate results**:
+**Intermediate result files** (written to `state/results/`):
 
 ```
-project-verify-arch              # architecture audit result
-project-verify-review            # code review result
-project-verify-typelint          # typecheck/lint result
-project-verify-deploy            # deployment impact analysis result
-project-verify-ux                # UX checklist result (has_ui)
-project-verify-design            # design review result (has_ui)
-project-verify-backend           # backend security result (has_backend)
-project-verify-database          # database audit result (has_database)
-project-verify-auth              # auth audit result (has_auth)
-project-verify-realtime          # realtime audit result (has_realtime)
-project-verify-agent-{name}      # per config-agent results
+state/results/verify-arch.json              # architecture audit result
+state/results/verify-review.json            # code review result
+state/results/verify-typelint.json          # typecheck/lint result
+state/results/verify-deploy.json            # deployment impact analysis result
+state/results/verify-ux.json                # UX checklist result (has_ui)
+state/results/verify-design.json            # design review result (has_ui)
+state/results/verify-backend.json           # backend security result (has_backend)
+state/results/verify-database.json          # database audit result (has_database)
+state/results/verify-auth.json              # auth audit result (has_auth)
+state/results/verify-realtime.json          # realtime audit result (has_realtime)
+state/results/verify-agent-{name}.json      # per config-agent results
 ```
 
 ---
@@ -170,7 +170,7 @@ Overall: ✅ PASS
 
 ```
 Regression loop (max 2 attempts):
-  1. state_write: current_phase="team-fix"
+  1. Update state/pipeline-state.json: set current_phase="team-fix"
   2. Spawn arch-fix worker → auto-fix
   3. After fix: re-run typecheck + build
   4. Re-verify (re-run Steps 1–2)
@@ -212,7 +212,7 @@ Report failure items, attempt counts, and remaining issues to user. Guide manual
 
 ## Output (VerificationResult)
 
-Saved to notepad key: `project-verify-result` | Handoff: `.omc/handoffs/team-verify.md`
+Written to `state/results/verify.json` | Handoff: `state/handoffs/verify.md`
 
 ```json
 {

@@ -92,10 +92,11 @@ If `--preview` flag or user wants to see changes first:
    - If new hook types were added in this version, generate new hook scripts
    - Offer to re-merge hooks into settings.json
 
-3. **Upgrade CI/CD workflows** (if ci_cd.platform != "none"):
+3. **Upgrade CI/CD workflows** (if ci_cd.platform not in ["none", "deferred"]):
    - Only regenerate if user selected "Regenerate CI/CD" option
    - Preserve user customizations by default
    - If new pipeline types available, offer to add them
+   - If ci_cd.platform == "deferred": inform user "CI/CD was deferred. Run /harness-marketplace:ci-cd to configure."
 
 4. **Preserve self-learning data**:
    - Never overwrite `state/learning-log.yaml`

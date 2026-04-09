@@ -25,7 +25,7 @@ All workers and conditional logic are driven by `project-config.yaml` flags — 
 
 ```
 /project-plan --team-name <name> --config <JSON> "desc"   — join existing team (called by project-harness)
-/project-plan --interview-result <notepad-key> "desc"      — inject interview result
+/project-plan --interview-result <result-file-path> "desc"  — inject interview result
 ```
 
 ---
@@ -74,7 +74,7 @@ Explore the codebase to gather context needed for the task.
 **Team Stage**: team-plan
 
 1. If no `--team-name`: TeamCreate: `project-plan-{slug}`
-2. state_write: mode="team", current_phase="team-plan"
+2. Update state/pipeline-state.json: set current_phase="team-plan"
 3. TaskCreate × 3 fixed workers:
 
 **Fixed workers (3)**:
@@ -119,8 +119,8 @@ Explore the codebase to gather context needed for the task.
            └─ [config agent workers] ─┘
 ```
 
-4. Leader aggregates results → save to `project-plan-phase1-merged` notepad
-5. Write handoff: `.omc/handoffs/team-plan.md`
+4. Leader aggregates results → Write to `state/results/plan-phase1.json`
+5. Write handoff: `state/handoffs/plan.md`
 
 On completion, output worker results status, related files, and impact scope.
 
@@ -151,7 +151,7 @@ Formulate an implementation plan based on exploration results.
 
 **Team Stage**: team-prd (transition from team-plan)
 
-1. state_write: current_phase="team-prd"
+1. Update state/pipeline-state.json: set current_phase="team-prd"
 2. TaskCreate × 1–3 workers:
 
 **Fixed workers**:
@@ -165,7 +165,7 @@ Formulate an implementation plan based on exploration results.
 {{CONDITION:has_ui}}
 | Condition | Role | subagent_type | Responsibility |
 |-----------|------|--------------|---------------|
-| has_ui | ux-designer | oh-my-claudecode:designer | UI/UX design — spacing strategy, layout direction, overflow prevention |
+| has_ui | ux-designer | Agent (model="sonnet", description="UI/UX design") | UI/UX design — spacing strategy, layout direction, overflow prevention |
 {{/CONDITION:has_ui}}
 
 {{AGENTS_LIST}}
@@ -177,11 +177,11 @@ Formulate an implementation plan based on exploration results.
                                           ← based on config flags
 ```
 
-3. Each agent saves results to Notepad:
-   - `project-plan-phase2-arch`: technical implementation plan
-   - `project-plan-phase2-ux`: UI/UX design direction (when has_ui)
-4. Leader aggregates results → create `project-plan-phase2-merged`
-5. Write handoff: `.omc/handoffs/team-prd.md`
+3. Each agent saves results to `state/results/`:
+   - `state/results/plan-phase2-arch.json`: technical implementation plan
+   - `state/results/plan-phase2-ux.json`: UI/UX design direction (when has_ui)
+4. Leader aggregates results → Write to `state/results/plan-phase2.json`
+5. Write handoff: `state/handoffs/prd.md`
 
 On completion, output worker results, implementation plan (file list/order), and UI/UX design direction (when has_ui).
 
@@ -221,7 +221,7 @@ On final completion, output 4-phase status summary.
 
 ## Output (PlanResult)
 
-Saved to notepad key: `project-plan-result` | Handoff: `.omc/handoffs/team-prd.md`
+Written to `state/results/plan.json` | Handoff: `state/handoffs/prd.md`
 
 ```json
 {

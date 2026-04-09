@@ -20,6 +20,36 @@ additionalProperties: false
 
 properties:
 
+  # ─── Context ─────────────────────────────────────────────────────────────
+
+  context:
+    type: object
+    description: >
+      Optional project context provided by the user during wizard setup.
+      Used by AI to make smart recommendations throughout the wizard steps.
+      Does not affect pipeline behavior — only influences wizard option ranking.
+    additionalProperties: false
+    properties:
+      wizard_mode:
+        type: string
+        description: >
+          How the harness was configured during wizard setup.
+          interview: AI conducted a deep interview and recommended the architecture.
+          manual: User selected each option step by step.
+          auto-detect: AI scanned the existing project and detected the stack.
+        enum: [interview, manual, auto-detect]
+        example: "interview"
+      project_description:
+        type: string
+        description: >
+          Free-text description of the project. Source depends on wizard_mode:
+          interview mode: extracted from the interview vision answer.
+          manual mode: optionally provided at Step 0.6.
+          auto-detect mode: auto-generated summary from detected stack.
+          When present, AI uses this to recommend options at each subsequent step.
+        maxLength: 2000
+        example: "I want to build a real-time multiplayer card game with matchmaking, chat, and in-game purchases for mobile"
+
   # ─── Meta ────────────────────────────────────────────────────────────────
 
   version:
@@ -763,7 +793,7 @@ properties:
       platform:
         type: string
         description: CI/CD platform for workflow generation.
-        enum: [github-actions, gitlab-ci, circleci, none]
+        enum: [github-actions, gitlab-ci, circleci, deferred, none]
         default: "none"
         example: "github-actions"
 

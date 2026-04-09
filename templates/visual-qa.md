@@ -180,7 +180,7 @@ When `--viewport` is specified, inspect each page at that viewport.
 
 ## Output (VisualQAResult)
 
-Saved to notepad key: `project-visual-qa-result`
+Written to `state/results/visual-qa.json`
 
 ```json
 {
@@ -241,7 +241,7 @@ None by default. Chrome MCP cannot be accessed by workers — the skill executes
 When called from project-harness, there is no team stage transition; project-harness runs this skill directly.
 
 When fixes are needed, optionally spawn a fix worker:
-1. state_write: current_phase="team-fix"
+1. Update state/pipeline-state.json: set current_phase="team-fix"
 2. Fix worker corrects defective code
 3. Fix complete → re-run browser QA
 

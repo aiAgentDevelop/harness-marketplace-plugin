@@ -30,6 +30,27 @@ The generated harness provides a full development pipeline: plan → implement �
 - Never skip steps — every step builds on previous answers
 - Validate combinations and warn about incompatibilities
 - Support early exit with warning about incomplete config
+
+## Smart Recommendation Engine
+
+When `recommendation_mode = true` (user provided a project description at Step 0.5):
+
+1. **At every option-presenting step**, analyze `context.project_description` together with all previous answers
+2. **For each option**, evaluate relevance by matching the description against data-file metadata:
+   - `suitable_project_types`, `key_concerns`, `typical_languages` from data files
+   - `popularity_rank`, `compatible_frameworks`, `key_benefits` from data files
+   - Semantic match between the description and the option's purpose
+3. **Tag the top 1-2 most relevant options** with a recommendation label:
+   - Format: append `" (Recommended — {5-10 word reason})"` to the option label
+   - Example: `"TypeScript (Recommended — best for real-time web apps with type safety)"`
+   - Example: `"Redis (Recommended — ideal for real-time matchmaking and leaderboards)"`
+4. **If no option clearly stands out**, do NOT add any recommendation tag
+5. **Recommendations are labels ONLY** — they do NOT filter or hide options. All options are always shown.
+6. The user can still pick any option regardless of recommendations
+7. The existing AI filtering logic (removing irrelevant options based on previous answers) remains unchanged — recommendations are additive
+8. Recommendation analysis happens fresh at each step (not once upfront), because previous answers change relevance
+
+When `recommendation_mode = false` (user skipped Step 0.5), wizard works exactly as before with no recommendation labels.
 </Execution_Policy>
 
 <Data_Sources>
@@ -72,14 +93,6 @@ If not available:
   → Abort
 ```
 
-### Step 0.3: Detect omc
-```
-Try to call state_get_status MCP tool.
-If available → set enhanced_mode = true (will use omc state/notepad in templates)
-If not available → set enhanced_mode = false (will use file-based state in templates)
-Log: "omc detected: {enhanced_mode}" or "omc not found: using file-based state"
-```
-
 ## Phase 1: Common Steps (All Projects)
 
 ### Step 0: Language Selection
@@ -95,6 +108,254 @@ AskUserQuestion:
 
 Store as: wizard_language
 All subsequent questions and generated content use this language.
+```
+
+### Step 0.5: Wizard Mode Selection
+```
+AskUserQuestion:
+  question: "How would you like to set up your harness?"
+  header: "Wizard Mode"
+  options:
+    - label: "Deep Interview (AI Recommended)"
+      description: "AI interviews you about your project idea through 3-5 questions, then recommends the full architecture and tech stack. Best for new projects or when you're unsure about tech choices."
+    - label: "Manual Selection"
+      description: "You directly select project type, language, DB, platform, and tech stack step by step. Best when you already know your architecture."
+    - label: "Auto-Detect (Analyze Current Project)"
+      description: "AI scans your current project's files (package.json, configs, code structure) to detect the architecture and tech stack already in use. Best for adding a harness to an existing project."
+
+Store as: wizard_mode ("interview" | "manual" | "auto-detect")
+```
+
+---
+
+## Mode A: Deep Interview (if wizard_mode == "interview")
+
+AI conducts a structured interview to understand the project concept, then generates
+a complete architecture recommendation for user confirmation.
+
+### Interview Step 1: Project Vision
+```
+AskUserQuestion:
+  question: "What are you building? Describe the core idea, target users, and main problem it solves."
+  header: "Project Vision"
+  (Free text input)
+
+Store as: interview.vision
+```
+
+### Interview Step 2: Key Features & Scale
+```
+Based on interview.vision, AI asks a targeted follow-up:
+
+AskUserQuestion:
+  question: "What are the 3-5 most important features? How many users do you expect (MVP/startup/enterprise scale)?"
+  header: "Features & Scale"
+  (Free text input)
+
+Store as: interview.features_and_scale
+```
+
+### Interview Step 3: Constraints & Preferences
+```
+Based on previous answers, AI asks about constraints:
+
+AskUserQuestion:
+  question: "Any specific constraints or preferences? (budget, timeline, team size, existing tech you must use, deployment requirements)"
+  header: "Constraints"
+  options:
+    - label: "Enter constraints"
+      description: "Describe any technical or business constraints."
+    - label: "No constraints — AI decides everything"
+      description: "Let AI choose the best options with no restrictions."
+
+Store as: interview.constraints
+```
+
+### Interview Step 4: AI Follow-up (conditional, 0-2 additional questions)
+```
+AI analyzes all interview answers and identifies any critical gaps.
+If gaps found, ask up to 2 additional targeted questions.
+Examples:
+  - "Does this need real-time features (chat, live updates, multiplayer)?"
+  - "Will this handle payments or sensitive user data?"
+  - "Do you need multi-language/i18n support?"
+  - "Is this a mobile app, web app, or both?"
+
+Store as: interview.followup_answers
+```
+
+### Interview Step 5: Generate & Present Architecture Recommendation
+```
+AI analyzes ALL interview answers against data files:
+  - data/project-types.yaml → determine category, subcategory, purpose
+  - data/languages.yaml → select best languages
+  - data/databases.yaml → select best database
+  - data/cache-servers.yaml → determine if cache needed
+  - data/platforms.yaml → select deployment platform
+  - data/tech-stacks.yaml → select tech stack
+  - data/branching-tree.yaml → determine conditional options (auth, state management, etc.)
+
+Present the complete recommendation:
+
+━━━━ AI Architecture Recommendation ━━━━
+
+Based on your project description, here is the recommended setup:
+
+📋 Project Type: {category} > {subcategory} > {purpose}
+💻 Languages: {languages}
+🗄️ Database: {database} ({reason})
+⚡ Cache: {cache} ({reason})
+🚀 Platform: {deployment} ({reason})
+🛠️ Tech Stack: {tech_stack_items}
+🔐 Auth: {auth_method} ({reason})
+📊 State Management: {state_management} ({reason})
+
+Reasoning: {2-3 sentences explaining why this architecture fits}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AskUserQuestion:
+  question: "How does this architecture look?"
+  header: "Review Recommendation"
+  options:
+    - label: "Accept all"
+      description: "Use this recommendation as-is. Proceed to enforcement and CI/CD setup."
+    - label: "Accept with modifications"
+      description: "Start from this recommendation but let me change specific parts."
+    - label: "Switch to manual mode"
+      description: "Discard recommendation and choose everything manually step by step."
+
+If "Accept all":
+  → Map all recommendations to wizard answer variables
+  → Set recommendation_mode = true, context.project_description = interview.vision
+  → Skip to Phase 2 (Conditional Branching) — AI pre-fills branching answers from interview
+  → Continue normally from Phase 2.5 (Enforcement)
+
+If "Accept with modifications":
+  → Map recommendations to wizard answer variables as defaults
+  → Set recommendation_mode = true, context.project_description = interview.vision
+  → Run Phase 1 steps (1-1 through 7) with recommendations PRE-SELECTED
+  → User can override any step, recommended option shown as "(Recommended)"
+  → Continue normally from Phase 2
+
+If "Switch to manual mode":
+  → Set wizard_mode = "manual", recommendation_mode = false
+  → Fall through to Step 1-1 (normal manual flow)
+```
+
+---
+
+## Mode B: Auto-Detect (if wizard_mode == "auto-detect")
+
+AI scans the current project's files and code to detect the architecture
+and tech stack already in use.
+
+### Auto-Detect Step 1: Scan Project
+```
+Use Explore agent to scan the project directory:
+
+1. Read package.json (or requirements.txt, go.mod, Cargo.toml, pom.xml, etc.)
+   → Detect language, framework, dependencies
+2. Read tsconfig.json, jsconfig.json, .babelrc, etc.
+   → Detect TypeScript, build config
+3. Read framework-specific configs:
+   - next.config.js/ts → Next.js
+   - nuxt.config.ts → Nuxt
+   - vite.config.ts → Vite/React/Vue
+   - angular.json → Angular
+   - flutter pubspec.yaml → Flutter
+   - Dockerfile, docker-compose.yml → Docker
+4. Scan directory structure:
+   - src/app/ → Next.js App Router
+   - src/pages/ → Pages Router or Nuxt
+   - prisma/ → Prisma ORM
+   - supabase/ → Supabase
+   - .github/workflows/ → GitHub Actions CI/CD
+5. Read .env.example or .env.local for service integrations
+6. Check for existing .claude/ directory and CLAUDE.md
+
+Build detected_stack object from scan results.
+```
+
+### Auto-Detect Step 2: Present Detection Results
+```
+Display what was detected:
+
+━━━━ Project Analysis Results ━━━━
+
+📂 Project Root: {cwd}
+📋 Detected Type: {category} > {subcategory}
+💻 Languages: {detected_languages}
+🧰 Framework: {framework} ({version})
+🗄️ Database: {database} (from {detection_source})
+⚡ Cache: {cache or "not detected"}
+🚀 Deployment: {platform} (from {detection_source})
+🛠️ Tech Stack:
+  - {item1} (detected from {source})
+  - {item2} (detected from {source})
+  - ...
+🔐 Auth: {auth or "not detected"}
+
+Confidence: {high/medium/low}
+Undetected: {list of fields that couldn't be auto-detected}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AskUserQuestion:
+  question: "Does this look correct?"
+  header: "Review Detection"
+  options:
+    - label: "Accept all"
+      description: "Use detected configuration as-is. Fill in any undetected fields automatically."
+    - label: "Accept with modifications"
+      description: "Start from detection results but let me correct or add missing parts."
+    - label: "Switch to manual mode"
+      description: "Discard detection and choose everything manually."
+
+If "Accept all":
+  → Map detected_stack to wizard answer variables
+  → AI fills undetected fields with best guesses based on detected stack
+  → Set recommendation_mode = true
+  → Skip to Phase 2.5 (Enforcement) — conditional branching also auto-filled
+  → Continue normally
+
+If "Accept with modifications":
+  → Map detected_stack to wizard answer variables as defaults
+  → Set recommendation_mode = true
+  → Run Phase 1 steps with detected values PRE-SELECTED
+  → User can override any step
+  → Show undetected fields as regular questions (no pre-selection)
+  → Continue normally from Phase 2
+
+If "Switch to manual mode":
+  → Set wizard_mode = "manual", recommendation_mode = false
+  → Fall through to Step 1-1 (normal manual flow)
+```
+
+---
+
+## Mode C: Manual Selection (if wizard_mode == "manual")
+
+The standard step-by-step wizard. Optionally with recommendation labels
+if user provides a project description.
+
+### Step 0.6: Project Description (Optional, manual mode only)
+```
+AskUserQuestion:
+  question: "Optionally describe your project for AI recommendations at each step."
+  header: "Project Description (Optional)"
+  options:
+    - label: "Enter description"
+      description: "AI will tag the most relevant options with (Recommended) labels at each step."
+    - label: "Skip"
+      description: "No recommendations. Full manual selection."
+
+If "Enter description":
+  → Free text input → Store as: context.project_description
+  → Set: recommendation_mode = true
+
+If "Skip":
+  → Set: recommendation_mode = false
 ```
 
 ### Step 1-1: Project Category (대분류)
@@ -114,6 +375,10 @@ AskUserQuestion:
     - label: "Desktop"
       description: "Desktop applications — Electron, Tauri, native Windows/macOS apps."
   (Additional categories shown in next page or via "Other": game, cli, data, iot)
+
+If recommendation_mode:
+  Analyze context.project_description against each category's description, typical subcategories, and key_concerns.
+  Append " (Recommended — {reason})" to the top 1-2 matching labels.
 
 Store as: project_type.category
 ```
@@ -137,6 +402,10 @@ AskUserQuestion:
     - label: "SSG (Static Site Generation)"
       description: "Pre-built static pages for blogs, docs, marketing. Frameworks: Astro, Gatsby, Hugo."
 
+If recommendation_mode:
+  Analyze context.project_description against each subcategory's key_concerns and typical_frameworks.
+  Append " (Recommended — {reason})" to the top 1-2 matching labels.
+
 Store as: project_type.subcategory
 ```
 
@@ -159,6 +428,10 @@ AskUserQuestion:
     - label: "Dashboard / Admin"
       description: "Internal tool or admin panel with data visualization, CRUD operations."
 
+If recommendation_mode:
+  Analyze context.project_description against each purpose's key_concerns and description.
+  Append " (Recommended — {reason})" to the top 1-2 matching labels.
+
 Store as: project_type.purpose
 ```
 
@@ -174,6 +447,10 @@ AskUserQuestion:
       description: "Traditional server deployment. Full control over infrastructure, persistent processes, WebSocket support. Docker/Kubernetes/VPS."
     - label: "Hybrid"
       description: "Mix of serverless and server-based. Example: serverless API + persistent WebSocket server, or serverless frontend + traditional backend."
+
+If recommendation_mode:
+  Analyze context.project_description for scale, real-time needs, cost sensitivity.
+  Append " (Recommended — {reason})" to the best matching option.
 
 Store as: serverless (true/false/"hybrid")
 ```
@@ -198,6 +475,10 @@ AskUserQuestion:
     - label: "Go"
       description: "Fast compiled language. Excellent for high-performance APIs and microservices. Simple concurrency model."
 
+If recommendation_mode:
+  Analyze context.project_description against each language's suitable_project_types, frameworks, and key_benefits.
+  Append " (Recommended — {reason})" to the top 1-2 matching labels.
+
 Store as: platform.backend.language, platform.frontend.language (mapped from selection)
 ```
 
@@ -220,6 +501,10 @@ AskUserQuestion:
     - label: "Firebase Firestore"
       description: "Google's NoSQL document database. Realtime sync, offline support. Best for mobile/web apps with simple data models."
 
+If recommendation_mode:
+  Analyze context.project_description against each database's features, use cases, and key_concerns.
+  Append " (Recommended — {reason})" to the top 1-2 matching labels.
+
 Store as: platform.database.primary, platform.database.serverless_db
 ```
 
@@ -240,6 +525,10 @@ AskUserQuestion:
       description: "Use CDN (Cloudflare, Vercel Edge) for static asset and API response caching. No separate cache server."
     - label: "No Cache"
       description: "No dedicated cache layer. Suitable for simple apps or early-stage MVPs."
+
+If recommendation_mode:
+  Analyze context.project_description for real-time, session, rate-limiting needs.
+  Append " (Recommended — {reason})" to the best matching option.
 
 Store as: platform.cache.enabled, platform.cache.type
 ```
@@ -262,6 +551,10 @@ AskUserQuestion:
       description: "Full AWS ecosystem. Lambda functions, CloudFront CDN, DynamoDB. Maximum flexibility, steeper learning curve."
     - label: "Cloudflare Workers"
       description: "Edge-first platform. V8 isolates for ultra-fast cold starts. Workers, KV, D1, R2 storage."
+
+If recommendation_mode:
+  Analyze context.project_description against each platform's strengths and deployment model.
+  Append " (Recommended — {reason})" to the top 1-2 matching labels.
 
 Store as: platform.deployment.platform, platform.deployment.type
 ```
@@ -287,6 +580,10 @@ AskUserQuestion:
     - label: "Turborepo (Monorepo)"
       description: "High-performance monorepo build system. Incremental builds, remote caching. By Vercel."
 
+If recommendation_mode:
+  Analyze context.project_description against each tech option's key_benefits and compatible_frameworks.
+  Append " (Recommended — {reason})" to the top 1-2 matching labels.
+
 Store as: tech_stack.* (mapped to appropriate fields)
 ```
 
@@ -308,6 +605,10 @@ Example flow for "mobile":
   Step 8: Cross-platform framework → Flutter / React Native / MAUI
   Step 9: Push notification → FCM / APNs / None
   Step 10: App store target → iOS / Android / Both
+
+If recommendation_mode:
+  For each conditional step's options, analyze context.project_description against the option metadata.
+  Append " (Recommended — {reason})" to the top 1-2 matching labels.
 
 Store results in: additional.* and tech_stack.*
 ```
@@ -392,12 +693,18 @@ AskUserQuestion:
     - label: "GitLab CI"
       description: "Built-in CI/CD for GitLab. Single .gitlab-ci.yml config file."
     - label: "None"
-      description: "No CI/CD pipeline generation. You can add it manually later."
+      description: "No CI/CD pipeline. Not needed or handled externally."
+    - label: "Configure later"
+      description: "Skip CI/CD setup now. Run /harness-marketplace:ci-cd anytime to configure it independently."
+
+If "Configure later":
+  → Set ci_cd.platform = "deferred"
+  → Skip Steps C2 and C3 entirely
 
 Store as: ci_cd.platform (also updates additional.ci_cd for backward compat)
 ```
 
-### Step C2: Pipeline Selection (if ci_cd.platform != "none")
+### Step C2: Pipeline Selection (if ci_cd.platform not in ["none", "deferred"])
 ```
 Load data/ci-cd-pipelines.yaml → filter by ci_cd.platform.
 
@@ -499,6 +806,10 @@ AskUserQuestion:
     - label: "db-auditor"
       description: "Reviews database queries, migrations, indexes. Checks for slow queries and data integrity issues."
 
+If recommendation_mode:
+  Analyze context.project_description for security, performance, accessibility, DB concerns.
+  Append " (Recommended — {reason})" to the top 2-3 matching agent labels.
+
 Store as: agents[]
 ```
 
@@ -521,6 +832,10 @@ AskUserQuestion:
     - label: "testing-strategy"
       description: "Test organization, coverage targets, mocking guidelines, CI integration for the chosen test framework."
 
+If recommendation_mode:
+  Analyze context.project_description for relevant development domains.
+  Append " (Recommended — {reason})" to the top 2-3 matching guide labels.
+
 Store as: guides[]
 ```
 
@@ -530,7 +845,8 @@ Store as: guides[]
 ```
 Map all wizard answers to the project-config.yaml schema:
 
-1. Set metadata: version, generated_by, language
+1. Set context: wizard_mode, project_description (from interview vision, manual input, or auto-detect summary)
+2. Set metadata: version, generated_by, language
 2. Set project_type: category, subcategory, purpose
 3. Set platform: backend, frontend, database, cache, deployment, communication
 4. Set serverless flag
@@ -697,7 +1013,7 @@ Generate hooks-config.json:
   - Write to: .claude/skills/project-harness/hooks-config.json
 ```
 
-### Step 5.7: Generate CI/CD Workflows (if ci_cd.platform != "none")
+### Step 5.7: Generate CI/CD Workflows (if ci_cd.platform not in ["none", "deferred"])
 ```
 Load data/ci-cd-pipelines.yaml.
 
@@ -816,6 +1132,8 @@ Display generation summary:
 
 📋 Config Summary:
   Project: {category} > {subcategory} > {purpose}
+  Wizard Mode: {interview / manual / auto-detect}
+  Description: "{first 80 chars}..."    (if description was provided)
   Language: {language}
   Serverless: {yes/no}
   Platform: {deployment.platform}
@@ -825,7 +1143,7 @@ Display generation summary:
   Hooks: {count} active ({hook_names})
   Protected files: {count} patterns
 
-🔄 CI/CD: {platform}
+🔄 CI/CD: {platform}                   (or "Deferred — run /harness-marketplace:ci-cd")
   Pipelines: {enabled_pipeline_names}
 
 🧠 Self-Learning: {mode}
@@ -892,7 +1210,7 @@ If "취소":
 - `AskUserQuestion` — Every wizard step (one at a time, detailed descriptions)
 - `Read` — Load data/*.yaml files, existing config, template files
 - `Write` — Generate all output files (config, skills, agents, guides, hooks, CI/CD workflows)
-- `Agent(subagent_type="oh-my-claudecode:executor")` — AI generation of agents/guides (parallel)
+- `Agent(subagent_type="general-purpose")` — AI generation of agents/guides (parallel)
 - `Agent(subagent_type="Explore")` — Dry-run exploration test
 - `Bash` — MCP installation, directory creation, backup operations, merge-hooks.js execution
 - `Glob` — Check for existing harness files
@@ -957,6 +1275,76 @@ npm/brew로 배포됩니다."
 Why good: Detects incompatible combination, suggests alternative.
 </Good>
 
+<Good>
+Smart recommendation with project description:
+```
+User described: "Real-time multiplayer card game with matchmaking,
+chat, and in-game purchases for mobile"
+
+Step 1-1 | Category
+
+What type of project are you building?
+
+  ● Game (Recommended — matches "card game", "multiplayer")
+    Interactive entertainment software from indie to AAA.
+
+  ○ Mobile
+    Mobile applications — native, cross-platform, hybrid.
+
+  ○ Backend / API
+    Server-side services — REST API, GraphQL, gRPC.
+
+  ○ Web
+    Web applications — SPA, SSR, SSG, PWA.
+```
+Why good: Description-based recommendation with clear reason. All options still shown.
+</Good>
+
+<Good>
+Deep Interview mode — full architecture recommendation:
+```
+Interview Q1: "I want to build a SaaS dashboard for 
+managing restaurant orders in real-time"
+Interview Q2: "Core features: order management, live kitchen 
+display, analytics, multi-tenant. Expected 500 restaurants."
+Interview Q3: "Small team, need to ship MVP in 2 months. 
+Must use Stripe for payments."
+
+AI Recommendation:
+  Type: Web > SSR > SaaS Dashboard
+  Language: TypeScript
+  Framework: Next.js (App Router)
+  DB: Supabase (PostgreSQL + Realtime)
+  Cache: Upstash Redis
+  Platform: Vercel
+  Auth: Supabase Auth (JWT)
+  Stack: Tailwind, shadcn/ui, Zustand
+
+  [Accept all] [Accept with modifications] [Switch to manual]
+```
+Why good: AI infers full stack from interview. User reviews and confirms.
+</Good>
+
+<Good>
+Auto-Detect mode — scan existing project:
+```
+Scanning project...
+
+Detected:
+  Type: Web > SSR
+  Language: TypeScript (from tsconfig.json)
+  Framework: Next.js 14 (from package.json)
+  DB: PostgreSQL via Prisma (from prisma/schema.prisma)
+  Auth: NextAuth.js (from src/app/api/auth/)
+  Stack: Tailwind (tailwind.config.ts), shadcn/ui (components.json)
+  Deployment: Vercel (from vercel.json)
+  Undetected: Cache, Purpose
+
+  [Accept all] [Accept with modifications] [Switch to manual]
+```
+Why good: Automatically fills config from existing code. Minimal user input.
+</Good>
+
 <Bad>
 Multiple questions at once:
 ```
@@ -981,10 +1369,15 @@ Why bad: No descriptions — user can't make informed choice.
 </Examples>
 
 <Final_Checklist>
-- [ ] Phase 0: Pre-checks complete (existing harness, Agent Teams, omc detection)
+- [ ] Phase 0: Pre-checks complete (existing harness, Agent Teams)
 - [ ] Phase 1: All 8 common steps asked with detailed descriptions
 - [ ] Phase 2: Conditional branching steps executed for project category
-- [ ] Phase 2.5: Enforcement level, protected files, CI/CD platform, pipelines, self-learning configured
+- [ ] Step 0.5: Wizard mode selected (Deep Interview / Manual / Auto-Detect)
+- [ ] If Interview mode: 3-5 questions asked, full architecture recommended, user confirmed
+- [ ] If Auto-Detect mode: project scanned, detection results presented, user confirmed
+- [ ] If Manual mode: optional description asked, recommendation labels on subsequent steps
+- [ ] Recommendations are label-only (no filtering based on description)
+- [ ] Phase 2.5: Enforcement level, protected files, CI/CD platform (or deferred), pipelines, self-learning configured
 - [ ] Phase 3: AI additional questions (0-3) asked if gaps detected
 - [ ] Phase 4: Agents and guides selected via multiSelect checkboxes
 - [ ] Phase 5: All files generated (config + skills + agents + guides + references)

@@ -450,7 +450,7 @@ function validateCICD(projectPath) {
   }
 
   const platform = config.ci_cd?.platform;
-  if (!platform || platform === 'none') {
+  if (!platform || platform === 'none' || platform === 'deferred') {
     return { valid: true, errors: [], warnings: [], checks: 0, passed: 0 };
   }
 

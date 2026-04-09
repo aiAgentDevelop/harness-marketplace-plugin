@@ -25,7 +25,7 @@ All workers and conditional checks are driven by `project-config.yaml` flags —
 
 ```
 /project-implement --team-name <name> "desc"                    — join existing team
-/project-implement --plan-result <notepad-key> --config <JSON> "desc"  — reference project-plan result directly
+/project-implement --plan-result <result-file-path> --config <JSON> "desc"  — reference project-plan result directly
 ```
 
 ---
@@ -34,7 +34,7 @@ All workers and conditional checks are driven by `project-config.yaml` flags —
 
 ### Obtain PlanResult
 
-- When `--plan-result` is passed → read from notepad at that key
+- When `--plan-result` is passed → Read from that file path (e.g., `state/results/plan.json`)
 - When `--skip-plan` → implement from task description only (classification done internally)
 - When neither specified → internally invoke project-plan skill (classify → explore → design → confirm)
 
@@ -79,7 +79,7 @@ Step 5 (common build gate):
 **Team Stage**: team-exec
 
 1. If no `--team-name`: TeamCreate: `project-implement-{slug}`
-2. state_write: mode="team", current_phase="team-exec"
+2. Update state/pipeline-state.json: set current_phase="team-exec"
 3. TaskCreate + spawn workers (sequential order enforced via blockedBy):
 
 **Fixed workers**:
@@ -89,16 +89,16 @@ Step 5 (common build gate):
 | 1 | scaffolder | general-purpose | Scaffold boilerplate from project patterns + config architecture | fixed |
 | 2 | implementer | general-purpose | TDD core logic implementation | fixed |
 | 3 | integrator | general-purpose | Module wiring, routing, providers | fixed |
-| N | build-checker | oh-my-claudecode:verifier | typecheck + lint + build | fixed |
-| N+1 | test-writer | oh-my-claudecode:test-engineer | Generate tests based on config test_strategy | fixed |
-| N+2 | test-runner | oh-my-claudecode:verifier | Run tests + self-fix | fixed |
+| N | build-checker | Agent (model="sonnet", description="Verification") | typecheck + lint + build | fixed |
+| N+1 | test-writer | Agent (model="sonnet", description="Test engineering") | Generate tests based on config test_strategy | fixed |
+| N+2 | test-runner | Agent (model="sonnet", description="Verification") | Run tests + self-fix | fixed |
 
 **Conditional workers (from config flags)**:
 
 {{CONDITION:has_ui}}
 | Condition | Order | Role | subagent_type | Responsibility |
 |-----------|-------|------|--------------|---------------|
-| has_ui | after implementer | ux-checker | oh-my-claudecode:designer | UI review + fixes based on config UI guidelines |
+| has_ui | after implementer | ux-checker | Agent (model="sonnet", description="UI/UX design") | UI review + fixes based on config UI guidelines |
 {{/CONDITION:has_ui}}
 
 {{CONDITION:has_backend}}
@@ -128,7 +128,7 @@ scaffolder → implementer → ux-checker (has_ui) → integrator → db-checker
   → build-checker → test-writer → test-runner
 ```
 
-4. Write handoff: `.omc/handoffs/team-exec.md`
+4. Write handoff: `state/handoffs/exec.md`
 
 ---
 
@@ -148,10 +148,10 @@ Step 5 (common build gate)
 
 | Order | Role | subagent_type | Responsibility |
 |-------|------|--------------|---------------|
-| 1 | test-writer | oh-my-claudecode:test-engineer | Write reproduction test |
+| 1 | test-writer | Agent (model="sonnet", description="Test engineering") | Write reproduction test |
 | 2 | fixer | general-purpose | Fix bug + verify test passes |
-| 3 | test-runner | oh-my-claudecode:verifier | Run full test suite |
-| 4 | build-checker | oh-my-claudecode:verifier | typecheck + build |
+| 3 | test-runner | Agent (model="sonnet", description="Verification") | Run full test suite |
+| 4 | build-checker | Agent (model="sonnet", description="Verification") | typecheck + build |
 
 ```
 test-writer → fixer → test-runner → build-checker
@@ -217,7 +217,7 @@ Display summary of worker completion status, test results, and build status.
 
 ## Output (ImplementationResult)
 
-Saved to notepad key: `project-implement-result` | Handoff: `.omc/handoffs/team-exec.md`
+Written to `state/results/implement.json` | Handoff: `state/handoffs/exec.md`
 
 ```json
 {
