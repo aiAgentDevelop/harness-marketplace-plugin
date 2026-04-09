@@ -433,6 +433,10 @@ harness-marketplace/
 
 - **Claude Code** Agent Teams 활성화 (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
 
+## Acknowledgments
+
+Special thanks to In-gyo Jung.
+
 ## 라이선스
 
 Apache-2.0 — 자세한 내용은 [LICENSE](./LICENSE)를 참조하세요.

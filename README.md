@@ -433,6 +433,10 @@ harness-marketplace/
 
 - **Claude Code** with Agent Teams enabled (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
 
+## Acknowledgments
+
+Special thanks to In-gyo Jung.
+
 ## License
 
 Apache-2.0 — See [LICENSE](./LICENSE) for details.
