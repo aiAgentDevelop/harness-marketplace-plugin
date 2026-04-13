@@ -41,7 +41,7 @@ Preserves the project's `project-config.yaml` (wizard answers, agents, guides) w
         1. Read `~/.claude/plugins/installed_plugins.json`
         2. Find `harness-marketplace@harness-marketplace` entry
         3. Read `~/.claude/plugins/known_marketplaces.json` for the marketplace repo URL
-        4. Fallback: use `https://github.com/DONGWAN-LEE/harness-marketplace-plugin.git`
+        4. Fallback: use `https://github.com/aiAgentDevelop/harness-marketplace-plugin.git`
       - Bash: `git ls-remote <repo-url> HEAD` → verify remote is reachable
       - WebFetch: `https://raw.githubusercontent.com/<owner>/<repo>/main/.claude-plugin/plugin.json`
       - Parse `version` field from fetched JSON → `remote_version`
