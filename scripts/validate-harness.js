@@ -27,7 +27,9 @@ const REQUIRED_FILES = [
 
 const CONDITIONAL_FILES = {
   'visual-qa/SKILL.md': 'has_ui',
-  'visual-qa/scripts/visual-inspect.js': 'has_ui',
+  // Note: visual-qa/scripts/visual-inspect.js is intentionally not required —
+  // the templates ship only visual-qa/SKILL.md, and the optional helper script
+  // is created on demand by the visual-qa skill, not at harness generation time.
   'debug/SKILL.md': null, // optional for all projects (bugfix debug phase)
 };
 
@@ -40,12 +42,17 @@ const REQUIRED_CONFIG_FIELDS = [
   'project_type.subcategory',
   'project_type.purpose',
   'platform',
-  'serverless',
   'tech_stack',
   'flags',
   'agents',
   'guides',
   'commands',
+];
+
+// Fields added by newer wizard versions but absent in older configs.
+// Missing → warning, not error (pre-v0.4.0 projects still validate).
+const OPTIONAL_CONFIG_FIELDS = [
+  'serverless', // introduced by wizard's serverless architecture question
 ];
 
 const REQUIRED_FLAGS = [
@@ -181,6 +188,19 @@ function validateConfig(projectPath) {
     }
   }
 
+  // Check optional fields — missing emits a warning but still counts as passed
+  // (older configs may legitimately lack these; wizard adds them on upgrade).
+  for (const field of OPTIONAL_CONFIG_FIELDS) {
+    checks++;
+    const value = getNestedValue(config, field);
+    if (value !== undefined && value !== null) {
+      passed++;
+    } else {
+      warnings.push(`Optional config field missing (wizard/upgrade may add it): ${field}`);
+      passed++;
+    }
+  }
+
   // Validate category
   checks++;
   if (config.project_type && VALID_CATEGORIES.includes(config.project_type.category)) {
@@ -257,16 +277,27 @@ function validateConfig(projectPath) {
   }
 
   // Check guides match config
+  // config.guides[] entries follow templates/config-schema.yaml:537-576 — objects
+  // with { name, condition?, path? }. Older configs may still use raw strings,
+  // so accept both shapes.
   if (config.guides && Array.isArray(config.guides)) {
     const guidesPath = path.join(projectPath, HARNESS_ROOT, 'guides');
     if (fs.existsSync(guidesPath)) {
       for (const guide of config.guides) {
         checks++;
-        const guideFile = path.join(guidesPath, `${guide}.md`);
+        const guideName =
+          typeof guide === 'string'
+            ? guide
+            : (guide && typeof guide === 'object' && guide.name) || '';
+        if (!guideName) {
+          errors.push(`Invalid guide entry (missing name): ${JSON.stringify(guide)}`);
+          continue;
+        }
+        const guideFile = path.join(guidesPath, `${guideName}.md`);
         if (fs.existsSync(guideFile)) {
           passed++;
         } else {
-          errors.push(`Guide listed in config but file missing: guides/${guide}.md`);
+          errors.push(`Guide listed in config but file missing: guides/${guideName}.md`);
         }
       }
     }

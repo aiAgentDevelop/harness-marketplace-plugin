@@ -35,8 +35,26 @@ next `/harness-marketplace:upgrade` run cleanly without intervention.
   up front. Updated all three references (Phase 2 step 1, Phase 3 step 2 in two
   places, Phase 5 Rollback).
 
-Bug 4 (`validate-harness.js`) ships in the sibling PR under the same 0.5.2
-release — no separate version bump.
+### Also fixed — `scripts/validate-harness.js` inaccuracies (bug 4 of #22)
+
+Shipped under the same 0.5.2 release via a sibling PR. No separate version bump.
+
+- **`visual-qa/scripts/visual-inspect.js` is no longer a conditional required
+  file** (4a). The templates never shipped it — the optional helper is
+  created on demand by the `visual-qa` skill, not at harness generation time.
+  Removing the false positive prevents `has_ui=true` harnesses from failing
+  validation for no good reason.
+- **`serverless` is now an optional config field** (4b). Pre-v0.4.0 configs
+  lack it (the wizard's serverless architecture question was added later),
+  so treating it as required made every pre-v0.4.0 upgrade fail validation
+  even when the harness was otherwise correct. Moved to the new
+  `OPTIONAL_CONFIG_FIELDS` list (warn, don't error).
+- **`config.guides[]` is now handled as objects, with legacy string fallback**
+  (4c). Per `templates/config-schema.yaml:537-576`, guide entries are objects
+  with `{ name, condition?, path? }`. The old validator treated them as
+  strings and produced paths like `guides/[object Object].md`. Now extracts
+  `guide.name` (falls back to the raw string for legacy configs), and emits
+  a clear "Invalid guide entry (missing name)" error when neither shape works.
 
 ## [0.5.1] - 2026-04-13
 
