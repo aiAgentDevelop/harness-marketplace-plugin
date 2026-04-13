@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2026-04-13
+
+### Fixed — upgrade skill polish (3 of 4 items from #22; `validate-harness.js` follows in a sibling PR)
+
+Field-testing the v0.3.0 → v0.5.1 upgrade surfaced three rough edges in the
+upgrade skill's inline YAML/template handling. None blocked the migration —
+the user worked around each with ad-hoc Node scripting — but these make the
+next `/harness-marketplace:upgrade` run cleanly without intervention.
+
+- **YAML parsing — top-level key boundary detection** (bug 1). The previous
+  SKILL.md guidance didn't specify what to do when an unrelated top-level key
+  (e.g. `required_mcps:`) appeared after `guides:`. Section state stayed set to
+  `guides`, so subsequent list items leaked into the guides array as
+  `[object Object]` entries. `skills/upgrade/SKILL.md` Phase 3 step 1 now spells
+  out the section-reset rule (unknown top-level key → `section = null`).
+- **Template conditional substitution — full flag catalog** (bug 2). The set of
+  `{{CONDITION:*}}` flags used by the hook templates grew beyond what the
+  upgrade skill documented (added: `enforcement_protected_files`,
+  `enforcement_secret_guard`, `enforcement_pattern_guard`, `has_lint`,
+  `has_typecheck`, `has_formatter`, `fsd`, `clean_architecture`, `has_alembic`).
+  SKILL.md now enumerates all 18 supported flags with their evaluation rules,
+  plus the JSON-cleanup post-processing needed on `hooks-config.json` (strip
+  empty lines and trailing commas, then `JSON.parse` + re-stringify).
+- **Backup path — outside the skill scan range** (bug 3). Previous guidance
+  placed the backup at `.claude/skills/project-harness.backup-{ts}/`, which
+  Claude Code then attempted to register as a duplicate skill. Moved to
+  `.claude/backups/project-harness-{ts}/` (outside `skills/`), with `mkdir -p`
+  up front. Updated all three references (Phase 2 step 1, Phase 3 step 2 in two
+  places, Phase 5 Rollback).
+
+Bug 4 (`validate-harness.js`) ships in the sibling PR under the same 0.5.2
+release — no separate version bump.
+
 ## [0.5.1] - 2026-04-13
 
 ### Added

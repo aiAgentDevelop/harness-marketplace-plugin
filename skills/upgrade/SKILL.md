@@ -146,23 +146,101 @@ If `hook_format == "v2.x"`:
 
 ## Phase 2: Backup
 
-1. **Create backup directory**: `.claude/skills/project-harness.backup-{timestamp}/`
-2. **Copy all existing files** to backup
+1. **Create backup directory**: `.claude/backups/project-harness-{timestamp}/`
+   - Run `mkdir -p .claude/backups` first.
+   - **Do NOT use `.claude/skills/project-harness.backup-{timestamp}/`** — Claude Code's
+     skill scanner treats any directory under `.claude/skills/` as a skill candidate,
+     so a skills-internal backup path causes the backup to be registered as a duplicate
+     skill. Always put backups under `.claude/backups/` (outside the scan range).
+2. **Copy all existing files** to backup (recursively, preserving file count)
 3. **Confirm backup**: verify file count matches
 
 ## Phase 3: Upgrade Templates
 
 1. **Re-generate template files** using existing `project-config.yaml`:
    - Load templates from `template_source/templates/` directory (remote or local fallback)
-   - Apply template variable substitution using existing config
-   - Replace conditional blocks based on config flags
+   - Apply template variable substitution using existing config (see "Template variable substitution" below)
+   - Replace conditional blocks based on config flags (see "Template conditional substitution" below)
    - Write updated SKILL.md files
+
+### YAML parsing requirements
+
+When parsing `project-config.yaml` (with an inline Node script or otherwise),
+the parser MUST correctly detect top-level key transitions. Bug 1 of issue #22
+was caused by a parser that kept `section = "guides"` active when an unrelated
+top-level key (`required_mcps:`) appeared — its list items were then mis-
+attributed as guide entries, producing `[object Object]` guides in the output.
+
+Correct rules:
+
+1. **Top-level key detection**: a line matching the regex
+   `^[a-z_][a-zA-Z0-9_]*:\s*(#.*)?$` with **no leading whitespace** starts a new
+   top-level section. Examples: `flags:`, `guides:`, `required_mcps:`, `commands:`.
+2. **Section variable**: track the current section. On every top-level key:
+   - If the key is one you handle (`flags`, `guides`, `agents`, `commands`,
+     `enforcement`, `ci_cd`, `self_learning`, etc.), set `section = <key>`.
+   - **Otherwise set `section = null`** (this is the critical case — if you skip
+     the reset, subsequent list items leak into the previously-active section).
+3. **Array items**: lines beginning with `-` at indent > 0 belong to the current
+   section. Indent tracking identifies nesting depth.
+4. **Indented key/value** (e.g. `  has_ui: true` under `flags:`): append to the
+   current section's object/array.
+5. **End-of-file**: close the last open section when input ends.
+
+Use `js-yaml` or Node's own YAML support if available in the template source
+cache; fall back to an inline regex parser only when no library is accessible.
+Prefer a library: the inline parser is the source of all past upgrade bugs.
+
+### Template conditional substitution
+
+Templates in `templates/hooks/*.sh.template` and
+`templates/hooks/hooks-config.json.template` use `{{CONDITION:<flag>}}` /
+`{{/CONDITION:<flag>}}` blocks and `{{VAR}}` scalar placeholders. The upgrade
+processor MUST support the full set of flags in use today (Bug 2 of issue #22).
+
+**Supported conditional flags** (evaluate to boolean, then keep or drop the
+enclosed block accordingly):
+
+| Flag | Evaluates to |
+|---|---|
+| `enforcement_active` | `config.enforcement.level !== "none"` |
+| `enforcement_none` | `config.enforcement.level === "none"` |
+| `enforcement_protected_files` | `config.enforcement.level !== "none"` (same active rule — legacy alias) |
+| `enforcement_secret_guard` | `config.enforcement.level !== "none"` |
+| `enforcement_pattern_guard` | `config.enforcement.level !== "none"` |
+| `has_lint` | `!!config.commands.lint && config.commands.lint.trim().length > 0` |
+| `has_typecheck` | `!!config.commands.typecheck && config.commands.typecheck.trim().length > 0` |
+| `has_formatter` | `!!config.commands.format && config.commands.format.trim().length > 0` |
+| `cicd_active` | `config.ci_cd.platform && !["none","deferred"].includes(config.ci_cd.platform)` |
+| `cicd_none` | negation of `cicd_active` |
+| `has_database` / `has_ui` / `has_backend` / `has_auth` / `has_realtime` | `!!config.flags.<flag>` |
+| `fsd` | `config.flags.architecture === "FSD"` |
+| `clean_architecture` | `config.flags.architecture === "clean_architecture"` |
+| `has_alembic` | `!!config.flags.has_alembic` (FastAPI projects) |
+
+**Processing steps**:
+
+1. For each `{{CONDITION:xxx}} ... {{/CONDITION:xxx}}` pair:
+   - Evaluate the flag using the table above.
+   - If **true**: strip only the opening and closing markers, keep the enclosed content.
+   - If **false**: remove the entire block including markers.
+2. For each `{{VAR}}` placeholder: replace with the corresponding value:
+   - `{{VERSION}}` — current plugin version (from `plugin.json`)
+   - `{{PROJECT_NAME}}` — e.g. `project-harness`
+   - `{{PROTECTED_FILES}}` — comma-joined `enforcement.protected_files` array entries, or empty string
+   - `{{LINT_COMMAND}}`, `{{TYPECHECK_COMMAND}}`, `{{FORMAT_COMMAND}}` — from `commands.*`
+3. **hooks-config.json cleanup** (required for valid JSON after conditional removal):
+   - Remove empty lines: `content.replace(/^\s*\n/gm, '')`
+   - Strip trailing commas before `]` or `}`: `content.replace(/,(\s*[\]}])/g, '$1')`
+   - `JSON.parse` then `JSON.stringify(parsed, null, 2)` to normalize formatting.
+   - If `JSON.parse` fails, emit a warning and write the unparsed text so the
+     user can inspect — do not silently corrupt the file.
 
 2. **Upgrade hook scripts** (if enforcement.level != "none"):
 
    **If hook_upgrade_mode == "v1.x_legacy" (full replace, see Phase 1.5)**:
    - The Phase 2 backup already preserved the old hooks in
-     `.claude/skills/project-harness.backup-{timestamp}/hooks/`.
+     `.claude/backups/project-harness-{timestamp}/hooks/`.
    - Delete the existing `hooks/` directory entirely.
    - Re-create `hooks/` from scratch using the new v2.x templates:
      a. Copy `_parse.sh` and `_log.sh` as-is (no placeholder substitution)
@@ -175,7 +253,7 @@ If `hook_format == "v2.x"`:
      ```
      ⚠️  v1.x hooks fully regenerated. If you had Custom Rules in any hook,
      copy them manually from:
-         .claude/skills/project-harness.backup-{timestamp}/hooks/
+         .claude/backups/project-harness-{timestamp}/hooks/
      into the new files (look for the "═══ CUSTOM RULES BELOW ═══" marker).
 
      Run `claude --debug-file /tmp/hook-debug.log` after restart and grep for
@@ -239,10 +317,10 @@ If remote_fetched == true:
 ## Phase 5: Rollback (if needed)
 
 If validation fails or user requests rollback:
-1. Remove current project-harness
-2. Restore from backup directory
-3. Remove backup directory
-4. If remote_fetched: rm -rf /tmp/harness-marketplace-{timestamp}/
+1. Remove current `.claude/skills/project-harness/` directory
+2. Restore from backup at `.claude/backups/project-harness-{timestamp}/` (Phase 2 path)
+3. Remove the backup directory once restoration is confirmed
+4. If remote_fetched: `rm -rf /tmp/harness-marketplace-{timestamp}/`
 5. Report: "Rolled back to previous version"
 
 </Steps>
