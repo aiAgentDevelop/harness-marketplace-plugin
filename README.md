@@ -1,5 +1,9 @@
 # harness-marketplace
 
+[![Latest Release](https://img.shields.io/github/v/release/aiAgentDevelop/harness-marketplace-plugin?sort=semver&label=latest)](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/latest)
+[![License](https://img.shields.io/github/license/aiAgentDevelop/harness-marketplace-plugin)](./LICENSE)
+[![Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-brightgreen)](./CHANGELOG.md)
+
 **Scaffolding wizard that generates project-specific development pipeline harness skills for Claude Code.**
 
 Generate a complete development pipeline — plan, implement, visual-qa, verify — with code-level enforcement via hooks, CI/CD pipeline generation, and self-learning capabilities. Three wizard modes: AI-driven interview, manual selection, or auto-detection from existing code. One wizard, any project.
@@ -495,6 +499,24 @@ node benchmarks/scorer/llm-judge.js --run <run-id>
 ```
 
 See [`benchmarks/README.md`](./benchmarks/README.md) for full methodology, cost estimates, and interpretation guide.
+
+## Version History
+
+See [**GitHub Releases**](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases) for the full release page (tags, source tarballs, and formatted release notes) or [`CHANGELOG.md`](./CHANGELOG.md) for the in-repo changelog.
+
+Notable releases:
+
+| Version | Highlight |
+|---------|-----------|
+| [**v0.5.2**](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.2) | upgrade skill & validate-harness polish (bugs found in post-v0.5.1 field test) |
+| [v0.5.1](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.1) | upgrade skill auto-migrates legacy v1.x hooks |
+| [v0.5.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.0) | ⚠️ BREAKING — hook templates migrated to Claude Code v2.x (stdin JSON + exit 2) |
+| [v0.4.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.4.0) | Agent/guide catalogs + debug phase for bugfix pipeline |
+| [v0.3.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.3.0) | `learn` and `gh` skills for team knowledge sharing |
+| [v0.2.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.2.0) | Three wizard modes + three-layer pipeline system |
+| [v0.1.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.1.0) | Initial release |
+
+**Upgrading from v0.4.x or earlier?** v0.5.0 is a breaking hook contract migration. After updating the plugin, run `/harness-marketplace:upgrade` in each project — v0.5.1+ auto-detects legacy v1.x hooks and replaces them with the v2.x format (your old hooks are preserved in a timestamped backup).
 
 ## Acknowledgments
 

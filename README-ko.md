@@ -1,5 +1,9 @@
 # harness-marketplace
 
+[![Latest Release](https://img.shields.io/github/v/release/aiAgentDevelop/harness-marketplace-plugin?sort=semver&label=latest)](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/latest)
+[![License](https://img.shields.io/github/license/aiAgentDevelop/harness-marketplace-plugin)](./LICENSE)
+[![Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-brightgreen)](./CHANGELOG.md)
+
 **프로젝트 맞춤형 개발 파이프라인 harness 스킬을 생성하는 스캐폴딩 위자드 — Claude Code 플러그인**
 
 프로젝트 유형, 기술 스택, 배포 환경에 맞는 완전한 개발 파이프라인(plan → implement → visual-qa → verify)을 생성합니다. Hook 기반 코드 강제, CI/CD 파이프라인 생성, 자기 학습 기능을 포함합니다. 3가지 위자드 모드: AI 딥 인터뷰, 직접 선택, 기존 코드 자동 감지. 하나의 위자드로 모든 프로젝트를 지원합니다.
@@ -495,6 +499,24 @@ node benchmarks/scorer/llm-judge.js --run <run-id>
 ```
 
 전체 방법론, 비용 추정, 해석 가이드는 [`benchmarks/README.md`](./benchmarks/README.md)를 참고하세요.
+
+## 버전 히스토리
+
+태그, 소스 압축 파일, 릴리스 노트는 [**GitHub Releases**](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases)에서 확인하세요. 저장소 내부 변경 이력은 [`CHANGELOG.md`](./CHANGELOG.md)에서 볼 수 있습니다.
+
+주요 릴리스:
+
+| 버전 | 주요 내용 |
+|------|-----------|
+| [**v0.5.2**](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.2) | upgrade skill & validate-harness polish (v0.5.1 현장 테스트에서 발견된 이슈 수정) |
+| [v0.5.1](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.1) | upgrade skill이 레거시 v1.x hook을 자동 감지/마이그레이션 |
+| [v0.5.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.0) | ⚠️ BREAKING — hook 템플릿을 Claude Code v2.x 컨트랙트(stdin JSON + exit 2)로 마이그레이션 |
+| [v0.4.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.4.0) | Agent/Guide 카탈로그 + bugfix 파이프라인용 debug phase |
+| [v0.3.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.3.0) | 팀 지식 공유를 위한 `learn`, `gh` 스킬 추가 |
+| [v0.2.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.2.0) | 3가지 위자드 모드 + 3-레이어 파이프라인 시스템 |
+| [v0.1.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.1.0) | 최초 릴리스 |
+
+**v0.4.x 이하에서 업그레이드 하시나요?** v0.5.0은 hook 컨트랙트가 변경된 BREAKING 릴리스입니다. 플러그인을 업데이트한 뒤 각 프로젝트에서 `/harness-marketplace:upgrade`를 실행하세요 — v0.5.1부터 레거시 v1.x hook을 자동 감지하여 v2.x 형식으로 교체합니다(기존 hook은 타임스탬프 백업 디렉토리에 보존).
 
 ## Acknowledgments
 
