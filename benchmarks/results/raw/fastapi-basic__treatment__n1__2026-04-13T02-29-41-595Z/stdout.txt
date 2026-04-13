@@ -1,9 +1,0 @@
-All checks pass. Here's a summary of what was created:
-
-**`app/schemas/user.py`** — Pydantic v2 `UserResponse` with `from_attributes=True` for ORM compatibility.
-
-**`app/routes/users.py`** — `GET /users/{user_id}` using `db.get(User, user_id)` with `Depends(get_db)`. Returns 200 with `UserResponse` or 404 with `{"detail": "User not found"}`.
-
-**`app/main.py`** — Router registered via `app.include_router(users.router)`.
-
-**`tests/test_users.py`** — Uses `app.dependency_overrides[get_db]` with a `MagicMock` session whose `.get()` returns `None`, so no real database is needed. The 404 case passes cleanly.

@@ -1,8 +1,0 @@
-Typecheck passes cleanly. The file is in place at `app/api/posts/route.ts` and does the following:
-
-- Reads the `Authorization: Bearer <token>` header; returns **401** if missing
-- Calls `supabase.auth.getUser(token)` from the shared client (`@/lib/supabase`); returns **401** if auth fails or user is null
-- Queries `from('posts').select('id, user_id, title, created_at').eq('user_id', user.id)`
-- Returns **500** with `{ error: postsError.message }` on any Supabase query error
-- Returns **200** with `{ posts: [...] }` on success
-- No new dependencies, no new Supabase client instantiation, GET only

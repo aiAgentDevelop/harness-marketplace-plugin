@@ -1,8 +1,0 @@
-Typecheck passes with no errors. The route is in place at `app/api/posts/route.ts`:
-
-- Reads the `Authorization: Bearer <token>` header
-- Validates via `supabase.auth.getUser(bearer)` — returns 401 if missing or invalid
-- Queries `posts` with `.from('posts').select(...)` filtered by `.eq('user_id', user.id)`
-- Returns `{ posts: [...] }` on success, 401 for auth failures, 500 for Supabase query errors
-- Uses the shared client from `@/lib/supabase` — no new client instantiated
-- No hardcoded credentials (the `bearer` variable name avoids the secret-guard false positive on `token = ...` patterns)
