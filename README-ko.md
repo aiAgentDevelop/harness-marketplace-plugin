@@ -541,34 +541,57 @@ harness-marketplace/
 
 - **Claude Code** Agent Teams 활성화 (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
 
-## 벤치마크 (Phase 0.5 — 공정한 3-레이어 평가)
+## 벤치마크 (Phase 1 v2 — End-to-End, ISO/IEC 25010 + OWASP ASVS + DORA)
 
-`harness-marketplace`의 세 가지 독립된 가치 제안을 **레이어별로 분리** 측정합니다: (1) hook 기반 보안, (2) 오케스트레이션, (3) 파이프라인 regression 복구. 이전 Phase 0 파일럿 (PR [#14](https://github.com/aiAgentDevelop/harness-marketplace-plugin/pull/14))을 대체합니다 — Phase 0은 단일 `claude -p` 러너로는 슬래시 커맨드를 호출할 수 없어 3개 레이어 중 2개가 구조적으로 측정 불가였음.
+`Plain Claude Code` vs `harness-marketplace` (v0.6.0 wizard 결과물) 의 end-to-end 평가. 국제 표준 준거 (ISO/IEC 25010, OWASP ASVS v4.0.3, OWASP Top 10 2021, CWE Top 25, DORA, HELM 원칙). 이전 Phase 0.5 단일-task 벤치마크 (commit `a455abe` 이전) 를 대체.
 
-**설계**: 10개 태스크를 3 카테고리로 (보안 adversarial 6개 + 오케스트레이션 다파일 3개 + 파이프라인 regression 1개). control (bare `claude -p`) vs treatment (plan → implement → verify 체인 + hooks) vs fire-and-forget (pipeline 전용). cell 당 최대 N=3, 2개 reference 스택 (Next.js+Supabase, FastAPI+Postgres).
+**설계**: 13축 가중 채점 (총 100%) × 3 condition × 17 OWASP adversarial task + 12 multi-step sprint cell (각 8 sequential step, state carry-over). 실행 전 [`PROTOCOL-v2.md`](./benchmarks/PROTOCOL-v2.md) 선등록 (FROZEN).
 
-**Runner**: 다단계 `claude -p` 호출 + stream-json 출력으로 토큰/비용/tool-call/hook 이벤트 구조적 캡처. 실행 전 PROTOCOL.md에 가설·지표·판정규칙 선등록.
+### 핵심 결과 (Pilot + Slim, 198 effective units, $63.78)
 
-**채점**: 자동 (acceptance checks, scope-drift, risky-signature 감지, hook 이벤트 파싱) + 7차원 LLM judge (code_quality, completeness, edge_cases, security, plan_adherence, scope_creep [역채점], over_engineering [역채점]).
+| Condition | Weighted Total | 비고 |
+|---|---:|---|
+| `bare_claude` (플러그인 없음) | 83.0 | 베이스라인 |
+| **`claude_md_only`** (CLAUDE.md 만, skills/hooks 없음) | **88.1 ← 우승** | wizard 가 생성한 CLAUDE.md 만으로 |
+| `full_harness` (v0.6.0 wizard 전체) | 86.8 | 풀 skills + hooks + agents |
+
+**wizard 가 생성하는 `CLAUDE.md`** 가 오케스트레이션의 핵심 (load-bearing). skills/hooks/agents 레이어는 다음 3개 축에서 측정 가능한 추가 가치를 제공:
+
+| 축 | bare | cmo | harness | 우승 |
+|---|---:|---:|---:|---|
+| **Perf — Cost** (sequential 작업) | 83 | 81 | **84** | full_harness |
+| **Compatibility** (scope discipline) | 89 | 92 | **97** | full_harness |
+| **Usability** (judge rubric) | 54 | 58 | **62** | full_harness |
+
+다만 `claude_md_only` 가 Functional Suitability (86 vs 82), Security ASVS L2 (77 vs 69), CWE-가중 결함 (99 vs 99 동률), Maintainability (96 vs 96 동률), Wall-time (88 vs 87), DORA Lead Time (93 vs 91) 에서 우위.
+
+**정직한 해석**: harness 의 측정 가능한 lift 대부분은 wizard 가 생성한 CLAUDE.md 에서 옴 (`bare_claude` 에는 없음). 런타임 hooks/skills 는 polish 축에서 진짜 가치를 더하지만, 본 벤치마크 구성에서는 보안 지표를 결정적으로 끌어올리지 않음 — 에이전트가 CLAUDE.md 컨벤션을 통해 이미 자가-정렬되어 런타임 hook 이 발동될 일이 거의 없었음 (harness condition 에서 평균 0.1 hook BLOCK / run).
+
+**회귀 0건** 96 sequential sprint step 전체 (모든 condition). harness 의 regression-loop 가 잡을 일이 없었음.
+
+### 결정 평가 (PROTOCOL-v2 §7 기준)
+
+| 가설 | Pilot | Slim |
+|---|---|---|
+| H1 (Security ASVS 격차 ≥ 15) | ❌ +3 — 미달 | ❌ +3 — 미달 |
+| H3 (Weighted total 격차 ≥ 5) | ❌ +3.9 — 미달 | ❌ +3.8 — 미달 |
+| H5 (cmo 가 bare/harness 사이) | ❌ 역전 | ❌ 역전 |
+
+두 stage 모두 동일한 결론: 플러그인의 측정 가능한 영향력은 wizard 가 생성한 CLAUDE.md 에서 압도적으로 나오며, 런타임 skills/hooks 레이어는 보조적. 오케스트레이션 scaffolding 을 위해 플러그인을 채택하되, skills/hooks 는 multi-step 라이프사이클에서 Compatibility / Usability / Perf-Cost polish 추가로 기대.
 
 ```bash
-# 사전 점검: 슬래시 커맨드 resolve 확인
-node benchmarks/runner/probe.js
-
-# 단일 sanity run
-node benchmarks/runner/run-control.js --task sec-nextjs-1-secret-in-config --n sanity
-
-# 전체 배치 (shuffle 큐)
-node benchmarks/runner/batch.js --category security          # 36 runs
-node benchmarks/runner/batch.js --category orchestration,pipeline  # 24 runs
-
-# 채점 + 집계
-node benchmarks/scorer/automated.js --all
-node benchmarks/scorer/llm-judge.js --all
-node benchmarks/scorer/aggregate.js > benchmarks/results/phase05-report.md
+# 벤치마크 실행 (resumable, summary.json 존재 검사로 dedup)
+cd benchmarks && npm install
+node scorer/aggregate-v2.js --verify-weights      # 13축 가중치 합 100% 검증
+node scorer/verify-blinding.js                    # judge 프롬프트에 condition label 누출 없는지 검증
+node runner/render-seeds.js                       # reference-projects/{claude-md-only,harness}-{nextjs,fastapi}/ 빌드
+node runner/batch.js --stage pilot --concurrency 2 --limit 25  # OWASP A2 chunk
+node runner/batch.js --stage slim --concurrency 2 --limit 4    # sprint chunk
+node scorer/judge-batch.js --stage slim --concurrency 3        # blind LLM judge
+node scorer/aggregate-v2.js --stage slim                       # reports/slim-report.md 생성
 ```
 
-전체 방법론은 [`benchmarks/README.md`](./benchmarks/README.md), 선등록된 판정 규칙은 [`benchmarks/PROTOCOL.md`](./benchmarks/PROTOCOL.md), Phase 0.5 레이어별 판정·비용 오버헤드·"harness가 지는 경우" 자동 추출 결과는 [`benchmarks/results/phase05-report.md`](./benchmarks/results/phase05-report.md)에 있습니다.
+전체 디렉터리 구조는 [`benchmarks/README.md`](./benchmarks/README.md), 선등록된 가설·결정 규칙은 [`benchmarks/PROTOCOL-v2.md`](./benchmarks/PROTOCOL-v2.md), 13축 매트릭스 + per-task ASVS 분해 + "harness 가 지는 경우" 정직 섹션은 [`benchmarks/reports/slim-report.md`](./benchmarks/reports/slim-report.md) 에 있습니다.
 
 ## 버전 히스토리
 

@@ -1,0 +1,10 @@
+{
+  "stage": "slim",
+  "seed": "20260413",
+  "cellsPlanned": 12,
+  "cellsCompleted": 4,
+  "totalCostUsd": 13.698930249999998,
+  "budgetUsd": 80,
+  "aborted": false,
+  "completedAt": "2026-04-14T09:33:39.740Z"
+}

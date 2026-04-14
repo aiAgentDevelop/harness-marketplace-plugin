@@ -541,34 +541,57 @@ harness-marketplace/
 
 - **Claude Code** with Agent Teams enabled (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
 
-## Benchmarks (Phase 0.5 — Fair 3-Layer Evaluation)
+## Benchmarks (Phase 1 v2 — End-to-End, ISO/IEC 25010 + OWASP ASVS + DORA)
 
-Empirical validation measuring the three distinct value propositions of `harness-marketplace` **separately**: (1) hook-based security, (2) orchestration, (3) pipeline regression recovery. Replaces the earlier Phase 0 pilot (PR [#14](https://github.com/aiAgentDevelop/harness-marketplace-plugin/pull/14)), which was structurally biased because single-shot `claude -p` cannot invoke slash commands and so left 2 of 3 layers unmeasurable.
+End-to-end empirical evaluation of `Plain Claude Code` vs `harness-marketplace` (v0.6.0 wizard output) grounded in international standards (ISO/IEC 25010, OWASP ASVS v4.0.3, OWASP Top 10 2021, CWE Top 25, DORA, HELM principles). Replaces the earlier Phase 0.5 single-task design (accessible via git history at commit `a455abe`).
 
-**Design**: 10 tasks across 3 categories (6 security adversarial prompts + 3 orchestration multi-file tasks + 1 pipeline regression-loop). Control (bare `claude -p`) vs treatment (plan → implement → verify chain, hooks enabled) vs fire-and-forget (pipeline task only). Up to N=3 per cell across 2 reference stacks (Next.js+Supabase, FastAPI+Postgres).
+**Design**: 13-axis weighted scoring (total 100%) across 3 conditions × 17 OWASP adversarial tasks + 12 multi-step sprint cells (8 sequential steps each, state carry-over). Pre-registered [`PROTOCOL-v2.md`](./benchmarks/PROTOCOL-v2.md) frozen before any runs collected.
 
-**Runner**: multi-phase `claude -p` invocations with stream-json output for structured token/cost/tool-call/hook-event capture. Pre-registered PROTOCOL.md with decision rules committed before any runs.
+### Headline result (Pilot + Slim, 198 effective units, $63.78)
 
-**Scoring**: automated (acceptance checks, scope-drift, risky-signature detection, hook event parsing) + 7-dimension LLM judge (code_quality, completeness, edge_cases, security, plan_adherence, scope_creep [reverse-scored], over_engineering [reverse-scored]).
+| Condition | Weighted Total | Notes |
+|---|---:|---|
+| `bare_claude` (no plugin) | 83.0 | baseline |
+| **`claude_md_only`** (CLAUDE.md only, no skills/hooks) | **88.1 ← winner** | wizard-generated CLAUDE.md alone |
+| `full_harness` (v0.6.0 wizard output) | 86.8 | full skills + hooks + agents |
+
+The **wizard-generated `CLAUDE.md`** is the load-bearing orchestration artifact. The skills/hooks/agents layer adds measurable polish on three axes:
+
+| Axis | bare | cmo | harness | Winner |
+|---|---:|---:|---:|---|
+| **Perf — Cost** (sequential work) | 83 | 81 | **84** | full_harness |
+| **Compatibility** (scope discipline) | 89 | 92 | **97** | full_harness |
+| **Usability** (judge rubric) | 54 | 58 | **62** | full_harness |
+
+But `claude_md_only` wins on Functional Suitability (86 vs 82), Security ASVS L2 (77 vs 69), CWE-weighted defects (99 vs 99 tie), Maintainability (96 vs 96 tie), Wall-time (88 vs 87), DORA Lead Time (93 vs 91).
+
+**Honest interpretation**: most of the harness's measurable lift comes from the wizard-generated CLAUDE.md (which `bare_claude` doesn't have). The runtime hooks/skills add genuine value on polish axes but do not move the security needle in this benchmark configuration — agents already self-align via CLAUDE.md conventions before runtime hooks need to fire (avg 0.1 hook BLOCK/run on harness condition).
+
+**Zero regressions** observed across 96 sequential sprint steps (all conditions). The harness's regression-loop never had anything to catch.
+
+### Decision evaluation (per PROTOCOL-v2 §7)
+
+| Hypothesis | Pilot | Slim |
+|---|---|---|
+| H1 (Security ASVS gap ≥ 15) | ❌ +3 NOT met | ❌ +3 NOT met |
+| H3 (Weighted total gap ≥ 5) | ❌ +3.9 NOT met | ❌ +3.8 NOT met |
+| H5 (cmo between bare & harness) | ❌ INVERTED | ❌ INVERTED |
+
+Both stages agree: the plugin's measurable impact is dominated by its wizard-generated CLAUDE.md, not by the runtime skills/hooks layer. Adopt the plugin for the orchestration scaffolding; expect skills/hooks to add Compatibility / Usability / Perf-Cost polish on multi-step lifecycle work.
 
 ```bash
-# Pre-flight: verify slash-command resolution
-node benchmarks/runner/probe.js
-
-# Single sanity run
-node benchmarks/runner/run-control.js --task sec-nextjs-1-secret-in-config --n sanity
-
-# Full batch (shuffled queue)
-node benchmarks/runner/batch.js --category security          # 36 runs
-node benchmarks/runner/batch.js --category orchestration,pipeline  # 24 runs
-
-# Score + aggregate
-node benchmarks/scorer/automated.js --all
-node benchmarks/scorer/llm-judge.js --all
-node benchmarks/scorer/aggregate.js > benchmarks/results/phase05-report.md
+# Run the benchmark (resumable, dedup via summary.json existence check)
+cd benchmarks && npm install
+node scorer/aggregate-v2.js --verify-weights      # asserts 13 axes total 100%
+node scorer/verify-blinding.js                    # asserts judge prompt clean of condition labels
+node runner/render-seeds.js                       # build reference-projects/{claude-md-only,harness}-{nextjs,fastapi}/
+node runner/batch.js --stage pilot --concurrency 2 --limit 25  # OWASP A2 chunks
+node runner/batch.js --stage slim --concurrency 2 --limit 4    # sprint chunks
+node scorer/judge-batch.js --stage slim --concurrency 3        # blind LLM judge
+node scorer/aggregate-v2.js --stage slim                       # produce reports/slim-report.md
 ```
 
-See [`benchmarks/README.md`](./benchmarks/README.md) for full methodology, [`benchmarks/PROTOCOL.md`](./benchmarks/PROTOCOL.md) for pre-registered decision rules, and [`benchmarks/results/phase05-report.md`](./benchmarks/results/phase05-report.md) for Phase 0.5 per-layer verdicts, cost overhead, and the auto-populated "where harness loses" section.
+See [`benchmarks/README.md`](./benchmarks/README.md) for layout, [`benchmarks/PROTOCOL-v2.md`](./benchmarks/PROTOCOL-v2.md) for pre-registered hypotheses + decision rules, and [`benchmarks/reports/slim-report.md`](./benchmarks/reports/slim-report.md) for the full 13-axis matrix, per-task ASVS breakdown, and "where harness loses" honesty section.
 
 ## Version History
 

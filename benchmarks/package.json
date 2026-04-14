@@ -1,6 +1,23 @@
 {
-  "name": "harness-marketplace-benchmarks",
+  "name": "harness-benchmarks-v2",
+  "version": "2.0.0-pilot",
   "private": true,
+  "description": "End-to-end Plain Claude vs project-harness benchmark (ISO 25010 + OWASP ASVS + DORA, 13-axis weighted)",
   "type": "module",
-  "description": "Phase 0 A/B pilot runner and scorer for harness-marketplace"
+  "scripts": {
+    "verify-weights": "node scorer/aggregate-v2.js --verify-weights",
+    "verify-blinding": "node scorer/verify-blinding.js",
+    "pilot": "node runner/batch.js --stage pilot --seed 20260413",
+    "slim": "node runner/batch.js --stage slim --seed 20260413",
+    "full": "node runner/batch.js --stage full --seed 20260413",
+    "report:pilot": "node scorer/aggregate-v2.js --stage pilot --out reports/pilot-report.md",
+    "report:slim": "node scorer/aggregate-v2.js --stage slim --out reports/slim-report.md",
+    "report:full": "node scorer/aggregate-v2.js --stage full --out reports/full-report.md"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }

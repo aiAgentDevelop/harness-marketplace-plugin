@@ -1,0 +1,10 @@
+{
+  "stage": "pilot",
+  "seed": "20260413",
+  "cellsPlanned": 102,
+  "cellsCompleted": 22,
+  "totalCostUsd": 3.1543381499999996,
+  "budgetUsd": 40,
+  "aborted": false,
+  "completedAt": "2026-04-14T06:24:10.395Z"
+}

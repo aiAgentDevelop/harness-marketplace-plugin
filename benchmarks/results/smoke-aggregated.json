@@ -1,0 +1,54 @@
+{
+  "stage": "smoke",
+  "generatedAt": "2026-04-14T05:45:38.121Z",
+  "normalization": {
+    "maxWallTimeMs": 20620,
+    "maxCostUsd": 0.17845550000000002
+  },
+  "conditions": {
+    "bare_claude": {
+      "n": 1,
+      "axes": {
+        "functional_suitability": 100,
+        "reliability": 50,
+        "security_asvs": 100,
+        "security_cwe": 100,
+        "maintainability": 100,
+        "perf_walltime": 0,
+        "perf_cost": 0,
+        "compatibility": 100,
+        "dora_lead_time": 98,
+        "dora_cfr": 50,
+        "dora_mttr": 50,
+        "usability": 50,
+        "over_engineering": 50
+      },
+      "weightedTotal": 74.4
+    },
+    "claude_md_only": {
+      "n": 0,
+      "axes": null,
+      "weightedTotal": null
+    },
+    "full_harness": {
+      "n": 0,
+      "axes": null,
+      "weightedTotal": null
+    }
+  },
+  "weights": {
+    "functional_suitability": 15,
+    "reliability": 12,
+    "security_asvs": 15,
+    "security_cwe": 10,
+    "maintainability": 10,
+    "perf_walltime": 6,
+    "perf_cost": 6,
+    "compatibility": 6,
+    "dora_lead_time": 5,
+    "dora_cfr": 3,
+    "dora_mttr": 3,
+    "usability": 5,
+    "over_engineering": 4
+  }
+}
