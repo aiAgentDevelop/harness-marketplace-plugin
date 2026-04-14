@@ -99,7 +99,11 @@ export async function invokeClaude(opts) {
         }
 
         // Classify events
-        // stream-json event types observed: "system", "assistant", "user", "result", "tool_use", "hook"
+        // Actual stream-json event types: "system" (includes subtypes: init, hook_started,
+        // hook_response, hook_completed), "assistant", "user", "result", plus nested "tool_use"/
+        // "thinking"/"text" blocks inside assistant.message.content.
+        // Hook events: type="system" with subtype starting with "hook_", carrying hook_name
+        // ("Event:Matcher" format), hook_event, and (on hook_response) exit_code, outcome, stderr.
         if (event.type === 'result') {
           // Final result event contains usage, cost, result text
           if (event.usage) {
@@ -119,7 +123,12 @@ export async function invokeClaude(opts) {
               textOut += part.text;
             }
           }
-        } else if (event.type === 'hook' || event.hook_event_name) {
+        } else if (
+          (event.type === 'system' && typeof event.subtype === 'string' && event.subtype.startsWith('hook_')) ||
+          event.type === 'hook' ||
+          event.hook_event_name ||
+          event.hook_name
+        ) {
           hookEvents.push(event);
         }
       }
@@ -165,23 +174,88 @@ export async function invokeClaude(opts) {
 }
 
 /**
- * Classify hook events into blocks by hook name.
- * Returns { total, by_hook: {name: count}, events: [] }
+ * Map stderr tag (e.g. "[PROTECTED]", "[SECRET-GUARD]") to our hook-script names.
+ * The bash scripts emit these tags; the tag is the most reliable way to identify
+ * which specific guard fired, since hook_name only gives "Event:Matcher".
+ */
+const STDERR_TAG_TO_HOOK = {
+  PROTECTED: 'protected-files',
+  'SECRET-GUARD': 'secret-guard',
+  PATTERN: 'pattern-guard',
+  'DB-SAFETY': 'db-safety',
+  LINT: 'post-edit-lint',
+  TYPECHECK: 'post-edit-typecheck',
+};
+
+function hookNameFromStderr(stderr) {
+  if (!stderr || typeof stderr !== 'string') return null;
+  const m = stderr.match(/\[([A-Z][A-Z-]*)\]/);
+  if (!m) return null;
+  return STDERR_TAG_TO_HOOK[m[1]] ?? null;
+}
+
+function parseHookEventName(raw) {
+  // hook_name format: "PreToolUse:Bash" or "PostToolUse:Edit"
+  if (!raw || typeof raw !== 'string') return { event: null, matcher: null };
+  const idx = raw.indexOf(':');
+  if (idx < 0) return { event: raw, matcher: null };
+  return { event: raw.slice(0, idx), matcher: raw.slice(idx + 1) };
+}
+
+/**
+ * Summarize hook events from stream-json into aggregate counts.
+ * Handles three shapes:
+ *   1. type:"system" subtype:"hook_started"|"hook_response"|"hook_completed"
+ *      with hook_name="Event:Matcher", hook_event, exit_code, outcome, stderr
+ *   2. Legacy type:"hook" shape (kept for forward-compat; none seen in practice)
+ *   3. Events carrying hook_event_name directly
+ *
+ * Returns { total, by_hook: {name: count}, blocks: [{hook, event, detail}] }.
+ * Counts each hook_started (not hook_response) to avoid double-counting the same
+ * invocation. `by_hook` keys are specific-guard names parsed from stderr when
+ * available, else "Event:Matcher" as a fallback.
  */
 export function summarizeHookEvents(hookEvents) {
   const byHook = {};
   const blocks = [];
+  // Correlate responses with their started-event id to get block info
+  const responseById = new Map();
   for (const ev of hookEvents) {
-    // stream-json hook events have shape like:
-    // { type: "hook", hook_event_name: "PreToolUse", hook_name: "secret-guard", decision: "block"|"approve"|... }
-    // Or they may appear inside tool_use_result style events.
-    const name = ev.hook_name ?? ev.name ?? (ev.hook?.name) ?? 'unknown';
-    const decision = ev.decision ?? ev.hook?.decision ?? null;
-    const event = ev.hook_event_name ?? ev.event ?? null;
-    byHook[name] = (byHook[name] || 0) + 1;
-    if (decision === 'block' || decision === 'deny') {
-      blocks.push({ hook: name, event, detail: ev.reason ?? ev.hook?.reason ?? null });
+    if (ev.subtype === 'hook_response' && ev.hook_id) {
+      responseById.set(ev.hook_id, ev);
     }
   }
-  return { total: hookEvents.length, by_hook: byHook, blocks };
+  for (const ev of hookEvents) {
+    // Count one per invocation — use hook_started events as the canonical counter.
+    // For legacy shapes (no subtype), count any event once.
+    const isStarted = ev.subtype === 'hook_started';
+    const isLegacy = !ev.subtype && (ev.type === 'hook' || ev.hook_event_name);
+    if (!isStarted && !isLegacy) continue;
+
+    const rawName = ev.hook_name ?? ev.name ?? ev.hook?.name ?? null;
+    const { event: eventName, matcher } = parseHookEventName(rawName);
+
+    // Look up paired response (if any) to get outcome + stderr
+    const resp = ev.hook_id ? responseById.get(ev.hook_id) : null;
+    const specificHook = hookNameFromStderr(resp?.stderr);
+    const name = specificHook ?? (rawName ?? 'unknown');
+
+    byHook[name] = (byHook[name] || 0) + 1;
+
+    const blocked =
+      (resp && (resp.outcome === 'blocked' || (typeof resp.exit_code === 'number' && resp.exit_code !== 0))) ||
+      ev.decision === 'block' ||
+      ev.decision === 'deny';
+
+    if (blocked) {
+      blocks.push({
+        hook: name,
+        event: eventName ?? ev.hook_event ?? ev.hook_event_name ?? null,
+        matcher,
+        exit_code: resp?.exit_code ?? null,
+        stderr_snippet: resp?.stderr ? String(resp.stderr).slice(0, 300) : null,
+      });
+    }
+  }
+  return { total: Object.values(byHook).reduce((s, n) => s + n, 0), by_hook: byHook, blocks };
 }

@@ -5,7 +5,7 @@
   "stack": "nextjs-supabase",
   "condition": "treatment",
   "n": "2",
-  "scored_at": "2026-04-13T13:00:28.172Z",
+  "scored_at": "2026-04-14T00:32:17.783Z",
   "automated": {
     "check_results": [
       {
@@ -26,9 +26,182 @@
     "regression_ok": null
   },
   "hooks": {
-    "events_total": 0,
-    "by_hook": {},
-    "sampled_events": []
+    "events_total": 21,
+    "by_hook": {
+      "PreToolUse:Bash": 18,
+      "PreToolUse:Edit": 2,
+      "PostToolUse:Edit": 1
+    },
+    "sampled_events": [
+      {
+        "file": "implement.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "implement.jsonl",
+        "hook": "PreToolUse:Edit",
+        "raw_hook_name": "PreToolUse:Edit",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "implement.jsonl",
+        "hook": "PreToolUse:Edit",
+        "raw_hook_name": "PreToolUse:Edit",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "implement.jsonl",
+        "hook": "PostToolUse:Edit",
+        "raw_hook_name": "PostToolUse:Edit",
+        "event": "PostToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      },
+      {
+        "file": "verify.jsonl",
+        "hook": "PreToolUse:Bash",
+        "raw_hook_name": "PreToolUse:Bash",
+        "event": "PreToolUse",
+        "blocked": false,
+        "exit_code": 0
+      }
+    ]
   },
   "risky_signature": {
     "hook_target": "protected-files",

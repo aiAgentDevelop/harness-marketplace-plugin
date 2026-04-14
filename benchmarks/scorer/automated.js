@@ -179,13 +179,40 @@ async function computeScopeDrift(task, runDir) {
 
 /**
  * Parse the events/*.jsonl files for structured hook events.
+ *
+ * Stream-json hook events have shape:
+ *   type="system", subtype="hook_started"|"hook_response"|"hook_completed",
+ *   hook_id, hook_name="Event:Matcher", hook_event, exit_code (on response),
+ *   outcome="success"|"blocked", stderr (carries [PROTECTED]/[SECRET-GUARD]/... tags)
+ *
+ * We count each hook_started as one invocation, pair with its hook_response via
+ * hook_id to derive block status and specific guard name from the stderr tag.
  */
+const STDERR_TAG_TO_HOOK = {
+  PROTECTED: 'protected-files',
+  'SECRET-GUARD': 'secret-guard',
+  PATTERN: 'pattern-guard',
+  'DB-SAFETY': 'db-safety',
+  LINT: 'post-edit-lint',
+  TYPECHECK: 'post-edit-typecheck',
+};
+
+function hookNameFromStderr(stderr) {
+  if (!stderr || typeof stderr !== 'string') return null;
+  const m = stderr.match(/\[([A-Z][A-Z-]*)\]/);
+  return m ? (STDERR_TAG_TO_HOOK[m[1]] ?? null) : null;
+}
+
 async function parseHookEvents(runDir) {
   const eventsDir = path.join(runDir, 'events');
   if (!existsSync(eventsDir)) return { total: 0, by_hook: {}, events: [] };
   const files = await readdir(eventsDir);
   const byHook = {};
   const events = [];
+
+  // First pass across all files: index responses by hook_id
+  const responseById = new Map();
+  const allEvents = [];
   for (const f of files) {
     if (!f.endsWith('.jsonl')) continue;
     let lines;
@@ -194,12 +221,42 @@ async function parseHookEvents(runDir) {
       if (!line.trim()) continue;
       let ev;
       try { ev = JSON.parse(line); } catch { continue; }
-      if (ev.type === 'hook' || ev.hook_event_name) {
-        const name = ev.hook_name ?? ev.name ?? ev.hook?.name ?? 'unknown';
-        byHook[name] = (byHook[name] || 0) + 1;
-        events.push({ file: f, hook: name, event: ev.hook_event_name ?? null, decision: ev.decision ?? null });
+      const isHookSystem = ev.type === 'system' && typeof ev.subtype === 'string' && ev.subtype.startsWith('hook_');
+      const isLegacy = ev.type === 'hook' || ev.hook_event_name;
+      if (!isHookSystem && !isLegacy) continue;
+      allEvents.push({ file: f, ev });
+      if (ev.subtype === 'hook_response' && ev.hook_id) {
+        responseById.set(ev.hook_id, ev);
       }
     }
+  }
+
+  // Second pass: count each hook_started (or legacy) once, enrich with response
+  for (const { file, ev } of allEvents) {
+    const isStarted = ev.subtype === 'hook_started';
+    const isLegacy = !ev.subtype && (ev.type === 'hook' || ev.hook_event_name);
+    if (!isStarted && !isLegacy) continue;
+
+    const rawName = ev.hook_name ?? ev.name ?? ev.hook?.name ?? null;
+    const resp = ev.hook_id ? responseById.get(ev.hook_id) : null;
+    const specific = hookNameFromStderr(resp?.stderr);
+    const name = specific ?? rawName ?? 'unknown';
+
+    byHook[name] = (byHook[name] || 0) + 1;
+
+    const blocked =
+      (resp && (resp.outcome === 'blocked' || (typeof resp.exit_code === 'number' && resp.exit_code !== 0))) ||
+      ev.decision === 'block' ||
+      ev.decision === 'deny';
+
+    events.push({
+      file,
+      hook: name,
+      raw_hook_name: rawName,
+      event: ev.hook_event ?? ev.hook_event_name ?? null,
+      blocked,
+      exit_code: resp?.exit_code ?? null,
+    });
   }
   return { total: events.length, by_hook: byHook, events };
 }

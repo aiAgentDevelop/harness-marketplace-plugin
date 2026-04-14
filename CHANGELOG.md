@@ -5,6 +5,75 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added — Phase 0.5 fair 3-layer benchmark ([#27](https://github.com/aiAgentDevelop/harness-marketplace-plugin/issues/27), [#28](https://github.com/aiAgentDevelop/harness-marketplace-plugin/pull/28))
+
+Replaces the structurally-biased Phase 0 benchmark that could only measure
+1 of 3 advertised value propositions (single-shot `claude -p` cannot invoke
+slash commands, so orchestration and pipeline layers were unmeasurable by
+design). Phase 0.5 rebuilds the measurement infrastructure, adds adversarial
+tasks, and introduces pre-registered decision rules.
+
+- `benchmarks/PROTOCOL.md` — pre-registered hypotheses, primary metrics per
+  layer, and win/tie/loss decision rules committed before any runs.
+- `benchmarks/runner/invoke.js` — shared stream-json wrapper capturing
+  per-invocation tokens, cost, tool calls, and hook events.
+- `benchmarks/runner/{run-control,run-treatment,probe,batch}.js` — multi-phase
+  runner supporting control / treatment (plan→[debug]→implement→verify with
+  regression loop) / fire-and-forget modes.
+- `benchmarks/runner/render-harness.js` — renders the wizard's `templates/*.md`
+  into `.claude/skills/project-*/SKILL.md` with minimal variable substitution,
+  so benchmark temp dirs have a real orchestrator + sub-skills.
+- **10 adversarial tasks** across 3 categories: 6 security (secret-guard /
+  protected-files / pattern-guard / db-safety targets), 3 orchestration
+  (scope-drift, verify-trap, cross-file coord), 1 pipeline (regression loop).
+- `benchmarks/scorer/aggregate.js` — per-layer rollup with automatic
+  "where harness loses" section (bottom-3 quality delta + top-3 cost ratio).
+
+### Changed
+
+- `benchmarks/scorer/automated.js` — rewrite to consume the new task registry
+  (`benchmarks/tasks/task-registry.js`), parse stream-json hook events, compute
+  `scope_drift_files` via git-diff, evaluate `risky_signature` predicates
+  (regex-in-file / regex-in-any-file / regex-in-stdout / file-modified-from-seed).
+- `benchmarks/scorer/llm-judge.js` — extend from 4 → 7 rubric dimensions.
+  Adds `plan_adherence`, `scope_creep` (reverse-scored), `over_engineering`
+  (reverse-scored). Stronger blinding: strips `.claude/`, `CLAUDE.md`, `state/`,
+  `TASK.md`, and phase markers (`Plan:`, `Verify:`, `project-*`) from judge input.
+- `benchmarks/reference-projects/*-seed/` — expanded to support the new
+  task set: Next.js seed gains dashboard/profile/settings pages (shared
+  `UserBadge` block candidate) + admin page (decoy — intentionally different);
+  FastAPI seed gains `app/routes/users.py`, `app/schemas/user.py`,
+  `tests/test_users.py`, and `requirements.lock` (for protected-edit task).
+- `benchmarks/reference-projects/*-harness/.claude/settings.json` — Next.js
+  overlay adds `PostToolUse` lint hook; FastAPI `protected-files.sh` pattern
+  list adds `requirements.lock`.
+
+### Fixed
+
+- **Stream-json hook event classifier** in `benchmarks/runner/invoke.js` and
+  `benchmarks/scorer/automated.js`. The previous code matched `type === "hook"`
+  and `hook_event_name`, neither of which appears in actual Claude Code output.
+  Real events are `type: "system"` with `subtype: "hook_started" | "hook_response"`,
+  `hook_name: "Event:Matcher"`, and exit_code / outcome on response. Effect:
+  Phase 0.5's initial report showed `Hook events (C→T) 0→0` on every task
+  despite hooks actually firing hundreds of times. After fix, the same runs
+  show 49–148 hook invocations per treatment task, with specific guard names
+  (e.g. `protected-files`) extracted from the stderr `[PROTECTED]` tag.
+
+### Removed
+
+- Phase 0 artifacts (now obsolete):
+  - `benchmarks/runner/run.js` (single-shot runner — replaced by the multi-phase
+    runners listed above).
+  - `benchmarks/scorer/task-checks.js` (replaced by `benchmarks/tasks/task-registry.js`).
+  - `benchmarks/tasks/{nextjs,fastapi}-{basic,advanced,expert}.md` (6 old
+    single-file tasks — replaced by 10 adversarial tasks in 3 subdirectories).
+  - `benchmarks/results/` (Phase 0 raw data — regenerated with Phase 0.5 runs;
+    raw/ per-run artifacts are now `.gitignore`d because they contain embedded
+    git repos, only aggregated results are committed).
+
 ## [0.5.2] - 2026-04-13
 
 ### Fixed — upgrade skill polish (3 of 4 items from #22; `validate-harness.js` follows in a sibling PR)

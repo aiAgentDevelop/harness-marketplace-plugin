@@ -12,3 +12,6 @@ Thumbs.db
 # is committed for reproducibility.
 benchmarks/results/raw/
 benchmarks/results/probe-events.jsonl
+# batch.log is per-batch execution log; the !*.log exception above would
+# otherwise keep it, but it's runtime-only and often corrupted by concurrent runs.
+benchmarks/results/batch.log

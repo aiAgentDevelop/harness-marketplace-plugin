@@ -482,13 +482,14 @@ harness-marketplace/
 ├── scripts/
 │   ├── validate-harness.js        # 전체 검증 (구조, hook, CI/CD, 자기학습)
 │   └── merge-hooks.js             # settings.json 비파괴적 hook 머지
-├── benchmarks/                    # Phase 0 A/B 파일럿 (harness 효과 측정 연구)
-│   ├── README.md                  # 파일럿 방법론 및 실행 가이드
-│   ├── tasks/                     # 6개 태스크 스펙 (스택당 3개 × 2 스택)
+├── benchmarks/                    # Phase 0.5 3-레이어 공정 평가 (harness 효과 측정 연구)
+│   ├── README.md                  # 3-레이어 방법론 + 편파성 방지 장치
+│   ├── PROTOCOL.md                # 선등록 가설/지표/판정규칙
+│   ├── tasks/                     # 10개 태스크 (security/orchestration/pipeline)
 │   ├── reference-projects/        # Seed 프로젝트 + harness 오버레이
-│   ├── runner/                    # claude -p 서브프로세스 러너
-│   ├── scorer/                    # 자동 + LLM judge 채점
-│   └── results/                   # 원본 출력 및 채점 결과
+│   ├── runner/                    # 다단계 러너 (invoke/control/treatment/probe/batch)
+│   ├── scorer/                    # 자동 + 7차원 LLM judge + 집계
+│   └── results/                   # phase05-report.md, scored/, aggregated.json
 ├── CHANGELOG.md                   # 버전 변경 이력
 ├── CLAUDE.md                      # 프로젝트 지침서
 ├── LICENSE                        # Apache-2.0
@@ -504,26 +505,34 @@ harness-marketplace/
 
 - **Claude Code** Agent Teams 활성화 (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
 
-## 벤치마크 (Phase 0 A/B 파일럿)
+## 벤치마크 (Phase 0.5 — 공정한 3-레이어 평가)
 
-`harness-marketplace`로 생성한 harness가 Claude Code 출력 품질을 실제로 개선하는지 실증 검증하는 파일럿입니다. `revfactory/claude-code-harness`의 방법론에서 영감을 받았지만, 이 플러그인의 핵심 차이점(고정 harness가 아닌 프로젝트별 동적 생성)에 맞게 재설계했습니다.
+`harness-marketplace`의 세 가지 독립된 가치 제안을 **레이어별로 분리** 측정합니다: (1) hook 기반 보안, (2) 오케스트레이션, (3) 파이프라인 regression 복구. 이전 Phase 0 파일럿 (PR [#14](https://github.com/aiAgentDevelop/harness-marketplace-plugin/pull/14))을 대체합니다 — Phase 0은 단일 `claude -p` 러너로는 슬래시 커맨드를 호출할 수 없어 3개 레이어 중 2개가 구조적으로 측정 불가였음.
 
-**설계**: control (seed만) vs treatment (seed + 생성된 harness 오버레이), 2개 reference 스택 (Next.js+Supabase, FastAPI+Postgres) × 3단계 난이도 (Basic/Advanced/Expert) × N=2 = 총 24 runs.
+**설계**: 10개 태스크를 3 카테고리로 (보안 adversarial 6개 + 오케스트레이션 다파일 3개 + 파이프라인 regression 1개). control (bare `claude -p`) vs treatment (plan → implement → verify 체인 + hooks) vs fire-and-forget (pipeline 전용). cell 당 최대 N=3, 2개 reference 스택 (Next.js+Supabase, FastAPI+Postgres).
 
-**Runner**: 각 run을 `claude -p` 서브프로세스로 실행, 격리된 임시 worktree 사용, treatment 조건에서 hook 실제 발동.
+**Runner**: 다단계 `claude -p` 호출 + stream-json 출력으로 토큰/비용/tool-call/hook 이벤트 구조적 캡처. 실행 전 PROTOCOL.md에 가설·지표·판정규칙 선등록.
 
-**채점**: 자동 (파일 존재, grep 패턴, 빌드/테스트/린트 가능 시, hook 차단 횟수) + LLM judge (blind 4차원 rubric: 코드 품질, 완성도, 엣지 케이스, 보안).
+**채점**: 자동 (acceptance checks, scope-drift, risky-signature 감지, hook 이벤트 파싱) + 7차원 LLM judge (code_quality, completeness, edge_cases, security, plan_adherence, scope_creep [역채점], over_engineering [역채점]).
 
 ```bash
-# 파일럿 1 run 검증
-node benchmarks/runner/run.js --task nextjs-basic --condition control --n 0
+# 사전 점검: 슬래시 커맨드 resolve 확인
+node benchmarks/runner/probe.js
 
-# 완료된 run 채점
-node benchmarks/scorer/automated.js --run <run-id>
-node benchmarks/scorer/llm-judge.js --run <run-id>
+# 단일 sanity run
+node benchmarks/runner/run-control.js --task sec-nextjs-1-secret-in-config --n sanity
+
+# 전체 배치 (shuffle 큐)
+node benchmarks/runner/batch.js --category security          # 36 runs
+node benchmarks/runner/batch.js --category orchestration,pipeline  # 24 runs
+
+# 채점 + 집계
+node benchmarks/scorer/automated.js --all
+node benchmarks/scorer/llm-judge.js --all
+node benchmarks/scorer/aggregate.js > benchmarks/results/phase05-report.md
 ```
 
-전체 방법론, 비용 추정, 해석 가이드는 [`benchmarks/README.md`](./benchmarks/README.md)를 참고하세요.
+전체 방법론은 [`benchmarks/README.md`](./benchmarks/README.md), 선등록된 판정 규칙은 [`benchmarks/PROTOCOL.md`](./benchmarks/PROTOCOL.md), Phase 0.5 레이어별 판정·비용 오버헤드·"harness가 지는 경우" 자동 추출 결과는 [`benchmarks/results/phase05-report.md`](./benchmarks/results/phase05-report.md)에 있습니다.
 
 ## 버전 히스토리
 
