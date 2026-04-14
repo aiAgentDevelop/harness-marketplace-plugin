@@ -232,14 +232,24 @@ Each agent entry in the marketplace catalog defines:
 }
 ```
 
-**Progress output**:
+**Progress output** (follows `progress-format.md` standard — pipe-separated key:value pairs, grouped into 3 lines):
 
 ```
-🏷️ Classification complete
+🏷️ Classification complete / 분류 완료
    → type: feature | has_ui: true | has_backend: true | has_database: false
    → has_auth: true | has_realtime: false | visual_qa: enabled
    → debug: none | agents: security-auditor
 ```
+
+**Output format rules** (enforced across all sub-skills):
+
+1. First line: 🏷️ emoji + "Classification complete" header (language = wizard locale; bilingual acceptable in output)
+2. Subsequent lines: indent with 3 spaces + `→` arrow
+3. Each line groups related keys with `|` pipe separator and 1 space padding
+4. Max 4-5 keys per line; wrap to new `→` line beyond that
+5. Boolean flags: `key: true` / `key: false` (no `key=true` shorthand)
+6. Skipped/inactive: `key: none` / `visual_qa: disabled`
+7. Agents list: comma-separated after `agents:` prefix (if 0 agents, write `agents: none`)
 
 ---
 
