@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/secret-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/pattern-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/protected-files.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/db-safety.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

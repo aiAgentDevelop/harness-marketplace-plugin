@@ -1,143 +1,237 @@
-#!/usr/bin/env node
-/**
- * Batch runner — executes all (task × condition × n) cells in a shuffled order.
- *
- * Usage:
- *   node benchmarks/runner/batch.js                    # full 60-run batch
- *   node benchmarks/runner/batch.js --category security
- *   node benchmarks/runner/batch.js --dry              # print queue only
- *   node benchmarks/runner/batch.js --seed 42          # reproducible shuffle
- */
+// batch.js — Fan-out orchestrator for pilot/slim/full stages.
+// Enforces: shuffle with pre-registered seed, max 3 concurrent runs, budget ceiling, honest partial-data policy.
 
-import { writeFile, appendFile, mkdir } from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-import { runControl } from './run-control.js';
-import { runTreatment } from './run-treatment.js';
-import { listTasks } from '../tasks/task-registry.js';
+import { parseTask } from "./task-parser.js";
+import { runBare } from "./run-bare.js";
+import { runClaudeMdOnly } from "./run-claude-md-only.js";
+import { runHarness } from "./run-harness.js";
+import { mkdir, readdir, writeFile, readFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import process from "node:process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const BENCHMARKS_DIR = path.resolve(__dirname, '..');
+const BENCHMARKS_ROOT = path.resolve(__dirname, "..");
+const RESULTS_ROOT = path.join(BENCHMARKS_ROOT, "results");
+
+const BUDGET_USD = {
+  pilot: 40,
+  slim: 120,
+  full: 350,
+};
+
+const STAGE_N = {
+  pilot: 2, // reduced per PROTOCOL-v2 amendment 2026-04-13 (budget safety)
+  slim: 3,
+  full: 3,
+};
 
 function parseArgs(argv) {
-  const args = { category: null, dry: false, seed: null, model: 'sonnet', tasksOnly: null };
+  const out = {
+    stage: "pilot",
+    seed: "20260413",
+    concurrency: 3,
+    dryRun: false,
+    limit: Infinity,
+  };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '--category') args.category = argv[++i];
-    else if (a === '--dry') args.dry = true;
-    else if (a === '--seed') args.seed = parseInt(argv[++i], 10);
-    else if (a === '--model') args.model = argv[++i];
-    else if (a === '--tasks') args.tasksOnly = argv[++i].split(',');
+    if (a === "--stage") out.stage = argv[++i];
+    else if (a === "--seed") out.seed = argv[++i];
+    else if (a === "--concurrency") out.concurrency = parseInt(argv[++i], 10);
+    else if (a === "--dry-run") out.dryRun = true;
+    else if (a === "--limit") out.limit = parseInt(argv[++i], 10);
   }
-  return args;
+  return out;
 }
 
-// Mulberry32 seedable PRNG
-function makePrng(seed) {
-  let t = seed >>> 0;
-  return function () {
-    t |= 0; t = (t + 0x6D2B79F5) | 0;
-    let r = Math.imul(t ^ (t >>> 15), 1 | t);
-    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
-    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function shuffle(array, prng) {
-  const a = array.slice();
+// Simple deterministic shuffle (Fisher-Yates w/ seeded mulberry32)
+function seededShuffle(arr, seed) {
+  const a = [...arr];
+  const s = hashStr(String(seed));
+  const rng = mulberry32(s);
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(prng() * (i + 1));
+    const j = Math.floor(rng() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
 }
-
-function buildQueue(filter) {
-  const queue = [];
-  const tasks = listTasks(filter);
-  for (const task of tasks) {
-    const conditions = task.conditions; // from task-registry
-    const n = task.n;
-    for (const cond of conditions) {
-      for (let k = 1; k <= n; k++) {
-        queue.push({ task_id: task.id, category: task.category, stack: task.stack, condition: cond, n: String(k) });
-      }
-    }
+function mulberry32(a) {
+  return function () {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hashStr(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
   }
-  return queue;
+  return h >>> 0;
+}
+
+async function loadOwaspTasks() {
+  const dir = path.join(BENCHMARKS_ROOT, "tasks", "owasp");
+  if (!existsSync(dir)) return [];
+  const files = (await readdir(dir)).filter((f) => f.endsWith(".md"));
+  const tasks = [];
+  for (const f of files) {
+    tasks.push(await parseTask(path.join(dir, f)));
+  }
+  return tasks;
+}
+
+async function loadStageTasks(stage) {
+  const owasp = await loadOwaspTasks();
+  if (stage === "pilot") return { A2: owasp, A1: [], A3: [] };
+  // Slim/Full wiring kept minimal for now — extended in S8/S9
+  return { A2: owasp, A1: [], A3: [] };
+}
+
+function resolveSeedPath(task, condition) {
+  if (condition === "bare_claude") return null;
+  const base = path.join(BENCHMARKS_ROOT, "reference-projects");
+  // Task frontmatter uses stack names like "nextjs-supabase" / "fastapi-postgres".
+  // Seed dirs use short names "nextjs" / "fastapi".
+  const stackShort = (task.stack || "nextjs-supabase").startsWith("fastapi")
+    ? "fastapi"
+    : "nextjs";
+  if (condition === "claude_md_only") {
+    return path.join(base, `claude-md-only-${stackShort}`);
+  }
+  if (condition === "full_harness") {
+    return path.join(base, `harness-${stackShort}`);
+  }
+  throw new Error(`unknown condition: ${condition}`);
+}
+
+async function runCell(task, condition, trialIdx, stage) {
+  const runId = `${stage}-${task.id}-${condition}-t${trialIdx}`;
+  const outDir = path.join(RESULTS_ROOT, "raw", runId);
+  if (existsSync(path.join(outDir, "summary.json"))) {
+    return { runId, skipped: true };
+  }
+  const opts = {
+    outDir,
+    seedRepoPath: resolveSeedPath(task, condition),
+    timeoutMs: task.timeout_ms ?? 900_000,
+  };
+  const runner =
+    condition === "bare_claude"
+      ? runBare
+      : condition === "claude_md_only"
+        ? runClaudeMdOnly
+        : runHarness;
+  try {
+    const res = await runner(task, opts);
+    return { runId, summary: res.summary, timedOut: res.timedOut };
+  } catch (err) {
+    return { runId, error: String(err?.stack || err) };
+  }
 }
 
 async function main() {
-  const args = parseArgs(process.argv);
-  const filter = {};
-  if (args.category) filter.category = args.category.split(',');
-  if (args.tasksOnly) filter.ids = args.tasksOnly;
-
-  const seed = args.seed ?? Math.floor(Math.random() * 1e9);
-  const prng = makePrng(seed);
-  const queue = shuffle(buildQueue(filter), prng);
-
-  console.log(`[batch] Queue size: ${queue.length} (seed=${seed})`);
-
-  const logDir = path.join(BENCHMARKS_DIR, 'results');
-  await mkdir(logDir, { recursive: true });
-  const batchLog = path.join(logDir, 'batch.log');
-  const startTs = new Date().toISOString();
-  await writeFile(batchLog, `# Phase 0.5 batch — ${startTs}\n# seed=${seed} queue_size=${queue.length}\n`);
-
-  if (args.dry) {
-    for (const item of queue) {
-      console.log(`[dry] ${item.task_id} ${item.condition} n=${item.n}`);
+  const { stage, seed, concurrency, dryRun, limit } = parseArgs(process.argv);
+  const { A2 } = await loadStageTasks(stage);
+  const n = STAGE_N[stage] ?? 3;
+  const conditions = ["bare_claude", "claude_md_only", "full_harness"];
+  const cells = [];
+  for (const task of A2) {
+    for (const c of conditions) {
+      for (let t = 0; t < n; t++) {
+        cells.push({ task, condition: c, trialIdx: t });
+      }
     }
-    console.log(`[batch] DRY RUN — no execution`);
+  }
+  const shuffled = seededShuffle(cells, seed);
+
+  const budget = BUDGET_USD[stage];
+  console.log(
+    `[batch] stage=${stage} cells=${shuffled.length} N=${n} concurrency=${concurrency} budget_usd=${budget} seed=${seed}`,
+  );
+
+  if (dryRun) {
+    const preview = shuffled.slice(0, 5).map((c) => ({
+      taskId: c.task.id,
+      condition: c.condition,
+      trial: c.trialIdx,
+    }));
+    console.log("[dry-run] first 5:", preview);
     return;
   }
 
-  const successes = [];
-  const failures = [];
-  let idx = 0;
-  for (const item of queue) {
-    idx++;
-    const prefix = `[${idx}/${queue.length}] ${item.task_id} ${item.condition} n=${item.n}`;
-    console.log(`\n${prefix} — starting`);
-    await appendFile(batchLog, `${new Date().toISOString()} START ${prefix}\n`);
+  // Filter to cells that don't have summary.json already — makes runs resumable
+  const pending = shuffled.filter((c) => {
+    const runId = `${stage}-${c.task.id}-${c.condition}-t${c.trialIdx}`;
+    const existing = path.join(RESULTS_ROOT, "raw", runId, "summary.json");
+    return !existsSync(existing);
+  });
+  console.log(
+    `[batch] resumable: ${shuffled.length - pending.length} already done, ${pending.length} remaining`,
+  );
+  const toRun = pending.slice(0, limit);
+  console.log(
+    `[batch] this chunk: ${toRun.length} (limit=${limit === Infinity ? "none" : limit})`,
+  );
 
-    try {
-      let result;
-      if (item.condition === 'control') {
-        result = await runControl({ task: item.task_id, n: item.n, model: args.model });
-      } else if (item.condition === 'treatment') {
-        result = await runTreatment({ task: item.task_id, n: item.n, model: args.model, mode: 'manual-chain' });
-      } else if (item.condition === 'fire-and-forget') {
-        result = await runTreatment({ task: item.task_id, n: item.n, model: args.model, mode: 'fire-and-forget' });
-      } else {
-        throw new Error(`Unknown condition: ${item.condition}`);
+  // Throttled parallel execution
+  let totalCost = 0;
+  let done = 0;
+  let aborted = false;
+  const results = [];
+
+  async function worker(queue) {
+    while (queue.length && !aborted) {
+      const cell = queue.shift();
+      const res = await runCell(cell.task, cell.condition, cell.trialIdx, stage);
+      if (res.summary?.costUsd) totalCost += res.summary.costUsd;
+      done++;
+      const costStr = `$${totalCost.toFixed(2)}/$${budget}`;
+      console.log(
+        `[${done}/${shuffled.length}] ${cell.condition} ${cell.task.id} t${cell.trialIdx} cost=${costStr} ${res.error ? "ERR" : res.skipped ? "skip" : "ok"}`,
+      );
+      results.push({ cell, res });
+      if (totalCost > budget) {
+        console.error(`[ABORT] budget exceeded: ${costStr}`);
+        aborted = true;
       }
-      successes.push({ ...item, run_id: result.runId });
-      await appendFile(batchLog, `${new Date().toISOString()} OK    ${prefix} run_id=${result.runId}\n`);
-    } catch (err) {
-      failures.push({ ...item, error: err.message });
-      await appendFile(batchLog, `${new Date().toISOString()} FAIL  ${prefix} error=${err.message}\n`);
-      console.error(`${prefix} — FAILED: ${err.message}`);
     }
   }
 
-  const endTs = new Date().toISOString();
-  await appendFile(batchLog, `\n# Done ${endTs}\n# successes=${successes.length} failures=${failures.length}\n`);
-  console.log(`\n[batch] Done. ${successes.length}/${queue.length} OK, ${failures.length} failed.`);
-  console.log(`[batch] Log: ${batchLog}`);
+  const queue = [...toRun];
+  const workers = Array.from({ length: concurrency }, () => worker(queue));
+  await Promise.all(workers);
 
-  if (failures.length > 0) {
-    console.log(`[batch] Failures:`);
-    for (const f of failures) console.log(`  - ${f.task_id} ${f.condition} n=${f.n}: ${f.error}`);
-  }
+  await writeFile(
+    path.join(RESULTS_ROOT, `${stage}-manifest.json`),
+    JSON.stringify(
+      {
+        stage,
+        seed,
+        cellsPlanned: shuffled.length,
+        cellsCompleted: done,
+        totalCostUsd: totalCost,
+        budgetUsd: budget,
+        aborted,
+        completedAt: new Date().toISOString(),
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
+  console.log(
+    `[done] stage=${stage} completed=${done}/${shuffled.length} cost=$${totalCost.toFixed(2)}`,
+  );
 }
 
-if (process.argv[1] && process.argv[1].endsWith('batch.js')) {
-  main().catch((err) => {
-    console.error(`[batch] FATAL: ${err.message}`);
-    process.exit(2);
-  });
-}
+main().catch((e) => {
+  console.error("[fatal]", e);
+  process.exit(1);
+});

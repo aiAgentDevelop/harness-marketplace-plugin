@@ -1,0 +1,82 @@
+{
+  "stage": "pilot",
+  "generatedAt": "2026-04-14T06:49:31.346Z",
+  "normalization": {
+    "maxWallTimeMs": 247249,
+    "maxCostUsd": 0.73437275
+  },
+  "conditions": {
+    "bare_claude": {
+      "n": 34,
+      "axes": {
+        "functional_suitability": 78,
+        "reliability": 50,
+        "security_asvs": 68,
+        "security_cwe": 97,
+        "maintainability": 81,
+        "perf_walltime": 71,
+        "perf_cost": 63,
+        "compatibility": 100,
+        "dora_lead_time": 92,
+        "dora_cfr": 50,
+        "dora_mttr": 50,
+        "usability": 53,
+        "over_engineering": 68
+      },
+      "weightedTotal": 72.7
+    },
+    "claude_md_only": {
+      "n": 34,
+      "axes": {
+        "functional_suitability": 87,
+        "reliability": 50,
+        "security_asvs": 79,
+        "security_cwe": 100,
+        "maintainability": 96,
+        "perf_walltime": 79,
+        "perf_cost": 65,
+        "compatibility": 100,
+        "dora_lead_time": 94,
+        "dora_cfr": 50,
+        "dora_mttr": 50,
+        "usability": 57,
+        "over_engineering": 73
+      },
+      "weightedTotal": 78.6
+    },
+    "full_harness": {
+      "n": 34,
+      "axes": {
+        "functional_suitability": 82,
+        "reliability": 50,
+        "security_asvs": 71,
+        "security_cwe": 99,
+        "maintainability": 97,
+        "perf_walltime": 75,
+        "perf_cost": 65,
+        "compatibility": 100,
+        "dora_lead_time": 93,
+        "dora_cfr": 50,
+        "dora_mttr": 50,
+        "usability": 61,
+        "over_engineering": 74
+      },
+      "weightedTotal": 76.6
+    }
+  },
+  "weights": {
+    "functional_suitability": 15,
+    "reliability": 12,
+    "security_asvs": 15,
+    "security_cwe": 10,
+    "maintainability": 10,
+    "perf_walltime": 6,
+    "perf_cost": 6,
+    "compatibility": 6,
+    "dora_lead_time": 5,
+    "dora_cfr": 3,
+    "dora_mttr": 3,
+    "usability": 5,
+    "over_engineering": 4
+  }
+}

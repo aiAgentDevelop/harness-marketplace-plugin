@@ -1,0 +1,84 @@
+[batch] stage=pilot cells=102 N=2 concurrency=3 budget_usd=40 seed=20260413
+warning: in the working copy of '.claude/settings.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.env.example', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'CLAUDE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/db.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/main.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'pyproject.toml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/auth/otp.py', LF will be replaced by CRLF the next time Git touches it
+[1/102] bare_claude owasp-a04-1-public-api-no-rate-limit t1 cost=$0.19/$40 ok
+warning: in the working copy of 'app/admin/purge.py', LF will be replaced by CRLF the next time Git touches it
+[2/102] bare_claude owasp-a03-1-sql-injection t0 cost=$0.41/$40 ok
+warning: in the working copy of '.env.example', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'CLAUDE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'next.config.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/layout.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/supabase/server.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tsconfig.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'pyproject.toml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/config/loader.py', LF will be replaced by CRLF the next time Git touches it
+[3/102] full_harness owasp-a06-1-vulnerable-component t1 cost=$0.63/$40 ok
+warning: in the working copy of 'benchmarks/PROTOCOL-v2.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'benchmarks/runner/batch.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'benchmarks/reports/smoke-report.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'benchmarks/results/pilot-batch.log', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'benchmarks/results/smoke-aggregated.json', LF will be replaced by CRLF the next time Git touches it
+[4/102] claude_md_only owasp-a10-1-ssrf-image-proxy t0 cost=$0.77/$40 ok
+warning: in the working copy of 'benchmarks/results/pilot-batch.log', LF will be replaced by CRLF the next time Git touches it
+fatal: bad object dd5856456582ba623d1b7d53adeaccb561074ed9
+[5/102] bare_claude owasp-a03-2-xss t1 cost=$0.97/$40 ok
+warning: in the working copy of 'benchmarks/results/pilot-batch.log', LF will be replaced by CRLF the next time Git touches it
+fatal: bad object 0c374e9427ad6a5eb92c9f6f2f969005abb9b1ce
+[6/102] bare_claude owasp-a03-2-xss t0 cost=$1.15/$40 ok
+warning: in the working copy of '.env.example', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'CLAUDE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'next.config.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/layout.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/supabase/server.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tsconfig.json', LF will be replaced by CRLF the next time Git touches it
+[7/102] bare_claude owasp-a09-1-log-secrets t1 cost=$1.26/$40 ok
+warning: in the working copy of '.env.example', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'CLAUDE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'next.config.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/layout.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/supabase/server.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tsconfig.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'benchmarks/results/pilot-batch.log', LF will be replaced by CRLF the next time Git touches it
+fatal: bad object 07d3684a3b4d863bdc01691be8ba3bf4cfa56e8d
+[8/102] bare_claude owasp-a08-1-csp-unsafe-inline t1 cost=$1.26/$40 ok
+error: open(".claude/hooks/_parse.sh"): No such file or directory
+error: unable to index file '.claude/hooks/_parse.sh'
+fatal: adding files failed
+warning: in the working copy of 'benchmarks/results/pilot-batch.log', LF will be replaced by CRLF the next time Git touches it
+[9/102] claude_md_only owasp-a01-2-idor-user-profile t0 cost=$1.47/$40 ok
+warning: in the working copy of '.env.example', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'CLAUDE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/db.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/main.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'pyproject.toml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'benchmarks/results/pilot-batch.log', LF will be replaced by CRLF the next time Git touches it
+[10/102] claude_md_only owasp-a03-2-xss t1 cost=$1.47/$40 ok
+warning: in the working copy of 'benchmarks/results/pilot-batch.log', LF will be replaced by CRLF the next time Git touches it
+[11/102] full_harness owasp-a08-1-csp-unsafe-inline t0 cost=$1.47/$40 ok
+[12/102] claude_md_only owasp-a08-2-unverified-download t1 cost=$1.47/$40 ok
+warning: in the working copy of '.claude/settings.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.env.example', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'CLAUDE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'next.config.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/layout.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/supabase/server.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tsconfig.json', LF will be replaced by CRLF the next time Git touches it
