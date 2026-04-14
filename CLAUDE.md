@@ -1,5 +1,21 @@
 # Project Instructions
 
+## Git Identity
+
+All commits and pushes on this repo MUST be authored as `aiAgentDevelop`, not any
+other local identity (e.g. `treenod-scott`). The repo-local `user.name` /
+`user.email` are already set — verify with `git config --local user.name` before
+committing. If a fresh clone is needed, re-apply:
+
+```bash
+git config user.name  aiAgentDevelop
+git config user.email 160493288+aiAgentDevelop@users.noreply.github.com
+```
+
+Do NOT change the global git identity. Only the repo-local config should be
+overridden — other projects on the machine must continue using their own
+identities.
+
 ## Documentation Rule
 
 Every code change MUST include corresponding updates to both `README.md` and `README-ko.md`.
