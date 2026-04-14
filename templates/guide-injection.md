@@ -21,7 +21,7 @@ project-plan, project-implement, project-visual-qa, project-verify 가 공통 �
 | pattern-explorer | 1 — 분석 | pattern-conventions |
 | architect | 2 — 설계 | architecture-overview, architecture-rules |
 | ui-designer (has_ui) | 2 — 설계 | design-system, ux-checklist, **ui-defect-patterns** |
-| scaffolder | 4 — 구현 | project-layout, module-scaffold |
+| scaffolder | 4 — 구현 | project-layout, module-scaffold, **fsd-scaffold-patterns** (architecture=fsd) |
 | implementer | 4 — 구현 | architecture-rules, coding-standards |
 | ui-checker (has_ui) | 4 — 구현 | ux-checklist, design-system, **ui-defect-patterns** |
 | integrator | 4 — 구현 | architecture-rules |
@@ -185,7 +185,7 @@ gs-gacha-compliance-auditor    # Phase 7
 
 | 워커 | 가이드 | 기술 에이전트 | 도메인 에이전트 |
 |------|-------|-------------|--------------|
-| scaffolder | project-layout, module-scaffold | t-architecture-architect | - |
+| scaffolder | project-layout, module-scaffold, **fsd-scaffold-patterns** (if fsd) | t-architecture-architect | - |
 | implementer | architecture-rules, coding-standards | t-frontend-architect, t-state-data-engineer, t-backend-engineer | - |
 | ui-checker (has_ui) | ux-checklist, design-system | t-ui-ux-engineer | - |
 | integrator | architecture-rules | - | - |
