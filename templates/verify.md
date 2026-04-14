@@ -301,6 +301,7 @@ Extended procedure (same as project-implement, with hook rule support):
 | ux-review | BLOCK (overflow/clipping), WARN (spacing/alignment drift) | 사용자 가시성 영향에 따라 |
 | design-review | WARN (토큰 미사용), INFO (alternative) | 차단이 아닌 방향 제시 |
 | db-security | BLOCK (RLS 누락, N+1 production impact), WARN (인덱스 제안) | 데이터 유출/성능 위험 |
+| **supabase-security-gate** (Supabase 프로젝트 전용) | BLOCK (RLS 미활성, anon→service_role 노출, getSession 사용, raw SQL 인젝션, Edge origin 미검증 등), WARN (storage MIME 누락), INFO (개선 제안) | agent 가 17-point 체크리스트 기반 2진 PASS/BLOCK 판정. `agents/supabase-security-gate.md` + `guides/supabase-security.md` 참조. 활성 조건: `has_database && database_type == 'supabase'` (wizard 가 자동 선택, 사용자 deselect 가능) |
 | auth-security | BLOCK (인증 우회 가능), WARN (세션 만료 정책) | 보안 게이트 |
 | security-audit | BLOCK (HIGH), WARN (MEDIUM), INFO (LOW) | 취약점 심각도 |
 | domain-{id}-audit | 도메인 agent 가 자체 판정 | 도메인별 룰 |

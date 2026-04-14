@@ -314,6 +314,46 @@ enclosed block accordingly):
            → print: "/project-harness 명령이 entrypoint 입니다. 수동으로 CLAUDE.md 에
              안내를 추가하거나 전체 교체를 원하면 다시 upgrade 실행하세요."
 
+2.6. **Upgrade Option-Z reference files & optional skills** (new in v0.6):
+
+   신규 reference/skill 파일들은 자유롭게 overwrite 해도 안전 (사용자 편집 영역 없음,
+   커스텀 지침은 CLAUDE.md § Custom Rules 에 저장). 단 조건부 activation 은 기존 설정 보존.
+
+   **Always overwrite (no Custom Rules)**:
+   - `references/progress-format.md` ← templates/progress-format.md
+   - `references/ui-conventions.md` ← templates/ui-conventions.md
+   - `references/handoff-templates.md` ← templates/handoff-templates.md
+   - `references/schemas.md` ← templates/schemas.md
+   - `references/guide-injection.md` ← templates/guide-injection.md
+   - `references/monitor-mode.md` ← templates/monitor-mode.md
+   - `codebase-analysis/SKILL.md` ← templates/codebase-analysis.md
+
+   **Conditional (activation flag 재평가 후 처리)**:
+   ```
+   if project-config.yaml.flags.has_ui == true:
+     → write references/ui-defect-patterns.md (overwrite OK)
+   else:
+     → if references/ui-defect-patterns.md exists: remove it (flag 이 false 로 바뀐 경우)
+
+   if project-config.yaml.tech_stack.architecture == 'fsd':
+     → write references/fsd-scaffold-patterns.md
+   else:
+     → remove if exists
+
+   if project-config.yaml.pipeline.implement_strategy != 'standard':
+     → write references/tdd-implementation.md
+   else:
+     → remove if exists
+   ```
+
+   **Agent/guide entries for H1 (supabase-security-gate, supabase-security)**:
+   - `agents/supabase-security-gate.md` and `guides/supabase-security.md`:
+     재생성 건너뜀 (사용자가 Custom Rules 로 편집했을 가능성). 대신 AskUserQuestion:
+     "agents/supabase-security-gate.md 를 data/agents.yaml 최신 버전으로 재생성할까요?"
+     [Yes (Custom Rules 손실)] / [No (현재 유지)] / [diff 먼저 보기]
+
+   Log: `option_z_upgrade = "done"` with per-file action record.
+
 3. **Upgrade CI/CD workflows** (if ci_cd.platform not in ["none", "deferred"]):
    - Only regenerate if user selected "Regenerate CI/CD" option
    - Preserve user customizations by default

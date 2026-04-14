@@ -769,6 +769,38 @@ AskUserQuestion:
 Store as: self_learning.enabled, self_learning.mode
 ```
 
+### Step E5: Implementation Strategy (pipeline.implement_strategy)
+
+```
+AskUserQuestion:
+  question: "프로젝트 구현 전략은? (새 기능 개발 시 project-implement 파이프라인)"
+  label_ko: "구현 전략"
+  options:
+    - label: "Standard (기본)"
+      description: "scaffolder → implementer → integrator → test 순서. 대부분 프로젝트에 적합."
+    - label: "TDD (Red-Green-Refactor)"
+      description: "test-writer (실패 테스트) → implementer (최소 구현) → refactorer. 결제·인증·도메인 로직처럼 회귀 방지가 중요한 프로젝트에 권장."
+    - label: "BDD (예약)"
+      description: "향후 지원 예정. 현재는 standard 와 동일 + 안내 메시지."
+
+Store as: pipeline.implement_strategy (values: "standard" | "tdd" | "bdd")
+```
+
+### Step E6: Codebase Analysis (pipeline.codebase_analysis.auto_on_refactor)
+
+```
+AskUserQuestion:
+  question: "refactor 유형 작업 시 자동으로 codebase-analysis (Phase 2.5) 를 실행할까요?"
+  label_ko: "refactor 자동 분석"
+  options:
+    - label: "Yes (권장)"
+      description: "type=refactor 작업은 Plan 후 자동으로 영향 범위(impact) 분석을 실행. 대형 리팩토링에서 예상치 못한 의존성 체인 노출."
+    - label: "No"
+      description: "필요 시 /project-harness --analysis-first 로 수동 실행. 소형 프로젝트 / 속도 우선인 경우."
+
+Store as: pipeline.codebase_analysis.auto_on_refactor (bool)
+```
+
 ## Phase 3: AI Additional Questions
 
 ```
@@ -897,6 +929,13 @@ Map all wizard answers to the project-config.yaml schema:
     - Derive ci_cd.node_version and ci_cd.package_manager from tech stack
 14. Set self_learning section from Phase 2.5 answers:
     - self_learning.enabled, self_learning.mode, self_learning.max_auto_rules
+15. Set pipeline section from Phase 2.5 Step E5/E6 answers:
+    - pipeline.implement_strategy: "standard" | "tdd" | "bdd" (default "standard")
+    - pipeline.codebase_analysis.auto_on_refactor: bool (default true)
+    - pipeline.codebase_analysis.default_type_for_phase_2_5: "impact" (default)
+    - pipeline.codebase_analysis.archive_history: false (default)
+    - pipeline.codebase_analysis.parallel_explorer_count: 3 (default)
+    - pipeline.codebase_analysis.timeout_per_explorer_ms: 180000 (default)
 
 Write to: .claude/skills/project-harness/project-config.yaml
 ```
@@ -998,6 +1037,10 @@ Conditional:
 - .claude/skills/project-harness/visual-qa/SKILL.md ← templates/visual-qa.md (only if has_ui)
 - .claude/skills/project-harness/visual-qa/scripts/visual-inspect.js ← templates/visual-inspect.js (only if has_ui)
 - .claude/skills/project-harness/debug/SKILL.md ← templates/debug.md (only if project_type supports bugfix AND debug_complexity != "low")
+- .claude/skills/project-harness/codebase-analysis/SKILL.md ← templates/codebase-analysis.md (optional — always copy; skill invoked conditionally by Phase 2.5)
+- .claude/skills/project-harness/references/tdd-implementation.md ← templates/tdd-implementation.md (only if pipeline.implement_strategy != "standard")
+- .claude/skills/project-harness/references/ui-defect-patterns.md ← templates/ui-defect-patterns.md (only if flags.has_ui == true)
+- .claude/skills/project-harness/references/fsd-scaffold-patterns.md ← templates/fsd-scaffold-patterns.md (only if tech_stack.architecture == "fsd")
 ```
 
 ### Step 5.3: AI-Generate Specialized Files
@@ -1195,8 +1238,16 @@ Run validation checks (equivalent to scripts/validate-harness.js):
    - references/handoff-templates.md
    - references/guide-injection.md
    - references/monitor-mode.md
+   - codebase-analysis/SKILL.md (always copied — Phase 2.5 invokes it conditionally)
    - agents/*.md (at least one)
    - guides/*.md (at least one)
+
+Conditional references (only when activation flag set):
+   - references/tdd-implementation.md (required iff pipeline.implement_strategy != "standard")
+   - references/ui-defect-patterns.md (required iff flags.has_ui == true)
+   - references/fsd-scaffold-patterns.md (required iff tech_stack.architecture == "fsd")
+   - agents/supabase-security-gate.md (required iff agents.selected includes supabase-security-gate)
+   - guides/supabase-security.md (required iff guides.selected includes supabase-security)
 
 2. Config schema valid:
    - All required fields present
