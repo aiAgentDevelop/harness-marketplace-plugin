@@ -6,7 +6,7 @@
 
 **프로젝트 맞춤형 개발 파이프라인 harness 스킬을 생성하는 스캐폴딩 위자드 — Claude Code 플러그인**
 
-프로젝트 유형, 기술 스택, 배포 환경에 맞는 완전한 개발 파이프라인(plan → implement → visual-qa → verify)을 생성합니다. Hook 기반 코드 강제, CI/CD 파이프라인 생성, 자기 학습 기능을 포함합니다. 3가지 위자드 모드: AI 딥 인터뷰, 직접 선택, 기존 코드 자동 감지. 하나의 위자드로 모든 프로젝트를 지원합니다.
+프로젝트 유형, 기술 스택, 배포 환경에 맞는 완전한 **AI 오케스트레이션 개발 파이프라인** (classify → plan → [codebase-analysis] → [debug] → implement → [visual-qa] → verify) 을 생성합니다. **실제 병렬 Fan-out/Fan-in 워커**, Hook 기반 코드 강제, CI/CD 파이프라인 생성, idle 자동 감시, 자기 학습 기능을 포함. 3가지 위자드 모드: AI 딥 인터뷰, 직접 선택, 기존 코드 자동 감지. **프로젝트 루트에 `CLAUDE.md` 가 자동 생성**되어 `/project-harness` 가 opt-in 이 아닌 **기본** 작업 방식이 됩니다. 하나의 위자드로 모든 프로젝트를 지원합니다.
 
 > **[English](./README.md)**
 
@@ -23,21 +23,34 @@
   │   └── Auto-Detect — 현재 프로젝트 코드를 분석하여 스택 자동 감지
   │
   ├─ 완전한 harness 스킬 세트 생성
-  │   ├── project-config.yaml       — 모든 것을 결정하는 마스터 설정
-  │   ├── plan/SKILL.md             — 계획 단계
-  │   ├── debug/SKILL.md            — 디버그 조사 단계 (bugfix 전용)
-  │   ├── implement/SKILL.md        — 구현 단계
-  │   ├── visual-qa/SKILL.md        — 시각적 QA (UI 프로젝트인 경우)
-  │   ├── verify/SKILL.md           — 검증 단계
-  │   ├── agents/*.md               — AI 생성 도메인 에이전트 (34개 카탈로그 기반)
-  │   ├── guides/*.md               — AI 생성 개발 가이드
-  │   ├── hooks/*.sh                — Claude Code hook 기반 코드 강제
-  │   ├── hooks-config.json         — settings.json용 hook 설정
-  │   ├── .github/workflows/*.yml   — CI/CD 파이프라인 + AI 코드리뷰
-  │   ├── state/learning-log.yaml   — 자기 학습 이력
-  │   └── references/               — 분류 규칙, 스키마, 옵션
+  │   ├── ./CLAUDE.md                  — 프로젝트 루트 오케스트레이션 entrypoint 안내
+  │   ├── project-config.yaml          — 모든 것을 결정하는 마스터 설정
+  │   ├── plan/SKILL.md                — 계획 단계 (Fan-out + Reader 병렬)
+  │   ├── codebase-analysis/SKILL.md   — Phase 2.5 사전 분석 (refactor 시 자동)
+  │   ├── debug/SKILL.md                — 디버그 조사 단계 (bugfix 전용)
+  │   ├── implement/SKILL.md           — 구현 단계 (standard OR TDD 전략)
+  │   ├── visual-qa/SKILL.md           — 시각적 QA (UI 프로젝트)
+  │   ├── verify/SKILL.md              — 검증 단계 (모든 auditor 병렬)
+  │   ├── agents/*.md                  — AI 생성 도메인 에이전트 (34-카탈로그 + supabase-security-gate)
+  │   ├── guides/*.md                  — AI 생성 개발 가이드
+  │   ├── hooks/*.sh                   — Claude Code hook 기반 코드 강제
+  │   ├── hooks-config.json            — settings.json 용 hook 설정
+  │   ├── .github/workflows/*.yml      — CI/CD 파이프라인 + AI 코드리뷰
+  │   ├── state/learning-log.yaml      — 자기 학습 이력
+  │   └── references/                  — 공통 UX + 데이터 계약:
+  │       ├── progress-format.md       — phase N/M + 이모지 + 워커 트리 표준
+  │       ├── ui-conventions.md        — 3-옵션 확인 게이트 + 완료 요약
+  │       ├── classification.md        — 작업 분류 규칙
+  │       ├── handoff-templates.md     — state/handoffs/*.md 구조
+  │       ├── schemas.md               — PlanResult/ImplementationResult/VerificationResult JSON
+  │       ├── guide-injection.md       — 워커 → 가이드 + 에이전트 체크리스트 매핑
+  │       ├── monitor-mode.md          — /project-harness monitor idle 자동 감시
+  │       ├── parallel-execution.md    — Fan-out/Fan-in PARALLEL REQUIRED 규약
+  │       ├── tdd-implementation.md    — Red-Green-Refactor 전략 (활성 시)
+  │       ├── ui-defect-patterns.md    — 정적 UI 코드 리뷰 (has_ui 시)
+  │       └── fsd-scaffold-patterns.md — FSD boilerplate (architecture=fsd 시)
   │
-  └─ 검증 완료 후 /project-harness 로 즉시 사용 가능
+  └─ 검증 완료 → `/project-harness "작업"` 입력 — CLAUDE.md 가 Claude 를 자동 라우팅
 ```
 
 ## 설치

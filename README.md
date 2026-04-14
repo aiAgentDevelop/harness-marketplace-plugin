@@ -6,7 +6,7 @@
 
 **Scaffolding wizard that generates project-specific development pipeline harness skills for Claude Code.**
 
-Generate a complete development pipeline — plan, implement, visual-qa, verify — with code-level enforcement via hooks, CI/CD pipeline generation, and self-learning capabilities. Three wizard modes: AI-driven interview, manual selection, or auto-detection from existing code. One wizard, any project.
+Generate a complete AI-orchestrated development pipeline — classify → plan → [codebase-analysis] → [debug] → implement → [visual-qa] → verify — with **real parallel Fan-out/Fan-in workers**, code-level enforcement via hooks, CI/CD pipeline generation, idle auto-watch, and self-learning capabilities. Three wizard modes: AI-driven interview, manual selection, or auto-detection. A project-root `CLAUDE.md` is generated so `/project-harness` becomes the **default** working mode, not opt-in. One wizard, any project.
 
 > **[한국어 (Korean)](./README-ko.md)**
 
@@ -23,21 +23,34 @@ Generate a complete development pipeline — plan, implement, visual-qa, verify 
   │   └── Auto-Detect — AI scans your existing code and detects the stack
   │
   ├─ Generates a full harness skill set
-  │   ├── project-config.yaml       — master config driving everything
-  │   ├── plan/SKILL.md             — planning phase
-  │   ├── debug/SKILL.md            — debug investigation phase (bugfix only)
-  │   ├── implement/SKILL.md        — implementation phase
-  │   ├── visual-qa/SKILL.md        — visual QA (if UI project)
-  │   ├── verify/SKILL.md           — verification phase
-  │   ├── agents/*.md               — AI-generated domain agents (from 34-agent catalog)
-  │   ├── guides/*.md               — AI-generated development guides
-  │   ├── hooks/*.sh                — code enforcement via Claude Code hooks
-  │   ├── hooks-config.json         — hook configuration for settings.json
-  │   ├── .github/workflows/*.yml   — CI/CD pipelines + AI code review
-  │   ├── state/learning-log.yaml   — self-learning history
-  │   └── references/               — classification, schemas, options
+  │   ├── ./CLAUDE.md                  — project-root orchestration entrypoint guide
+  │   ├── project-config.yaml          — master config driving everything
+  │   ├── plan/SKILL.md                — planning phase (Fan-out + Reader)
+  │   ├── codebase-analysis/SKILL.md   — Phase 2.5 pre-impl analysis (refactor auto-trigger)
+  │   ├── debug/SKILL.md                — debug investigation phase (bugfix only)
+  │   ├── implement/SKILL.md           — implementation phase (standard OR TDD strategy)
+  │   ├── visual-qa/SKILL.md           — visual QA (if UI project)
+  │   ├── verify/SKILL.md              — verification phase (all auditors parallel)
+  │   ├── agents/*.md                  — AI-generated domain agents (34-agent catalog + supabase-security-gate)
+  │   ├── guides/*.md                  — AI-generated development guides
+  │   ├── hooks/*.sh                   — code enforcement via Claude Code hooks
+  │   ├── hooks-config.json            — hook configuration for settings.json
+  │   ├── .github/workflows/*.yml      — CI/CD pipelines + AI code review
+  │   ├── state/learning-log.yaml      — self-learning history
+  │   └── references/                  — shared UX + data contracts:
+  │       ├── progress-format.md       — phase N/M + emoji + worker-tree standards
+  │       ├── ui-conventions.md        — 3-option gates + completion summary
+  │       ├── classification.md        — task classification rules
+  │       ├── handoff-templates.md     — state/handoffs/*.md structure
+  │       ├── schemas.md               — PlanResult/ImplementationResult/VerificationResult JSON
+  │       ├── guide-injection.md       — worker → guide + agent-checklist mapping
+  │       ├── monitor-mode.md          — /project-harness monitor idle auto-watch
+  │       ├── parallel-execution.md    — Fan-out/Fan-in PARALLEL REQUIRED directive
+  │       ├── tdd-implementation.md    — Red-Green-Refactor strategy (if enabled)
+  │       ├── ui-defect-patterns.md    — static UI code review (if has_ui)
+  │       └── fsd-scaffold-patterns.md — FSD boilerplate (if architecture=fsd)
   │
-  └─ Validated & ready to use via /project-harness
+  └─ Validated & ready: type `/project-harness "task"` — CLAUDE.md routes Claude automatically
 ```
 
 ## Installation
