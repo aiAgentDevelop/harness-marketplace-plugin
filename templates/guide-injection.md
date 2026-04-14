@@ -20,17 +20,17 @@ project-plan, project-implement, project-visual-qa, project-verify 가 공통 �
 | dependency-explorer | 1 — 분석 | dependency-analysis |
 | pattern-explorer | 1 — 분석 | pattern-conventions |
 | architect | 2 — 설계 | architecture-overview, architecture-rules |
-| ui-designer (has_ui) | 2 — 설계 | design-system, ux-checklist |
+| ui-designer (has_ui) | 2 — 설계 | design-system, ux-checklist, **ui-defect-patterns** |
 | scaffolder | 4 — 구현 | project-layout, module-scaffold |
 | implementer | 4 — 구현 | architecture-rules, coding-standards |
-| ui-checker (has_ui) | 4 — 구현 | ux-checklist, design-system |
+| ui-checker (has_ui) | 4 — 구현 | ux-checklist, design-system, **ui-defect-patterns** |
 | integrator | 4 — 구현 | architecture-rules |
 | security-checker (has_security_surface) | 4 — 구현 | auth-security, api-design |
 | test-writer | 4 — 구현 | testing-strategy |
 | arch-auditor | 7 — 검증 | architecture-overview, architecture-rules |
 | code-reviewer | 7 — 검증 | coding-standards, architecture-rules |
 | deploy-validator | 7 — 검증 | deployment-checklist |
-| ux-reviewer (has_ui) | 7 — 검증 | ux-checklist |
+| ux-reviewer (has_ui) | 7 — 검증 | ux-checklist, **ui-defect-patterns** |
 | design-reviewer (has_ui) | 7 — 검증 | design-system |
 | db-auditor (has_database) | 7 — 검증 | database-design |
 | auth-auditor (has_auth) | 7 — 검증 | auth-security |
