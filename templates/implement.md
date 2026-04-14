@@ -326,3 +326,39 @@ AskUserQuestion:
    {check_logic}
    ```
    - **Learning log**: Append entry to `state/learning-log.yaml` with date, type, root_cause, category, prevention, approved_by
+
+---
+
+## Implementation Strategy Switch
+
+project-implement 의 실행 순서는 `project-config.yaml.pipeline.implement_strategy` 에 따라 결정:
+
+| Strategy | Worker 순서 | 로드 reference |
+|---|---|---|
+| `standard` (default) | scaffolder → implementer → integrator → ui-checker (has_ui) → test-writer → test-runner → build-checker | 없음 |
+| `tdd` | test-writer (Red) → implementer (Green) → refactorer → ui-checker (has_ui) → test-runner → build-checker | `references/tdd-implementation.md` |
+| `bdd` | 예약 — 현재는 standard 와 동일 + 경고 출력 | 없음 |
+
+### 분기 처리 (wizard 렌더링)
+
+`{{CONDITION:implement_strategy_tdd}} ... {{/CONDITION:implement_strategy_tdd}}` 블록이 Step 5.2 에서:
+- `implement_strategy == "tdd"` → 블록 **포함**, standard 블록 제거
+- 그 외 → 블록 제거, standard 유지
+
+### `{{CONDITION:implement_strategy_tdd}}` 블록 내용
+
+- test-writer 가 Phase 4 가장 먼저 실행 (Red — 실패 테스트 작성)
+- implementer 는 테스트 통과용 최소 구현만 (Green)
+- refactorer 워커가 integrator 대신 스폰 (Refactor — 중복 제거 + 네이밍)
+- test-runner 는 Refactor 후 최종 실행
+- 전체 사이클은 `references/tdd-implementation.md` Red-Green-Refactor 명세 준수
+- `state/results/implement.json` 에 `tdd_cycle` optional 필드 기록 (schemas.md 확장)
+
+### 안전장치 / Fallback
+
+- `pipeline.implement_strategy` 필드 누락 → **standard** 로 fallback (wizard 가 자동 기록하지만 사용자가 수동으로 제거 시 대비)
+- `references/tdd-implementation.md` 파일 부재 → "strategy=tdd 지정됐지만 reference 파일 없음. standard 로 fallback" 경고 + 실행
+
+### 세션별 오버라이드
+
+`/project-harness "..." --strategy tdd` 또는 `/project-implement --strategy tdd "..."` 로 config 값 우회. 해당 세션 한정.
