@@ -116,6 +116,11 @@ if [[ "$DEV_SERVER_RUNNING" = false ]]; then
   echo "  (This is informational only — start manually if needed)"
 fi
 
+# --- Orchestration entrypoint tip ---
+echo ""
+echo "Tip: 새 작업은 '/project-harness \"설명\"' 으로 시작하세요."
+echo "     (plan → implement → verify 파이프라인 자동 실행. 자세한 안내는 ./CLAUDE.md 참고)"
+
 echo ""
 echo "============================================"
 echo "  Session ready."

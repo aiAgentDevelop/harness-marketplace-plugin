@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Wizard generates project-root CLAUDE.md for orchestration-by-default ([#29](https://github.com/aiAgentDevelop/harness-marketplace-plugin/issues/29))
+
+Closes the gap identified in PR #28's benchmark: after wizard completes, the full
+orchestration scaffolding (`/project-harness` + sub-skills + agents) is installed
+but nothing nudges the user or Claude Code to actually invoke it. A bare "add
+feature X" chat message used to fall through to direct editing with only hooks
+active, leaving Layers 2-3 (orchestration, pipeline) scaffolded-but-dormant.
+
+- `templates/CLAUDE.md.template` — project-root CLAUDE.md template. Declares
+  `/project-harness` as the default entrypoint for non-trivial work, documents
+  pipeline phases, hook enforcement table, stack conventions, and component
+  location map. Uses HTML-comment `<!-- ═══ GENERATED ═══ -->` markers to
+  separate auto-generated content from user-editable `## Custom Rules` section.
+- `skills/wizard/SKILL.md` — new **Step 5.1b** between project-config.yaml
+  write and template-based files generation. Checks for existing `./CLAUDE.md`
+  and offers 3 options on collision: marker-merge (preserve Custom Rules) /
+  full replace with backup / skip. Substitutes {{VAR}} and {{CONDITION:flag}}
+  blocks from project-config.yaml + detected_stack + wizard state.
+- `skills/wizard/SKILL.md` Step 6.1 — new validation item: project-root
+  CLAUDE.md exists (unless skipped), contains markers, no unresolved {{...}},
+  mentions `/project-harness` at least once.
+- `skills/wizard/SKILL.md` Final Checklist — new line item for Step 5.1b.
+
+### Changed — Wizard CLAUDE.md feature
+
+- `skills/upgrade/SKILL.md` Phase 3 — new **Step 2.5** handling CLAUDE.md
+  upgrade. Marker-based merge regenerates only GENERATED region, preserves
+  everything below `<!-- ═══ END GENERATED CONTENT ═══ -->` (user's Custom
+  Rules). Missing-marker case (hand-written CLAUDE.md or pre-v0.6 version)
+  triggers AskUserQuestion: backup+replace or skip.
+- `templates/hooks/session-init.sh.template` — adds 2-line orchestration tip
+  before "Session ready" block, pointing terminal users at `/project-harness`
+  as the entrypoint. Complements the CLAUDE.md guidance.
+- `README.md` + `README-ko.md` — Plugin Structure adds
+  `templates/CLAUDE.md.template` entry. "Use the generated harness" /
+  "생성된 harness 사용" sections explain orchestration-by-default behavior,
+  the generated CLAUDE.md contents, and collision handling.
+
+### No new subAgent
+
+CLAUDE.md generation is pure template rendering (substitution + conditional
+blocks) using the wizard's existing template engine. Domain verify agents at
+`wizard/SKILL.md` L953 remain independent — they spawn only during
+`/project-verify` within the orchestration pipeline, not during wizard setup.
+
 ### Added — Phase 0.5 fair 3-layer benchmark ([#27](https://github.com/aiAgentDevelop/harness-marketplace-plugin/issues/27), [#28](https://github.com/aiAgentDevelop/harness-marketplace-plugin/pull/28))
 
 Replaces the structurally-biased Phase 0 benchmark that could only measure

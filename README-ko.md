@@ -281,11 +281,22 @@ Issue → Branch → Commit → PR 워크플로우를 자동 수행합니다:
 
 ### 생성된 harness 사용
 
+wizard 완료 시 **프로젝트 루트에 `CLAUDE.md` 가 자동 생성**되어 Claude Code 가 비-사소한 작업을 항상 `/project-harness` 파이프라인으로 라우팅하도록 지시합니다. 이로써 AI 오케스트레이션이 **기본 작업 방식**이 됩니다 — 새 기능 / 버그 수정 / 리팩토링이 자동으로 plan → implement → verify 전체 파이프라인을 따릅니다.
+
 ```bash
 /project-harness "사용자 인증 구현"
 /project-harness --dry-run "결제 연동 추가"
 /project-harness --resume
 ```
+
+생성되는 `CLAUDE.md` 내용:
+- 오케스트레이션 entrypoint 안내 (언제 `/project-harness` 를 쓰나, 언제 건너뛰어도 되나)
+- 훅 enforcement 표 (활성 보안/품질 가드)
+- 스택 컨벤션 (선택된 가이드에서 추출)
+- 구성 요소 위치 맵 (`.claude/skills/project-harness/{plan,implement,verify,...}/`)
+- **`## Custom Rules` 섹션** — 팀의 프로젝트별 규칙. `/harness-marketplace:upgrade` 시 HTML 주석 마커로 **그대로 보존**
+
+프로젝트 루트에 이미 `CLAUDE.md` 가 있으면 wizard 가 (a) GENERATED 구간만 병합, (b) 백업 후 전체 교체, (c) 건너뛰기 중 선택하도록 묻습니다.
 
 ---
 
@@ -469,6 +480,7 @@ harness-marketplace/
 │   ├── visual-qa.md               # 시각적 QA 단계
 │   ├── verify.md                  # 검증 단계 (Learning Loop 포함)
 │   ├── self-learning.md           # 자기 학습 엔진
+│   ├── CLAUDE.md.template         # 프로젝트 루트 오케스트레이션 안내 (./CLAUDE.md 로 생성)
 │   ├── config-schema.yaml         # 설정 스키마 (context, enforcement, ci_cd, self_learning)
 │   ├── classification.md          # 작업 분류 규칙 (디버그 복잡도 포함)
 │   ├── hooks/                     # Hook 스크립트 템플릿 (8 스크립트 + 설정 + v2.x helper 2개)

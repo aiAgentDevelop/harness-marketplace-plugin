@@ -281,11 +281,22 @@ Automates Issue → Branch → Commit → PR workflow:
 
 ### Use the generated harness
 
+After wizard completes, a **project-root `CLAUDE.md`** is generated that instructs Claude Code to route non-trivial work through `/project-harness`. This makes AI orchestration the **default working mode** — new features, bugfixes, and refactors automatically flow through the full plan → implement → verify pipeline.
+
 ```bash
 /project-harness "implement user authentication"
 /project-harness --dry-run "add payment integration"
 /project-harness --resume
 ```
+
+The generated `CLAUDE.md` contains:
+- Orchestration entrypoint guide (when to use `/project-harness`, when it's OK to skip)
+- Hook enforcement table (active security / quality guards)
+- Stack conventions (from selected guides)
+- Component location map (`.claude/skills/project-harness/{plan,implement,verify,...}/`)
+- **`## Custom Rules` section** — your team's project-specific rules, preserved across `/harness-marketplace:upgrade` via HTML-comment markers
+
+If a `CLAUDE.md` already exists at project root, the wizard asks whether to (a) merge only the GENERATED region, (b) backup and fully replace, or (c) skip.
 
 ---
 
@@ -469,6 +480,7 @@ harness-marketplace/
 │   ├── visual-qa.md               # Visual QA phase
 │   ├── verify.md                  # Verification phase (with Learning Loop)
 │   ├── self-learning.md           # Self-learning engine
+│   ├── CLAUDE.md.template         # Project-root orchestration guide (written to ./CLAUDE.md)
 │   ├── config-schema.yaml         # Config schema (context, enforcement, ci_cd, self_learning)
 │   ├── classification.md          # Task classification rules (with debug complexity)
 │   ├── hooks/                     # Hook script templates (8 scripts + config + 2 v2.x helpers)
