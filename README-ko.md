@@ -474,13 +474,19 @@ harness-marketplace/
 │   └── gh/SKILL.md                # GitHub 워크플로우 자동화 (Issue → Branch → PR)
 ├── templates/                     # Harness 골격 템플릿
 │   ├── orchestrator.md            # 파이프라인 오케스트레이터
-│   ├── plan.md                    # 계획 단계
+│   ├── plan.md                    # 계획 단계 (Reader/Fan-in 패턴 포함)
 │   ├── debug.md                   # 디버그 조사 단계 (bugfix 전용)
 │   ├── implement.md               # 구현 단계 (Learning Loop 포함)
 │   ├── visual-qa.md               # 시각적 QA 단계
-│   ├── verify.md                  # 검증 단계 (Learning Loop 포함)
+│   ├── verify.md                  # 검증 단계 (Learning Loop + Failure Tiers BLOCK/WARN/INFO)
 │   ├── self-learning.md           # 자기 학습 엔진
 │   ├── CLAUDE.md.template         # 프로젝트 루트 오케스트레이션 안내 (./CLAUDE.md 로 생성)
+│   ├── progress-format.md         # Reference: phase N/M + 상태 이모지 + 워커 트리 표준
+│   ├── ui-conventions.md          # Reference: 3-옵션 확인 게이트 + 완료 요약 스키마
+│   ├── handoff-templates.md       # Reference: state/handoffs/{plan,debug,exec,verify}.md 구조
+│   ├── schemas.md                 # Reference: PlanResult/ImplementationResult/VerificationResult JSON 스키마
+│   ├── guide-injection.md         # Reference: 워커 → 가이드 + 에이전트 체크리스트 매핑
+│   ├── monitor-mode.md            # Reference: /project-harness monitor (CronCreate 기반 idle 자동 감시)
 │   ├── config-schema.yaml         # 설정 스키마 (context, enforcement, ci_cd, self_learning)
 │   ├── classification.md          # 작업 분류 규칙 (디버그 복잡도 포함)
 │   ├── hooks/                     # Hook 스크립트 템플릿 (8 스크립트 + 설정 + v2.x helper 2개)

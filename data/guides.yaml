@@ -296,6 +296,92 @@ guides:
       recommended_when:
         - has_realtime
 
+    - id: game-security
+      name: Game Security Guide
+      domain: game
+      description: Game-specific threat model covering server authority enforcement, anti-cheat mechanics, HMAC payload signing, audit trails for player-impacting operations, suspicious activity detection, save data integrity, and debug/cheat endpoint removal in production. Complements auth-security guide with game-specific threats (speed hacks, client cheats, economy manipulation).
+      suitable_project_types:
+        - game
+      key_topics:
+        - server_authority_enforcement
+        - anti_cheat_patterns
+        - hmac_signing
+        - audit_trails
+        - suspicious_activity_detection
+        - save_data_integrity
+        - debug_endpoint_removal
+        - session_single_login
+      recommended_when: []
+
+    - id: gacha-system
+      name: Gacha System Guide
+      domain: game
+      description: Gacha/lootbox implementation patterns satisfying regulatory requirements (JP/KR/CN/EU). Covers server-side probability tables, in-game rate disclosure, pity/mercy system, CSPRNG-based randomness, atomic deduct-then-pull transactions, pull logging with audit trail, rate limiting, and multi-pull guarantees.
+      suitable_project_types:
+        - game
+      key_topics:
+        - server_side_probability_tables
+        - rate_disclosure_regulatory
+        - pity_system_implementation
+        - csprng_randomness
+        - atomic_deduct_pull
+        - pull_logging_audit
+        - pull_rate_limiting
+        - multi_pull_guarantees
+      recommended_when:
+        - has_real_money
+
+    - id: shop-iap
+      name: Shop & IAP Guide
+      domain: game
+      description: In-app purchase and virtual goods shop patterns. Covers IAP receipt validation (Apple/Google), entitlement reconciliation, restore-purchases flow, subscription state machines, virtual currency ledger integrity, tax/pricing tier handling, refund/chargeback recovery, and fraud detection heuristics.
+      suitable_project_types:
+        - game
+        - mobile
+      key_topics:
+        - iap_receipt_validation
+        - entitlement_reconciliation
+        - restore_purchases_flow
+        - subscription_state_machine
+        - virtual_currency_ledger
+        - pricing_tiers_tax
+        - refund_chargeback_recovery
+        - fraud_detection
+      recommended_when:
+        - has_real_money
+
+    - id: ranking-system
+      name: Ranking System Guide
+      domain: game
+      description: Competitive ranking system design covering leaderboard implementations (global/friends/seasonal), rating algorithms (ELO/Glicko/TrueSkill), tier decay, match validation to prevent manipulation, server-authoritative score submission, and anti-smurfing patterns.
+      suitable_project_types:
+        - game
+      key_topics:
+        - leaderboard_types
+        - rating_algorithms
+        - tier_decay
+        - match_validation_anti_manipulation
+        - server_authoritative_scores
+        - seasonal_reset_patterns
+        - anti_smurfing
+      recommended_when: []
+
+    - id: save-system
+      name: Save System Guide
+      domain: game
+      description: Game save data persistence patterns. Covers local vs cloud save sync, checksum-based corruption detection, version migration on schema changes, conflict resolution for cross-device sync, atomic write patterns to prevent partial writes, and backup/restore flows.
+      suitable_project_types:
+        - game
+      key_topics:
+        - local_vs_cloud_save
+        - checksum_corruption_detection
+        - schema_version_migration
+        - cross_device_conflict_resolution
+        - atomic_write_patterns
+        - backup_restore_flow
+        - save_slot_management
+      recommended_when: []
+
   data:
 
     - id: data-pipeline

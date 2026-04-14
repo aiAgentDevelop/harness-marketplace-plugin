@@ -274,3 +274,86 @@ Extended procedure (same as project-implement, with hook rule support):
    - "Add hook rule only" (when hook was drafted)
    - "Skip"
 5. **Apply**: Append guide note, hook Custom Rules entry, and learning-log.yaml entry
+
+---
+
+## Failure Tiers (BLOCK / WARN / INFO)
+
+검증 결과를 3 tier 로 분류. Tier 에 따라 regression loop 트리거 여부와 사용자 메시지 강도 결정.
+
+### Tier 정의
+
+| Tier | 아이콘 | 의미 | 회귀 루프 |
+|------|-------|------|---------|
+| **BLOCK** | ❌ | 배포/머지 차단 수준. 반드시 수정 필요 | 트리거 (최대 2회 자동 수정 시도) |
+| **WARN** | ⚠️ | 주의 필요하지만 차단은 아님. 사용자 결정 | 트리거하지 않음 (report 만) |
+| **INFO** | ℹ️ | 참고 사항 (convention 제안 등) | 무시 |
+
+### Tier 매핑 — 체커별 기본 할당
+
+| 체커 | 실패 시 tier | 근거 |
+|------|------------|------|
+| arch-audit | BLOCK (critical 위반), WARN (경고), INFO (개선 제안) | 레이어 위반은 구조적 부채 |
+| code-review | BLOCK (기능 파괴), WARN (가독성/컨벤션), INFO (alternative) | LLM 판단 결과 심각도에 따라 |
+| typecheck | BLOCK (error), INFO (deprecated 사용) | 타입 에러는 런타임 실패 직결 |
+| lint | WARN (warning rule), BLOCK (error rule) | eslint/ruff 규칙별 설정 존중 |
+| deploy-validation | BLOCK (destructive migration, env 누락) | 배포 중단 위험 |
+| ux-review | BLOCK (overflow/clipping), WARN (spacing/alignment drift) | 사용자 가시성 영향에 따라 |
+| design-review | WARN (토큰 미사용), INFO (alternative) | 차단이 아닌 방향 제시 |
+| db-security | BLOCK (RLS 누락, N+1 production impact), WARN (인덱스 제안) | 데이터 유출/성능 위험 |
+| auth-security | BLOCK (인증 우회 가능), WARN (세션 만료 정책) | 보안 게이트 |
+| security-audit | BLOCK (HIGH), WARN (MEDIUM), INFO (LOW) | 취약점 심각도 |
+| domain-{id}-audit | 도메인 agent 가 자체 판정 | 도메인별 룰 |
+
+### 회귀 루프 트리거 조건
+
+```
+regression_needed = (BLOCK_count > 0) AND (regression_attempt < max_attempts)
+```
+
+- `max_attempts` = 2 (project-config.yaml.pipeline.regression_loop.max_attempts 로 설정 가능)
+- `regression_attempt` 0 → 1 → 2 까지 시도. 2회 시도 후에도 BLOCK 남으면 `overall: fail` + 사용자 판단 요청
+- WARN / INFO 만 있으면 `overall: pass_with_warnings` + 루프 없이 종료
+
+### tier_breakdown 기록 (schemas.md VerificationResult)
+
+```json
+{
+  "tier_breakdown": {
+    "BLOCK": 0,
+    "WARN": 3,
+    "INFO": 1
+  }
+}
+```
+
+### 사용자 출력 예시 (ui-conventions.md 요약 포맷과 결합)
+
+```
+🔍 project-verify 완료
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+arch-audit:        ✅ BLOCK 0 | ⚠️ WARN 2 | ℹ️ INFO 1
+code-review:       ✅ BLOCK 0 | ⚠️ WARN 1
+...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+종합: ⚠️ pass_with_warnings  (BLOCK 0 | WARN 3 | INFO 1)
+회귀 필요: false
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### 설계 원칙
+
+1. **체커가 자체적으로 tier 결정** — verify.md 는 통합만. 각 agent/checker 가 자체 rubric 에 따라 BLOCK/WARN/INFO 분류 후 상위로 보고
+2. **BLOCK 은 자동 수정 시도 트리거** — regression loop 에서 team-fix 워커 스폰
+3. **WARN 은 report-only** — 사용자가 읽고 판단. `--fix-warnings` 플래그 시 수정 시도
+4. **INFO 는 notepad 기록만** — 리포트에 요약 라인으로 표시, 상세는 notepad 에서 조회
+5. **도메인별 tier 자유 재정의 가능** — domain agent 가 자신의 checklist 항목에 tier 할당. data/agents.yaml 의 agent metadata 에 기본 tier 필드 예약
+
+---
+
+## 관련 참조 파일
+
+- `ui-conventions.md` — §"V4. 완료 요약" 에서 tier_breakdown 표시 규칙
+- `schemas.md` — VerificationResult 의 `tier_breakdown` + `overall` 필드 계약
+- `progress-format.md` — 진행 중 tier 별 집계 표시
+- `handoff-templates.md` — verify.md handoff 에 tier 정보 전파

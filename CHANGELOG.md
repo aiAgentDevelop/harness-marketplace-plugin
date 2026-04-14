@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Port backup-harness UX/infrastructure/game-domain improvements ([#31](https://github.com/aiAgentDevelop/harness-marketplace-plugin/issues/31))
+
+Stage A-D rollout porting proven patterns from the user's backup harness
+(`~/.claude/skills-backup-harness/`) into generic marketplace templates.
+All new markdown files kept under 500 lines; monitor mode lives in its
+own reference file so `orchestrator.md` stays under the size threshold.
+
+**Stage A — User-visible UX improvements**:
+- `templates/progress-format.md` — standardized phase banners, status
+  emoji (✅/🔄/⏳/❌/⏭️), worker tree, phase N/M counter. Consumed by all
+  sub-skills for consistent progress display.
+- `templates/ui-conventions.md` — 3-option confirmation gate standard
+  (진행 / 수정 후 진행 / 중단) + bilingual completion summary schema
+  (작업 정보 / 변경 요약 / 검증 항목별 결과 / 총 소요 시간).
+- `templates/classification.md` — formal key:value output format rules
+  (3-line groupings, pipe separator, `progress-format.md` conformance).
+
+**Stage B — Pipeline infrastructure**:
+- `templates/handoff-templates.md` — explicit `state/handoffs/{plan,
+  debug,exec,verify}.md` structure for deterministic `--resume` recovery.
+- `templates/schemas.md` — formal JSON contracts for `state/results/*.json`
+  (PlanResult, DebugResult, ImplementationResult, VisualQAResult,
+  VerificationResult). `schema_version` field + evolution rules.
+- `templates/guide-injection.md` — worker → guide + technical agent
+  checklist mapping. Phase-by-phase summary tables for all 11 domains.
+- `templates/verify.md` — new **Failure Tiers** section (BLOCK / WARN /
+  INFO) with regression-loop trigger rule (`BLOCK_count > 0`) and per-
+  checker tier mapping.
+- `templates/plan.md` — new **Reader/Fan-in Pattern** section explaining
+  how parallel Phase 1/2 workers' results merge via a dedicated reader
+  worker. Includes `fan_in_reader_threshold` config field.
+
+**Stage C — Game domain expansion** (`data/agents.yaml`, `data/guides.yaml`):
+- New agents: `gs-gacha-compliance` (JP/KR/CN gacha regulation),
+  `gs-integrity-auditor` (server authority + anti-cheat + determinism),
+  `t-game-api-architect` (Unity/Unreal client serialization),
+  `t-game-backend-engineer` (stateless game server patterns).
+- New guides: `game-security`, `gacha-system`, `shop-iap`, `ranking-
+  system`, `save-system`. Covers game-specific threat model, gacha
+  regulatory compliance, IAP/entitlement handling, competitive ranking,
+  cross-device save integrity.
+
+**Stage D — Monitor mode + generic patterns**:
+- `templates/monitor-mode.md` — `/project-harness monitor --backend |
+  --frontend` with CronCreate-based idle-mode loops. Backend: log tail
+  + `/health` curl. Frontend: chrome-devtools MCP for console + network
+  monitoring. Priority tiers (🔴 Critical / 🟠 High / 🟡 Medium / ⚪ Low).
+- `templates/orchestrator.md` — adds short `Monitor Subcommand` stanza
+  linking to `monitor-mode.md` (kept at 499 lines, under threshold).
+- Notes on GP1 (System grouping for 5+ system projects) and GP2
+  (Phase 3.5 API QA with Postman MCP) as future opt-in patterns.
+
+### Changed
+
+- `skills/wizard/SKILL.md` Step 5.2 — file generation expanded to copy
+  all 7 reference files into `.claude/skills/project-harness/references/`.
+  Step 6.1 validation requires all references present.
+- `README.md` + `README-ko.md` — Plugin Structure lists new reference
+  files under `templates/`. Both kept in sync per Documentation Rule.
+
+## [Unreleased — older entries below]
+
 ### Added — Wizard generates project-root CLAUDE.md for orchestration-by-default ([#29](https://github.com/aiAgentDevelop/harness-marketplace-plugin/issues/29))
 
 Closes the gap identified in PR #28's benchmark: after wizard completes, the full

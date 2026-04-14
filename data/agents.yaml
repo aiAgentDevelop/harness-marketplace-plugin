@@ -547,6 +547,94 @@ agents:
         - has_realtime
       model: opus
 
+    - id: gs-gacha-compliance
+      name: Gacha Compliance Auditor
+      domain: game
+      description: Regulatory compliance auditor for lootbox/gacha systems. Validates JP/KR/CN/EU legal requirements including probability disclosure, pity system, CSPRNG randomness, pull logging, atomic deduct-then-pull transactions, and rate limiting. More narrowly-scoped than game-economy-auditor, focused on legality.
+      suitable_project_types:
+        - game
+      key_concerns:
+        - server_side_probability
+        - in_game_rate_disclosure
+        - pity_mercy_system
+        - csprng_usage
+        - atomic_deduct_pull
+        - pull_logging_audit_trail
+        - pull_rate_limiting
+        - multi_pull_guarantees
+        - statistical_distribution_validation
+        - minor_protection_age_gating
+      recommended_when:
+        - has_real_money
+      model: opus
+
+    - id: gs-integrity-auditor
+      name: Game Integrity Auditor
+      domain: game
+      description: Fair-play and data-integrity auditor. Enforces server authority model, anti-cheat / anti-replay patterns, deterministic replay capability, audit trails for player-impacting operations, and statistical anomaly detection. Complements server-authority-auditor with stronger focus on determinism and suspicious activity flagging.
+      suitable_project_types:
+        - game
+      key_concerns:
+        - untrusted_client_input_revalidation
+        - anti_replay_nonce_timestamp
+        - hmac_signature_verification
+        - score_bounds_check
+        - audit_trail_player_impact
+        - deterministic_replay
+        - game_action_rate_limiting
+        - session_validation_single_login
+        - save_data_checksum
+        - suspicious_activity_flagging
+        - no_debug_endpoints_in_prod
+      recommended_when:
+        - has_backend
+        - has_realtime
+      model: opus
+
+    - id: t-game-api-architect
+      name: Game API Architect
+      domain: game
+      description: Game API design specialist for REST/gRPC interfaces targeting Unity/Unreal/mobile clients. Validates game client serialization compatibility (camelCase, explicit types), mobile network optimization (batch endpoints, minimal payload), idempotency headers, cache-friendly responses, and backward-compatible versioning.
+      suitable_project_types:
+        - game
+      key_concerns:
+        - restful_resource_naming
+        - consistent_versioning
+        - request_response_dtos
+        - pagination_strategy
+        - error_response_format
+        - batch_endpoints
+        - idempotency_header_support
+        - unity_csharp_serialization
+        - minimal_payload_size
+        - cache_friendly_headers
+        - backward_compatibility_plan
+      recommended_when:
+        - has_backend
+      model: opus
+
+    - id: t-game-backend-engineer
+      name: Game Backend Engineer
+      domain: game
+      description: Game server engineering specialist (framework-agnostic — NestJS, Express, Spring, FastAPI, etc.). Validates structural soundness, security, operational readiness for game backends: server authority enforcement, input validation, rate-limiting by endpoint category, DB transactions, idempotency, graceful shutdown, and consistent response envelope.
+      suitable_project_types:
+        - game
+      key_concerns:
+        - server_authority
+        - input_validation
+        - authentication_guard
+        - rate_limiting_by_category
+        - database_transactions
+        - idempotency_keys
+        - connection_pooling
+        - health_check_endpoint
+        - graceful_shutdown
+        - request_response_logging
+        - consistent_response_envelope
+      recommended_when:
+        - has_backend
+      model: opus
+
   data:
 
     - id: data-pipeline-reviewer

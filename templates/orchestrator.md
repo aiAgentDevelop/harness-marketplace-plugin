@@ -34,6 +34,18 @@ allowed: /project-harness ralph interview "task"     — interview → full + ra
 allowed: /project-harness autopilot "task"           — auto-approve all confirmation gates
 ```
 
+### Monitor Subcommand (idle auto-watch)
+
+```
+/project-harness monitor                      — 프론트+백엔드 동시 감시 (기본)
+/project-harness monitor --backend            — 백엔드 로그 + /health 만 감시
+/project-harness monitor --frontend           — chrome-devtools MCP 브라우저 감시
+/project-harness monitor --interval 2m        — 감시 간격 (기본 1분)
+/project-harness monitor stop                 — 감시 종료 + 서버 종료
+```
+
+상세 동작 (CronCreate 기반 idle-mode 루프, 에러 감지 후 3-옵션 게이트 등) 은 `references/monitor-mode.md` 참조. Pipeline 과 독립 실행되며 다른 harness 작업과 동시 사용 가능.
+
 ---
 
 ## Pipeline Structure
@@ -472,3 +484,16 @@ Each skill can also be invoked standalone:
 /project-visual-qa "/path"     — browser QA only
 /project-verify                — verify only
 ```
+
+---
+
+## Related References (UX & Data Contract)
+
+모든 sub-skill 이 공유하는 출력/데이터 표준:
+
+- `references/progress-format.md` — 진행 중 배너·이모지·phase N/M·워커 트리 표준
+- `references/ui-conventions.md` — 확인 게이트(3-옵션) + 완료 요약 스키마
+- `references/classification.md` — Phase 0 분류 출력 포맷 (🏷️)
+- `references/handoff-templates.md` — phase 간 `state/handoffs/*.md` 구조
+- `references/schemas.md` — PlanResult / ImplementationResult / VerificationResult JSON 계약
+- `references/guide-injection.md` — 워커 역할 → 가이드 파일 매핑

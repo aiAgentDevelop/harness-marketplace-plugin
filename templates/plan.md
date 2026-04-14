@@ -271,4 +271,83 @@ Written to `state/results/plan.json` | Handoff: `state/handoffs/prd.md`
 When generating worker prompts, conditionally inject guide files from the project's `.claude/guides/` directory.
 The `guides` list in `project-config.yaml` determines which guides are available and their load conditions.
 
+자세한 워커별 가이드/에이전트 주입 매핑은 `references/guide-injection.md` 참조.
+
 {{GUIDES_LIST}}
+
+---
+
+## Reader / Fan-in Pattern (Phase 1 + Phase 2)
+
+team 모드에서 **여러 워커가 병렬 실행** 후 결과를 한 곳에 수집하는 패턴.
+`schemas.md` 의 PlanResult 에 통합된 형태로 쓰이기 전에 reader 워커가 취합 단계를 거침.
+
+### Phase 1 — 분석 (Fan-out / Fan-in)
+
+```
+[ team-plan ]
+     │
+     ├─ Fan-out: 3 고정 워커 + 조건부 도메인 워커
+     │     ├─ structure-explorer       → notepad: project-plan-phase1-structure
+     │     ├─ dependency-explorer      → notepad: project-plan-phase1-deps
+     │     ├─ pattern-explorer         → notepad: project-plan-phase1-patterns
+     │     └─ {domain}-explorer (조건부) → notepad: project-plan-phase1-domain-{id}
+     │
+     └─ Fan-in: reader 워커
+           ├─ 입력: 위 모든 notepad 키
+           ├─ 처리: 결과 취합 + 충돌/중복 제거 + 우선순위 판정
+           └─ 출력: notepad project-plan-phase1-merged
+```
+
+**reader 워커 책임** (명시적 책임 분리):
+
+1. 각 explorer 결과를 읽어 **중복 파일 경로 병합**
+2. dependency 그래프 + pattern 관찰을 교차 검증하여 **warnings 생성**
+3. 도메인 워커 결과가 있으면 **설계 영향도 추가**
+4. 최종 `project-plan-phase1-merged` notepad 에 PlanResult.exploration 포맷으로 저장
+
+### Phase 2 — 설계 (Fan-out / Fan-in)
+
+```
+[ team-prd ]
+     │
+     ├─ Fan-out: architect + ui-designer (has_ui) + {domain}-validator (조건부)
+     │     ├─ architect          → notepad: project-plan-phase2-arch
+     │     ├─ ui-designer        → notepad: project-plan-phase2-ux      (has_ui)
+     │     └─ {domain}-validator → notepad: project-plan-phase2-domain-{id}
+     │
+     └─ Fan-in: reader 워커
+           ├─ 입력: 위 설계 notepad 들 + phase1-merged
+           ├─ 처리: 설계 일관성 검증 (UI 설계와 architect 결정 충돌 없는지) + 도메인 제약 반영
+           └─ 출력: notepad project-plan-phase2-merged + state/results/plan.json
+```
+
+### 왜 reader 가 필요한가
+
+- **워커별 notepad 독립성** — 각 워커는 자신의 결과만 책임. 취합 로직을 워커마다 중복하지 않음
+- **충돌 감지 단일 지점** — 서로 다른 워커 간 모순(예: pattern-explorer 가 관찰한 컨벤션 ≠ architect 의 제안) 을 reader 가 탐지
+- **deterministic merge** — reader 로직이 한 곳에 있어 결과 재현성 보장
+- **handoff 작성 간소화** — reader 가 최종 병합 결과만 `handoff-templates.md` 형식으로 직렬화
+
+### reader 워커 구현 가이드
+
+- reader 는 **team 의 일부 워커**로 스폰 (별도 skill 아님). 일반 워커와 동일한 interface
+- **순수 로직**: 외부 I/O 최소. 입력 notepad 읽기 → 병합 → 출력 notepad 쓰기
+- **경합 회피**: fan-out 워커들의 `TaskGet` 으로 완료 확인 후 실행. 타이밍 의존 X
+- **에러 내성**: 한 fan-out 워커가 실패해도 부분 결과로 reader 진행. reader 결과에 "partial: true" 플래그 기록
+- 세 명 이하 fan-out 은 reader 없이 architect 이 직접 취합해도 됨. 도메인 워커 포함으로 4+ 시 reader 필수
+
+### project-config.yaml 설정
+
+```yaml
+pipeline:
+  team_mode:
+    fan_in_reader_threshold: 4  # 4명 이상 fan-out 시 reader 자동 스폰
+    reader_partial_ok: true     # 일부 fan-out 실패해도 reader 진행
+```
+
+### 관련 참조 파일
+
+- `references/progress-format.md` §"Phase 1 진행 중 (팀 모드)" — reader 진행 표시
+- `references/guide-injection.md` — reader 는 주입 없이 순수 로직 (가이드/에이전트 미주입)
+- `references/schemas.md` — reader 출력이 PlanResult.exploration / PlanResult.design 에 직접 매핑

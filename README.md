@@ -474,13 +474,19 @@ harness-marketplace/
 │   └── gh/SKILL.md                # GitHub workflow automation (Issue → Branch → PR)
 ├── templates/                     # Harness skeleton templates
 │   ├── orchestrator.md            # Pipeline orchestrator
-│   ├── plan.md                    # Planning phase
+│   ├── plan.md                    # Planning phase (with Reader/Fan-in pattern)
 │   ├── debug.md                   # Debug investigation phase (bugfix only)
 │   ├── implement.md               # Implementation phase (with Learning Loop)
 │   ├── visual-qa.md               # Visual QA phase
-│   ├── verify.md                  # Verification phase (with Learning Loop)
+│   ├── verify.md                  # Verification phase (Learning Loop + Failure Tiers BLOCK/WARN/INFO)
 │   ├── self-learning.md           # Self-learning engine
 │   ├── CLAUDE.md.template         # Project-root orchestration guide (written to ./CLAUDE.md)
+│   ├── progress-format.md         # Reference: phase N/M + emoji status + worker tree standards
+│   ├── ui-conventions.md          # Reference: 3-option confirmation gates + completion summary schema
+│   ├── handoff-templates.md       # Reference: state/handoffs/{plan,debug,exec,verify}.md structure
+│   ├── schemas.md                 # Reference: JSON schemas for PlanResult/ImplementationResult/VerificationResult
+│   ├── guide-injection.md         # Reference: worker → guide + agent checklist mapping
+│   ├── monitor-mode.md            # Reference: /project-harness monitor (CronCreate-based idle auto-watch)
 │   ├── config-schema.yaml         # Config schema (context, enforcement, ci_cd, self_learning)
 │   ├── classification.md          # Task classification rules (with debug complexity)
 │   ├── hooks/                     # Hook script templates (8 scripts + config + 2 v2.x helpers)

@@ -984,11 +984,20 @@ Files generated:
 - .claude/skills/project-harness/plan/SKILL.md ← templates/plan.md
 - .claude/skills/project-harness/implement/SKILL.md ← templates/implement.md
 - .claude/skills/project-harness/verify/SKILL.md ← templates/verify.md
-- .claude/skills/project-harness/references/schemas.md ← templates/schemas.md (if exists)
+
+References (shared UX + data contracts — consumed by all sub-skills):
+- .claude/skills/project-harness/references/progress-format.md ← templates/progress-format.md
+- .claude/skills/project-harness/references/ui-conventions.md ← templates/ui-conventions.md
+- .claude/skills/project-harness/references/classification.md ← templates/classification.md
+- .claude/skills/project-harness/references/handoff-templates.md ← templates/handoff-templates.md
+- .claude/skills/project-harness/references/schemas.md ← templates/schemas.md
+- .claude/skills/project-harness/references/guide-injection.md ← templates/guide-injection.md
+- .claude/skills/project-harness/references/monitor-mode.md ← templates/monitor-mode.md
 
 Conditional:
 - .claude/skills/project-harness/visual-qa/SKILL.md ← templates/visual-qa.md (only if has_ui)
 - .claude/skills/project-harness/visual-qa/scripts/visual-inspect.js ← templates/visual-inspect.js (only if has_ui)
+- .claude/skills/project-harness/debug/SKILL.md ← templates/debug.md (only if project_type supports bugfix AND debug_complexity != "low")
 ```
 
 ### Step 5.3: AI-Generate Specialized Files
@@ -1179,7 +1188,13 @@ Run validation checks (equivalent to scripts/validate-harness.js):
 
 1. Required files exist:
    - SKILL.md, project-config.yaml, plan/SKILL.md, implement/SKILL.md, verify/SKILL.md
-   - references/classification.md, references/schemas.md
+   - references/classification.md
+   - references/schemas.md
+   - references/progress-format.md
+   - references/ui-conventions.md
+   - references/handoff-templates.md
+   - references/guide-injection.md
+   - references/monitor-mode.md
    - agents/*.md (at least one)
    - guides/*.md (at least one)
 
