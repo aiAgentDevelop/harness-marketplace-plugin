@@ -30,6 +30,25 @@ All workers and conditional logic are driven by `project-config.yaml` flags — 
 
 ---
 
+## Interview Result Integration
+
+When `--interview-result` is provided:
+
+1. Read InterviewResult JSON from the specified file path
+2. Read PRD from `.claude/skills/project-harness/prd/service-prd.md`
+3. Inject PRD content into worker prompts at each phase:
+   - **structure-explorer**: PRD's data model + feature list for targeted exploration
+   - **dependency-explorer**: PRD's integrations for dependency scope awareness
+   - **pattern-explorer**: PRD's feature specs for pattern matching
+   - **architect**: Full PRD for design alignment with service requirements
+   - **ui-designer**: PRD's user flows + feature specs for UX design
+4. Include interview-created agents (from InterviewResult.agents_created) as conditional workers in exploration and design phases
+5. Use PRD's clarity breakdown to focus exploration on lower-clarity areas
+
+**Note**: Interview result enhances but does not replace classification. Type and flags are still auto-detected or specified via `--type`.
+
+---
+
 ## Step 1: Classification (Phase 0)
 
 Analyze the task description to determine type and flags.

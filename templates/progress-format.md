@@ -1,6 +1,6 @@
 # 진행률 표시 형식 (Progress Format)
 
-project-harness 오케스트레이터 및 각 하위 스킬(project-plan, project-implement, project-visual-qa, project-verify, project-debug)의 진행률 출력 형식 정의. **모든 스킬은 이 형식을 따라 일관된 진행률을 표시**한다.
+project-harness 오케스트레이터 및 각 하위 스킬(project-interview, project-plan, project-implement, project-visual-qa, project-verify, project-debug)의 진행률 출력 형식 정의. **모든 스킬은 이 형식을 따라 일관된 진행률을 표시**한다.
 
 이 파일은 wizard 가 프로젝트의 `.claude/skills/project-harness/references/progress-format.md` 로 복사하며, 각 phase SKILL.md 가 참조한다.
 
@@ -11,6 +11,7 @@ project-harness 오케스트레이터 및 각 하위 스킬(project-plan, projec
 ```
 ⚙️ Project Harness Pipeline
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Phase -1: 인터뷰     ✅ 명확도 82% | PRD 생성 | 에이전트 3개  ← interview 모드 시만
 Phase 0: 분류        ✅ feature | has_ui | has_database
 Phase 1: 분석        ✅ 파일 12개 | 영향 3 레이어
 Phase 2: 설계        ✅ 생성 3 | 수정 2
@@ -34,6 +35,50 @@ Phase 7: 검증        ⏳
 | ⏭️ | 건너뜀 | 조건 미충족으로 skip (괄호로 이유 표시) |
 | 🔧 | 자동 수정 중 | 자동 수정 루프 실행 중 |
 | ⚠️ | 경고 | 실패는 아니지만 주의 필요 |
+
+---
+
+## project-interview 진행률 (interview 모드 시)
+
+```
+📋 project-interview
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  🔄 Round 1: 인터뷰       질문 4/10
+  ⏳ Round 2: 추가 질문
+  ⏳ PRD 생성
+  ⏳ 에이전트 분석
+  ⏳ 팀 구성
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+구현 명확도: 45%
+```
+
+### 라운드 완료 시
+
+```
+📋 project-interview
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✅ Round 1: 인터뷰       10문항 완료
+  ✅ Round 2: 추가 질문    7문항 완료
+  🔄 PRD 생성              service-planner + tech-architect
+  ⏳ 에이전트 분석
+  ⏳ 팀 구성
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+구현 명확도: 78%
+```
+
+### 완료 시
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 project-interview 완료
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✅ 인터뷰       2라운드 17문항 | 명확도 82%
+  ✅ PRD 생성     prd/service-prd.md (2,500자)
+  ✅ 에이전트     2개 생성 + 3개 활성화 (딥리서치)
+  ✅ 팀 구성      5개 역할 정의
+  ✅ 사용자 확인  승인
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
 
 ---
 

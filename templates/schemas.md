@@ -42,6 +42,105 @@ project-harness 가 유지하는 공통 분류 컨텍스트. 모든 phase 결과
 
 ---
 
+## InterviewResult (project-interview 출력)
+
+- **Notepad 키**: `project-interview-result`
+- **JSON 파일**: `state/results/interview.json`
+- **Handoff 파일**: `state/handoffs/interview.md`
+- **PRD 파일**: `.claude/skills/project-harness/prd/service-prd.md` (영구 저장)
+
+```json
+{
+  "schema_version": "1.0",
+  "skill": "project-interview",
+  "classification": { /* Classification 객체 */ },
+  "interview_model": "sonnet|opus",
+  "interview": {
+    "rounds_completed": 3,
+    "total_questions": 25,
+    "total_answers": 25,
+    "clarity_percentage": 82,
+    "clarity_breakdown": {
+      "vision": 95,
+      "users": 90,
+      "features": 85,
+      "business_rules": 75,
+      "user_flows": 80,
+      "edge_cases": 70,
+      "nfr": 85,
+      "data_model": 75,
+      "integrations": 80,
+      "constraints": 85
+    },
+    "qa_pairs": [
+      {
+        "round": 1,
+        "dimension": "vision",
+        "question": "이 서비스의 핵심 아이디어는 무엇인가요?",
+        "answer": "팀 협업을 위한 실시간 프로젝트 관리 도구",
+        "answer_source": "selected|custom"
+      }
+    ]
+  },
+  "prd": {
+    "path": ".claude/skills/project-harness/prd/service-prd.md",
+    "sections": [
+      "executive_summary",
+      "target_users",
+      "feature_specifications",
+      "user_flows",
+      "business_rules",
+      "data_model",
+      "nfr",
+      "integrations",
+      "constraints",
+      "success_metrics",
+      "development_phases"
+    ],
+    "word_count": 2500
+  },
+  "agents_created": [
+    {
+      "id": "project-management-expert",
+      "path": "agents/project-management-expert.md",
+      "source": "deep_research|interview_context",
+      "model": "opus"
+    }
+  ],
+  "agents_activated": ["security-auditor", "accessibility-checker"],
+  "team_composition": {
+    "roles": [
+      {
+        "role": "lead-architect",
+        "agent": "architecture-reviewer",
+        "phases": ["plan", "verify"],
+        "source": "existing"
+      },
+      {
+        "role": "domain-expert",
+        "agent": "project-management-expert",
+        "phases": ["plan", "implement", "verify"],
+        "source": "created"
+      }
+    ]
+  },
+  "deep_research_conducted": true,
+  "user_approved": true,
+  "timings": { "started_at": "ISO", "finished_at": "ISO", "elapsed_ms": 300000 }
+}
+```
+
+- `interview_model` — 사용자가 선택한 에이전트 모델 (sonnet 또는 opus)
+- `interview.clarity_breakdown` — 10개 차원별 구현 명확도 (0-100)
+- `interview.qa_pairs[].answer_source` — "selected" (객관식 선택) 또는 "custom" (직접 입력)
+- `prd.path` — 영구 저장된 PRD 파일 경로
+- `agents_created` — 인터뷰 과정에서 새로 생성된 에이전트 목록
+- `agents_activated` — 기존 에이전트 중 활성화된 목록
+- `team_composition.roles[].source` — "existing" (위자드 생성) 또는 "created" (인터뷰 생성)
+- `deep_research_conducted` — 딥리서치 수행 여부
+
+---
+
 ## PlanResult (project-plan 출력)
 
 - **Notepad 키**: `project-plan-result`
@@ -254,11 +353,19 @@ sub-skill 결과 + intermediate merged notepad 의 키 명명 규칙:
 
 ```
 # 최종 결과 (JSON 파일과 페어링)
+project-interview-result         # InterviewResult (조건부 — interview 모드)
 project-plan-result              # PlanResult
 project-debug-result             # DebugResult (조건부)
 project-implement-result         # ImplementationResult
 project-visual-qa-result         # VisualQAResult (조건부)
 project-verify-result            # VerificationResult
+
+# project-interview 중간 결과
+project-interview-qa              # 누적 Q&A pairs
+project-interview-clarity         # 차원별 명확도 스냅샷
+project-interview-prd             # PRD 콘텐츠
+project-interview-agents          # 생성/활성화된 에이전트 목록
+project-interview-team            # 팀 구성 정의
 
 # project-plan 중간 결과
 project-plan-phase1-merged       # 탐색 결과 취합 (reader/fan-in — plan.md §Reader Pattern 참조)

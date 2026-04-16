@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-04-16
+
+### Highlights
+
+Interview mode (`/project-interview`) — 다중 라운드 딥 서비스 인터뷰를 통해 종합 PRD를 생성하는 Phase -1 단계 추가. 도메인 전문가 에이전트 생성, 개발 팀 구성 정의, 10개 차원에서 구현 명확도 % 추적. 독립 모드 (`/project-interview`)와 파이프라인 모드 (`/project-harness interview`) 모두 지원.
+
+### Added
+
+- **`templates/interview.md`** (new) — multi-round deep service interview template. AI-driven multiple choice questions (4 options + custom input), model selection (Sonnet for Pro / Opus for Max), domain-expert agent creation via WebSearch deep research, development team composition, implementation clarity tracking across 10 dimensions. Produces `.claude/skills/project-harness/prd/service-prd.md`.
+- **`templates/schemas.md`** — added `InterviewResult` schema for interview phase output contract.
+- **`templates/handoff-templates.md`** — added `interview.md` handoff template for Phase -1 → Phase 0 state transfer.
+- **`templates/config-schema.yaml`** — added `pipeline.interview` configuration section (model selection, clarity dimensions, expert agent settings).
+- **`templates/progress-format.md`** — added interview phase progress display format (Phase -1 banner, clarity % visualization).
+- **`templates/guide-injection.md`** — added interview worker → guide + agent mappings.
+- **`prd/` directory** — new output directory for generated service PRD from interview mode.
+
+### Changed
+
+- **`templates/orchestrator.md`** — expanded with interview integration, updated pipeline diagram to include Phase -1, added interview entry in sub-skill table.
+- **`templates/plan.md`** — enhanced interview result integration, plan phase reads InterviewResult when available.
+- **`skills/wizard/SKILL.md`** — added `templates/interview.md` to template generation list, added `prd/` directory creation step.
+- **`README.md`** + **`README-ko.md`** — added interview mode documentation: commands, pipeline flow, plugin structure. Both kept in sync.
+
 ## [0.6.0] - 2026-04-14
 
 ### Highlights

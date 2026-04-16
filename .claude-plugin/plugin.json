@@ -1,6 +1,6 @@
 {
   "name": "harness-marketplace",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Scaffolding wizard that generates project-specific development pipeline harness skills",
   "author": {
     "name": "Book2Roy"
