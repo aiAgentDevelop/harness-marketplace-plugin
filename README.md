@@ -6,7 +6,7 @@
 
 **Scaffolding wizard that generates project-specific development pipeline harness skills for Claude Code.**
 
-Generate a complete AI-orchestrated development pipeline — classify → plan → [codebase-analysis] → [debug] → implement → [visual-qa] → verify — with **real parallel Fan-out/Fan-in workers**, code-level enforcement via hooks, CI/CD pipeline generation, idle auto-watch, and self-learning capabilities. Three wizard modes: AI-driven interview, manual selection, or auto-detection. A project-root `CLAUDE.md` is generated so `/project-harness` becomes the **default** working mode, not opt-in. One wizard, any project.
+Generate a complete AI-orchestrated development pipeline — [interview] → classify → plan → [codebase-analysis] → [debug] → implement → [visual-qa] → verify — with **real parallel Fan-out/Fan-in workers**, code-level enforcement via hooks, CI/CD pipeline generation, idle auto-watch, and self-learning capabilities. Three wizard modes: AI-driven interview, manual selection, or auto-detection. **Interview mode** (`/project-interview`) runs a multi-round deep service interview to produce a comprehensive PRD with domain-expert agents, development team composition, and implementation clarity tracking across 10 dimensions. A project-root `CLAUDE.md` is generated so `/project-harness` becomes the **default** working mode, not opt-in. One wizard, any project.
 
 > **[한국어 (Korean)](./README-ko.md)**
 
@@ -25,12 +25,14 @@ Generate a complete AI-orchestrated development pipeline — classify → plan �
   ├─ Generates a full harness skill set
   │   ├── ./CLAUDE.md                  — project-root orchestration entrypoint guide
   │   ├── project-config.yaml          — master config driving everything
+  │   ├── project-interview/SKILL.md    — deep service interview (Phase -1, interview mode)
   │   ├── plan/SKILL.md                — planning phase (Fan-out + Reader)
   │   ├── codebase-analysis/SKILL.md   — Phase 2.5 pre-impl analysis (refactor auto-trigger)
   │   ├── debug/SKILL.md                — debug investigation phase (bugfix only)
   │   ├── implement/SKILL.md           — implementation phase (standard OR TDD strategy)
   │   ├── visual-qa/SKILL.md           — visual QA (if UI project)
   │   ├── verify/SKILL.md              — verification phase (all auditors parallel)
+  │   ├── prd/service-prd.md            — comprehensive PRD from interview mode
   │   ├── agents/*.md                  — AI-generated domain agents (34-agent catalog + supabase-security-gate)
   │   ├── guides/*.md                  — AI-generated development guides
   │   ├── hooks/*.sh                   — code enforcement via Claude Code hooks
@@ -42,7 +44,7 @@ Generate a complete AI-orchestrated development pipeline — classify → plan �
   │       ├── ui-conventions.md        — 3-option gates + completion summary
   │       ├── classification.md        — task classification rules
   │       ├── handoff-templates.md     — state/handoffs/*.md structure
-  │       ├── schemas.md               — PlanResult/ImplementationResult/VerificationResult JSON
+  │       ├── schemas.md               — InterviewResult/PlanResult/ImplementationResult/VerificationResult JSON
   │       ├── guide-injection.md       — worker → guide + agent-checklist mapping
   │       ├── monitor-mode.md          — /project-harness monitor idle auto-watch
   │       ├── parallel-execution.md    — Fan-out/Fan-in PARALLEL REQUIRED directive
@@ -76,14 +78,7 @@ If typing `/harness-marketplace:` does not show skills in the dropdown:
 
 1. **Full session restart required** — `/reload-plugins` has a known bug ([#35641](https://github.com/anthropics/claude-code/issues/35641)) where it reloads commands but not skills. Close and reopen VS Code or restart the Claude Code CLI session entirely.
 
-2. **Force reinstall** — If skills are still missing after restart:
-   ```bash
-   /plugin uninstall harness-marketplace
-   /plugin install harness-marketplace
-   ```
-   Then fully restart the session.
-
-3. **Manual invocation always works** — Even without auto-completion, typing the full command works:
+2. **Manual invocation always works** — Even without auto-completion, typing the full command works:
    ```
    /harness-marketplace:wizard
    /harness-marketplace:upgrade
@@ -105,6 +100,14 @@ If typing `/harness-marketplace:` does not show skills in the dropdown:
 | **CI/CD** | `/harness-marketplace:ci-cd` | Configure CI/CD pipelines independently |
 | **Learn** | `/harness-marketplace:learn` | Save team-shared learnings to git-tracked files |
 | **GH** | `/harness-marketplace:gh` | Automate GitHub workflow (Issue → Branch → PR) |
+
+### Generated Harness Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/project-harness "task"` | Run the full pipeline (plan → implement → verify) |
+| `/project-harness interview` | Run interview mode within the pipeline |
+| `/project-interview` | Standalone deep service interview → PRD generation |
 
 ---
 
@@ -189,6 +192,35 @@ Detected:
 | G | Guides | api-design, database-design, game-design... (18 catalog, multi-select) |
 
 When a project description is provided (manual mode) or interview is used, AI tags the best options with `(Recommended — reason)` labels. All options are still shown.
+
+---
+
+### Deep service interview (Interview Mode)
+
+```bash
+/project-interview
+/project-harness interview
+```
+
+Run a **multi-round deep service interview** that produces a comprehensive PRD (`.claude/skills/project-harness/prd/service-prd.md`). The interview creates domain-expert agents via deep research (WebSearch), defines development team composition, and tracks implementation clarity % across 10 dimensions.
+
+**How it works:**
+
+```
+/project-interview
+  │
+  ├─ Phase -1: Interview
+  │   ├── AI-driven multiple choice questions (4 options + custom input)
+  │   ├── Model selection (Sonnet for Pro / Opus for Max)
+  │   ├── Domain-expert agents created via WebSearch deep research
+  │   ├── Development team composition defined
+  │   ├── Implementation clarity tracked across 10 dimensions
+  │   └── Produces: prd/service-prd.md (comprehensive PRD)
+  │
+  └─ Pipeline continues: classify → plan → implement → verify
+```
+
+Supports both standalone mode (`/project-interview`) and pipeline mode (`/project-harness interview`). In pipeline mode, the interview runs as Phase -1 before Phase 0 (classification).
 
 ---
 
@@ -401,6 +433,7 @@ For bugfix tasks, a **systematic debug phase** runs between plan and implement �
 | Component | Method | Source |
 |-----------|--------|--------|
 | SKILL.md files (orchestrator, plan, debug, implement, verify) | **Template** | `templates/*.md` |
+| interview (service PRD) | **Template** | `templates/interview.md` |
 | project-config.yaml | **Mapped** | Wizard answers → YAML schema |
 | Hook scripts (hooks/*.sh) | **Template** | `templates/hooks/*.sh.template` |
 | CI/CD workflows (.github/workflows/*.yml) | **Template** | `templates/ci-cd/github-actions/*.yml.template` |
@@ -486,6 +519,7 @@ harness-marketplace/
 │   ├── learn/SKILL.md             # Team-shared learnings (git-tracked knowledge base)
 │   └── gh/SKILL.md                # GitHub workflow automation (Issue → Branch → PR)
 ├── templates/                     # Harness skeleton templates
+│   ├── interview.md               # Deep service interview → PRD generation (Phase -1)
 │   ├── orchestrator.md            # Pipeline orchestrator
 │   ├── plan.md                    # Planning phase (with Reader/Fan-in pattern)
 │   ├── debug.md                   # Debug investigation phase (bugfix only)
@@ -497,7 +531,7 @@ harness-marketplace/
 │   ├── progress-format.md         # Reference: phase N/M + emoji status + worker tree standards
 │   ├── ui-conventions.md          # Reference: 3-option confirmation gates + completion summary schema
 │   ├── handoff-templates.md       # Reference: state/handoffs/{plan,debug,exec,verify}.md structure
-│   ├── schemas.md                 # Reference: JSON schemas for PlanResult/ImplementationResult/VerificationResult
+│   ├── schemas.md                 # Reference: JSON schemas for InterviewResult/PlanResult/ImplementationResult/VerificationResult
 │   ├── guide-injection.md         # Reference: worker → guide + agent checklist mapping
 │   ├── monitor-mode.md            # Reference: /project-harness monitor (CronCreate-based idle auto-watch)
 │   ├── parallel-execution.md      # Reference: Fan-out/Fan-in PARALLEL REQUIRED directive (single-message multi-Task pattern)
@@ -601,7 +635,8 @@ Notable releases:
 
 | Version | Highlight |
 |---------|-----------|
-| [**v0.6.0**](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.6.0) | Orchestration-by-default (auto-generated `./CLAUDE.md`) + real parallel Fan-out/Fan-in workers + Phase 2.5 codebase-analysis + TDD strategy + Supabase security gate + monitor mode + Phase 1 v2 benchmark |
+| [**v0.7.0**](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.7.0) | Interview mode (`/project-interview`) — multi-round deep service interview producing comprehensive PRD with domain-expert agents, team composition, and 10-dimension implementation clarity tracking |
+| [v0.6.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.6.0) | Orchestration-by-default (auto-generated `./CLAUDE.md`) + real parallel Fan-out/Fan-in workers + Phase 2.5 codebase-analysis + TDD strategy + Supabase security gate + monitor mode + Phase 1 v2 benchmark |
 | [v0.5.2](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.2) | upgrade skill & validate-harness polish (bugs found in post-v0.5.1 field test) |
 | [v0.5.1](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.1) | upgrade skill auto-migrates legacy v1.x hooks |
 | [v0.5.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.0) | ⚠️ BREAKING — hook templates migrated to Claude Code v2.x (stdin JSON + exit 2) |

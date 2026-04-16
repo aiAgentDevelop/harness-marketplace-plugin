@@ -6,7 +6,7 @@
 
 **프로젝트 맞춤형 개발 파이프라인 harness 스킬을 생성하는 스캐폴딩 위자드 — Claude Code 플러그인**
 
-프로젝트 유형, 기술 스택, 배포 환경에 맞는 완전한 **AI 오케스트레이션 개발 파이프라인** (classify → plan → [codebase-analysis] → [debug] → implement → [visual-qa] → verify) 을 생성합니다. **실제 병렬 Fan-out/Fan-in 워커**, Hook 기반 코드 강제, CI/CD 파이프라인 생성, idle 자동 감시, 자기 학습 기능을 포함. 3가지 위자드 모드: AI 딥 인터뷰, 직접 선택, 기존 코드 자동 감지. **프로젝트 루트에 `CLAUDE.md` 가 자동 생성**되어 `/project-harness` 가 opt-in 이 아닌 **기본** 작업 방식이 됩니다. 하나의 위자드로 모든 프로젝트를 지원합니다.
+프로젝트 유형, 기술 스택, 배포 환경에 맞는 완전한 **AI 오케스트레이션 개발 파이프라인** ([interview] → classify → plan → [codebase-analysis] → [debug] → implement → [visual-qa] → verify) 을 생성합니다. **실제 병렬 Fan-out/Fan-in 워커**, Hook 기반 코드 강제, CI/CD 파이프라인 생성, idle 자동 감시, 자기 학습 기능을 포함. 3가지 위자드 모드: AI 딥 인터뷰, 직접 선택, 기존 코드 자동 감지. **인터뷰 모드** (`/project-interview`)는 다중 라운드 딥 서비스 인터뷰를 실행하여 도메인 전문가 에이전트, 개발 팀 구성, 10개 차원의 구현 명확도 추적이 포함된 종합 PRD를 생성합니다. **프로젝트 루트에 `CLAUDE.md` 가 자동 생성**되어 `/project-harness` 가 opt-in 이 아닌 **기본** 작업 방식이 됩니다. 하나의 위자드로 모든 프로젝트를 지원합니다.
 
 > **[English](./README.md)**
 
@@ -25,12 +25,14 @@
   ├─ 완전한 harness 스킬 세트 생성
   │   ├── ./CLAUDE.md                  — 프로젝트 루트 오케스트레이션 entrypoint 안내
   │   ├── project-config.yaml          — 모든 것을 결정하는 마스터 설정
+  │   ├── project-interview/SKILL.md    — 딥 서비스 인터뷰 (Phase -1, 인터뷰 모드)
   │   ├── plan/SKILL.md                — 계획 단계 (Fan-out + Reader 병렬)
   │   ├── codebase-analysis/SKILL.md   — Phase 2.5 사전 분석 (refactor 시 자동)
   │   ├── debug/SKILL.md                — 디버그 조사 단계 (bugfix 전용)
   │   ├── implement/SKILL.md           — 구현 단계 (standard OR TDD 전략)
   │   ├── visual-qa/SKILL.md           — 시각적 QA (UI 프로젝트)
   │   ├── verify/SKILL.md              — 검증 단계 (모든 auditor 병렬)
+  │   ├── prd/service-prd.md            — 인터뷰 모드 종합 PRD
   │   ├── agents/*.md                  — AI 생성 도메인 에이전트 (34-카탈로그 + supabase-security-gate)
   │   ├── guides/*.md                  — AI 생성 개발 가이드
   │   ├── hooks/*.sh                   — Claude Code hook 기반 코드 강제
@@ -42,7 +44,7 @@
   │       ├── ui-conventions.md        — 3-옵션 확인 게이트 + 완료 요약
   │       ├── classification.md        — 작업 분류 규칙
   │       ├── handoff-templates.md     — state/handoffs/*.md 구조
-  │       ├── schemas.md               — PlanResult/ImplementationResult/VerificationResult JSON
+  │       ├── schemas.md               — InterviewResult/PlanResult/ImplementationResult/VerificationResult JSON
   │       ├── guide-injection.md       — 워커 → 가이드 + 에이전트 체크리스트 매핑
   │       ├── monitor-mode.md          — /project-harness monitor idle 자동 감시
   │       ├── parallel-execution.md    — Fan-out/Fan-in PARALLEL REQUIRED 규약
@@ -76,14 +78,7 @@ cp -r harness-marketplace/ ~/.claude/plugins/cache/harness-marketplace/harness-m
 
 1. **세션 완전 재시작 필요** — `/reload-plugins`에는 알려진 버그([#35641](https://github.com/anthropics/claude-code/issues/35641))가 있어 commands만 reload하고 skills는 reload하지 않습니다. VS Code를 완전히 종료 후 재시작하거나 CLI 세션을 새로 시작하세요.
 
-2. **강제 재설치** — 재시작 후에도 스킬이 없으면:
-   ```bash
-   /plugin uninstall harness-marketplace
-   /plugin install harness-marketplace
-   ```
-   그 후 세션을 완전히 재시작하세요.
-
-3. **수동 입력은 항상 동작** — 자동완성이 안 되더라도 전체 명령어를 직접 입력하면 동작합니다:
+2. **수동 입력은 항상 동작** — 자동완성이 안 되더라도 전체 명령어를 직접 입력하면 동작합니다:
    ```
    /harness-marketplace:wizard
    /harness-marketplace:upgrade
@@ -105,6 +100,14 @@ cp -r harness-marketplace/ ~/.claude/plugins/cache/harness-marketplace/harness-m
 | **CI/CD** | `/harness-marketplace:ci-cd` | CI/CD 파이프라인 독립 설정 |
 | **Learn** | `/harness-marketplace:learn` | 팀 학습을 git-tracked 파일로 저장 |
 | **GH** | `/harness-marketplace:gh` | GitHub 워크플로우 자동화 (Issue → Branch → PR) |
+
+### 생성된 Harness 명령어
+
+| 명령어 | 용도 |
+|--------|------|
+| `/project-harness "작업"` | 전체 파이프라인 실행 (plan → implement → verify) |
+| `/project-harness interview` | 파이프라인 내 인터뷰 모드 실행 |
+| `/project-interview` | 독립 딥 서비스 인터뷰 → PRD 생성 |
 
 ---
 
@@ -189,6 +192,35 @@ AI 추천:
 | G | 가이드 선택 | api-design, database-design, game-design... (18개 카탈로그, 복수 선택) |
 
 프로젝트 설명이 제공되면 (Manual 모드) 또는 인터뷰가 사용되면, AI가 각 단계에서 최적의 옵션에 `(Recommended — 이유)` 라벨을 표시합니다. 모든 옵션은 항상 표시됩니다.
+
+---
+
+### 딥 서비스 인터뷰 (Interview Mode)
+
+```bash
+/project-interview
+/project-harness interview
+```
+
+**다중 라운드 딥 서비스 인터뷰**를 실행하여 종합 PRD (`.claude/skills/project-harness/prd/service-prd.md`)를 생성합니다. 인터뷰는 WebSearch 딥 리서치를 통해 도메인 전문가 에이전트를 생성하고, 개발 팀 구성을 정의하며, 10개 차원에서 구현 명확도 %를 추적합니다.
+
+**동작 방식:**
+
+```
+/project-interview
+  │
+  ├─ Phase -1: 인터뷰
+  │   ├── AI 기반 객관식 질문 (4개 선택지 + 직접 입력)
+  │   ├── 모델 선택 (Sonnet for Pro / Opus for Max)
+  │   ├── WebSearch 딥 리서치로 도메인 전문가 에이전트 생성
+  │   ├── 개발 팀 구성 정의
+  │   ├── 10개 차원에서 구현 명확도 추적
+  │   └── 산출물: prd/service-prd.md (종합 PRD)
+  │
+  └─ 파이프라인 계속: classify → plan → implement → verify
+```
+
+독립 모드 (`/project-interview`)와 파이프라인 모드 (`/project-harness interview`) 모두 지원합니다. 파이프라인 모드에서는 Phase 0 (분류) 이전에 Phase -1로 인터뷰가 실행됩니다.
 
 ---
 
@@ -401,6 +433,7 @@ AI가 실수 → 회귀 감지 → 수정 적용 →
 | 구성요소 | 방식 | 출처 |
 |---------|------|------|
 | SKILL.md 파일 (orchestrator, plan, debug, implement, verify) | **템플릿** | `templates/*.md` |
+| interview (서비스 PRD) | **템플릿** | `templates/interview.md` |
 | project-config.yaml | **매핑** | 위자드 답변 → YAML 스키마 |
 | Hook 스크립트 (hooks/*.sh) | **템플릿** | `templates/hooks/*.sh.template` |
 | CI/CD 워크플로우 (.github/workflows/*.yml) | **템플릿** | `templates/ci-cd/github-actions/*.yml.template` |
@@ -486,6 +519,7 @@ harness-marketplace/
 │   ├── learn/SKILL.md             # 팀 공유 학습 (git-tracked 지식 베이스)
 │   └── gh/SKILL.md                # GitHub 워크플로우 자동화 (Issue → Branch → PR)
 ├── templates/                     # Harness 골격 템플릿
+│   ├── interview.md               # 딥 서비스 인터뷰 → PRD 생성 (Phase -1)
 │   ├── orchestrator.md            # 파이프라인 오케스트레이터
 │   ├── plan.md                    # 계획 단계 (Reader/Fan-in 패턴 포함)
 │   ├── debug.md                   # 디버그 조사 단계 (bugfix 전용)
@@ -497,7 +531,7 @@ harness-marketplace/
 │   ├── progress-format.md         # Reference: phase N/M + 상태 이모지 + 워커 트리 표준
 │   ├── ui-conventions.md          # Reference: 3-옵션 확인 게이트 + 완료 요약 스키마
 │   ├── handoff-templates.md       # Reference: state/handoffs/{plan,debug,exec,verify}.md 구조
-│   ├── schemas.md                 # Reference: PlanResult/ImplementationResult/VerificationResult JSON 스키마
+│   ├── schemas.md                 # Reference: InterviewResult/PlanResult/ImplementationResult/VerificationResult JSON 스키마
 │   ├── guide-injection.md         # Reference: 워커 → 가이드 + 에이전트 체크리스트 매핑
 │   ├── monitor-mode.md            # Reference: /project-harness monitor (CronCreate 기반 idle 자동 감시)
 │   ├── parallel-execution.md      # Reference: Fan-out/Fan-in PARALLEL REQUIRED 규약 (단일 메시지 복수 Task 패턴)
@@ -601,7 +635,8 @@ node scorer/aggregate-v2.js --stage slim                       # reports/slim-re
 
 | 버전 | 주요 내용 |
 |------|-----------|
-| [**v0.6.0**](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.6.0) | Orchestration-by-default (`./CLAUDE.md` 자동 생성) + 실제 병렬 Fan-out/Fan-in 워커 + Phase 2.5 codebase-analysis + TDD 전략 + Supabase 보안 게이트 + monitor mode + Phase 1 v2 벤치마크 |
+| [**v0.7.0**](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.7.0) | 인터뷰 모드 (`/project-interview`) — 다중 라운드 딥 서비스 인터뷰로 종합 PRD 생성. 도메인 전문가 에이전트, 팀 구성, 10개 차원 구현 명확도 추적 |
+| [v0.6.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.6.0) | Orchestration-by-default (`./CLAUDE.md` 자동 생성) + 실제 병렬 Fan-out/Fan-in 워커 + Phase 2.5 codebase-analysis + TDD 전략 + Supabase 보안 게이트 + monitor mode + Phase 1 v2 벤치마크 |
 | [v0.5.2](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.2) | upgrade skill & validate-harness polish (v0.5.1 현장 테스트에서 발견된 이슈 수정) |
 | [v0.5.1](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.1) | upgrade skill이 레거시 v1.x hook을 자동 감지/마이그레이션 |
 | [v0.5.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.0) | ⚠️ BREAKING — hook 템플릿을 Claude Code v2.x 컨트랙트(stdin JSON + exit 2)로 마이그레이션 |

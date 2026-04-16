@@ -24,6 +24,7 @@ Chains up to five sub-skills (`project-plan`, `project-debug`, `project-implemen
 /project-harness --skip-verify "desc"         — skip verification (prototype/PoC)
 /project-harness --verbose "desc"             — show internal worker status in detail
 /project-harness --quiet "desc"               — show final result only
+/project-harness interview "desc"             — deep interview → PRD → agents → full pipeline
 {{RUN_OPTIONS}}
 ```
 
@@ -52,6 +53,9 @@ allowed: /project-harness autopilot "task"           — auto-approve all confir
 
 ```
 /project-harness "task description"
+  │
+  ├─ Phase -1 ─────→ Skill: project-interview  (only when interview mode)
+  │                      → InterviewResult (interview + PRD + agents + team)
   │
   ├─ Phase 0+1+2+3 ──→ Skill: project-plan
   │                      → PlanResult (classify + explore + design + user confirm)
@@ -301,6 +305,7 @@ TaskCreate: { subject: "project-harness: project-verify", activeForm: "verifying
 `state/results/{name}.json`
 
 ```
+state/results/interview.json      # project-interview final result (when interview mode)
 state/results/plan.json           # project-plan final result
 state/results/implement.json      # project-implement final result
 state/results/visual-qa.json      # project-visual-qa final result (when has_ui)
@@ -312,6 +317,7 @@ state/results/verify.json         # project-verify final result
 `state/handoffs/{stage}.md`
 
 ```
+state/handoffs/interview.md # project-interview result (when interview mode)
 state/handoffs/plan.md    # project-plan exploration result
 state/handoffs/prd.md     # project-plan design result
 state/handoffs/exec.md    # project-implement result
@@ -336,6 +342,8 @@ Resumes an interrupted pipeline.
    - If result file missing → fallback from handoff file
    - If handoff also missing → re-run from that skill
 5. Resume from the skill after the last completed one:
+   - project-interview in progress → resume interview (reads interview-progress.json)
+   - project-interview done → resume from project-plan
    - project-plan done → resume from project-implement
    - project-implement done → resume from project-visual-qa (has_ui) or project-verify
    - project-visual-qa done → resume from project-verify
@@ -424,18 +432,28 @@ Cleanup removes ralph fields from `state/pipeline-state.json`.
 
 `/project-harness interview "task"`:
 
-**Phase -1** (before project-plan): run an interview agent to crystallize requirements.
+**Phase -1** (before project-plan): run the full interview pipeline.
 
 ```
-Step 0: Agent (model="sonnet", description="Deep requirements interview")
-        args: "<task description>"
-        → Write interview result to state/results/interview.json
+Step 0: Invoke project-interview skill
+        Skill: project-interview
+        args: "--team-name project-harness-{slug} --config <Classification JSON> <task description>"
 
-Step 1: include interview result when invoking project-plan
+        → Multi-round deep interview (clarity % tracking)
+        → PRD generation to .claude/skills/project-harness/prd/service-prd.md
+        → Domain agent creation via deep research to agents/
+        → Development team composition definition
+        → InterviewResult written to state/results/interview.json
+        → Handoff written to state/handoffs/interview.md
+
+Step 1: Include interview result when invoking project-plan
         args: "--interview-result state/results/interview.json --config <Classification JSON> <task description>"
 ```
 
-Cleanup: `rm -f state/results/interview.json`
+**State update**: `current_phase = "interview-done"` in `state/pipeline-state.json`
+
+**Cleanup**: `rm -f state/results/interview-progress.json`
+(PRD file and interview.json are preserved — they are permanent project artifacts)
 
 ### Autopilot Integration
 
@@ -475,6 +493,7 @@ On user approval, the note is appended in this format:
 
 | Skill | File | Responsibility |
 |-------|------|---------------|
+| project-interview | `.claude/skills/project-harness/project-interview/SKILL.md` | interview + PRD + agents + team |
 | project-plan | `.claude/skills/project-harness/project-plan/SKILL.md` | classify + explore + design + confirm |
 | project-implement | `.claude/skills/project-harness/project-implement/SKILL.md` | implement + test |
 | project-visual-qa | `.claude/skills/project-harness/project-visual-qa/SKILL.md` | browser QA |
@@ -482,6 +501,7 @@ On user approval, the note is appended in this format:
 
 Each skill can also be invoked standalone:
 ```
+/project-interview "desc"      — interview + PRD + agents only
 /project-plan "desc"           — pre-work only
 /project-implement "desc"      — implement+test only
 /project-visual-qa "/path"     — browser QA only
@@ -492,4 +512,4 @@ Each skill can also be invoked standalone:
 
 ## Related References
 
-모든 sub-skill 이 공유: `references/progress-format.md` (진행 배너·이모지·워커 트리), `references/ui-conventions.md` (3-옵션 게이트 + 완료 요약), `references/classification.md` (Phase 0 출력 🏷️), `references/handoff-templates.md` (state/handoffs/*.md), `references/schemas.md` (PlanResult/ImplementationResult/VerificationResult JSON), `references/guide-injection.md` (워커 → 가이드 매핑), `references/monitor-mode.md` (monitor 서브커맨드), `references/parallel-execution.md` (Fan-out/Fan-in PARALLEL REQUIRED directive).
+모든 sub-skill 이 공유: `references/progress-format.md` (진행 배너·이모지·워커 트리), `references/ui-conventions.md` (3-옵션 게이트 + 완료 요약), `references/classification.md` (Phase 0 출력 🏷️), `references/handoff-templates.md` (state/handoffs/*.md), `references/schemas.md` (InterviewResult/PlanResult/ImplementationResult/VerificationResult JSON), `references/guide-injection.md` (워커 → 가이드 매핑), `references/monitor-mode.md` (monitor 서브커맨드), `references/parallel-execution.md` (Fan-out/Fan-in PARALLEL REQUIRED directive).

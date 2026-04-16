@@ -1020,6 +1020,7 @@ For each template file:
 
 Files generated:
 - .claude/skills/project-harness/SKILL.md ← templates/orchestrator.md
+- .claude/skills/project-harness/project-interview/SKILL.md ← templates/interview.md
 - .claude/skills/project-harness/plan/SKILL.md ← templates/plan.md
 - .claude/skills/project-harness/implement/SKILL.md ← templates/implement.md
 - .claude/skills/project-harness/verify/SKILL.md ← templates/verify.md
@@ -1038,6 +1039,7 @@ Conditional:
 - .claude/skills/project-harness/visual-qa/SKILL.md ← templates/visual-qa.md (only if has_ui)
 - .claude/skills/project-harness/visual-qa/scripts/visual-inspect.js ← templates/visual-inspect.js (only if has_ui)
 - .claude/skills/project-harness/debug/SKILL.md ← templates/debug.md (only if project_type supports bugfix AND debug_complexity != "low")
+- .claude/skills/project-harness/prd/  (empty directory for interview mode PRD output)
 - .claude/skills/project-harness/codebase-analysis/SKILL.md ← templates/codebase-analysis.md (optional — always copy; skill invoked conditionally by Phase 2.5)
 - .claude/skills/project-harness/references/tdd-implementation.md ← templates/tdd-implementation.md (only if pipeline.implement_strategy != "standard")
 - .claude/skills/project-harness/references/ui-defect-patterns.md ← templates/ui-defect-patterns.md (only if flags.has_ui == true)
