@@ -896,6 +896,79 @@ If recommendation_mode:
 Store as: guides[]
 ```
 
+### Step D: Observability Stack Selection (REQUIRED — no skip)
+
+```
+Load data/observability-platforms.yaml.
+
+Rationale:
+  A service that ships without error tracking, product analytics, and a
+  health signal is effectively blind in production. The wizard treats
+  observability selection as a required gate rather than an optional
+  add-on. Users who truly don't want observability can pick the
+  "minimal" preset (Sentry free tier only) but cannot proceed with none.
+
+Step 1 — Hard filter:
+  Remove platforms where suitable_project_types does NOT include project_type.category.
+  Remove platforms whose pricing_tier == "paid_only" when the user has
+  indicated a solo/small team-size preset (reduce sticker shock).
+
+Step 2 — Group by primary_category:
+  error_tracking, apm, product_analytics, logs_metrics, vendor_neutral, native.
+
+Step 3 — Soft rank within each group:
+  AI ranks each platform by:
+  - compatible_frameworks intersection with the chosen frontend/backend framework
+  - recommended_when flag match against derived classification flags
+  - deployment_platform match (e.g., vercel-analytics is recommended_when
+    deployment_platform_vercel is true)
+  - integration_template_path presence (platforms with a PoC template are
+    preferred over those requiring manual integration)
+
+Step 4 — Present three sub-questions (AskUserQuestion each):
+
+  Q-D.1: "Which error-tracking platform should we wire up?"
+    header: "Error Tracking"
+    multiSelect: false  (exactly one required)
+    options: all platforms from error_tracking + native (if applicable)
+      Pre-select Sentry when it passes the hard filter (has an integration
+      template and covers the widest framework set).
+
+  Q-D.2: "Which product analytics platform(s) should we wire up? (optional but recommended)"
+    header: "Product Analytics"
+    multiSelect: true  (zero or more allowed)
+    options: all platforms from product_analytics + native
+      Pre-select PostHog when has_ui is true (integration template exists).
+
+  Q-D.3: "Do you want an additional APM/logs platform for backend observability?"
+    header: "Backend APM (optional)"
+    multiSelect: false  (zero or one)
+    options: [None] + all platforms from apm + logs_metrics + vendor_neutral
+      Pre-select None for solo/small team-size presets.
+      Pre-select OpenTelemetry for teams who want vendor-neutral instrumentation.
+
+  Only show Q-D.3 when has_backend == true.
+
+If recommendation_mode:
+  Append " (Recommended — {reason})" to each pre-selected option with a
+  short rationale drawn from key_benefits and the matched recommended_when flags.
+  Example: "Sentry (Recommended — first-class Next.js SDK, free tier covers 5K errors/month)"
+  Example: "PostHog (Recommended — bundles analytics+session replay+feature flags, 1M events/month free)"
+
+Validation:
+  - Q-D.1 answer MUST NOT be empty. If user tries to skip, re-prompt with:
+    "An error-tracking platform is required. Pick Sentry (free tier) as a
+    minimum so production errors are captured. You can always change this later."
+  - If Q-D.3 is skipped or answered "None", emit a warning that distributed
+    tracing won't be available and document this decision in project-config.
+
+Store as:
+  observability:
+    error_tracking: { platform_id, integration_template_path }
+    product_analytics: [{ platform_id, integration_template_path }, ...]
+    apm: { platform_id | null, integration_template_path | null }
+```
+
 ## Phase 5: Generation
 
 ### Step 5.1: Build project-config.yaml
@@ -936,8 +1009,61 @@ Map all wizard answers to the project-config.yaml schema:
     - pipeline.codebase_analysis.archive_history: false (default)
     - pipeline.codebase_analysis.parallel_explorer_count: 3 (default)
     - pipeline.codebase_analysis.timeout_per_explorer_ms: 180000 (default)
+16. Set observability section from Phase 4 Step D answers:
+    - observability.error_tracking:
+        platform_id: {Q-D.1 answer}
+        integration_template_path: (looked up from data/observability-platforms.yaml)
+        env_vars: (copied from platform entry)
+    - observability.product_analytics: (list from Q-D.2 answer; [] if none)
+        each: { platform_id, integration_template_path, env_vars }
+    - observability.apm:
+        platform_id: {Q-D.3 answer} | null
+        integration_template_path: ... | null
+        env_vars: [] | [...]
+    Also add implicit 'observability-auditor' to agents[] if not already selected,
+    and 'observability-fundamentals' to guides[] if not already selected.
 
 Write to: .claude/skills/project-harness/project-config.yaml
+```
+
+### Step 5.1c: Emit observability integration files
+```
+Purpose: translate the observability platform selections into actual
+boilerplate files inside the generated project.
+
+For each platform referenced under observability.* with a non-null
+integration_template_path:
+
+  1. Read templates/integrations/README.md to resolve the Wizard→template
+     mapping table (which specific .template files apply given the combination
+     of platform_id + frontend.framework + backend.framework).
+  2. For each applicable .template file:
+     a. Compute the destination path inside the project following the
+        conventions in templates/integrations/README.md (e.g.,
+        sentry/nextjs-init.ts.template → ./instrumentation.ts).
+     b. Substitute tokens:
+        - {{PROJECT_NAME}} → project_type.purpose fallback to dir name
+        - {{VERSION}} → plugin version
+        - {{TRACES_SAMPLE_RATE}} → enforcement.level-based default
+            strict   → 1.0
+            standard → 0.2
+            minimal  → 0.1
+        - {{PROFILES_SAMPLE_RATE}} → same mapping as TRACES_SAMPLE_RATE but halved
+        - other tokens per template header comments
+     c. Resolve {{CONDITION:flag}} blocks against classification flags.
+     d. Write to the destination path.
+  3. If the destination already exists:
+     - Diff new content against existing.
+     - Prompt user: "Overwrite / Keep existing / Skip this platform"
+     - On "Keep existing" → emit a warning and record in generation_log.
+  4. If platform has integration_template_path: null:
+     - Emit a stub file at `.claude/skills/project-harness/integrations/{platform_id}-TODO.md`
+       with a link to the official docs and a reminder to wire it up manually.
+     - Record in generation_log.observability.manual_platforms[].
+
+Update the generated .env.example (or create one) with the union of all
+required env_vars across selected platforms, each with a short comment
+naming the platform that requires it.
 ```
 
 ### Step 5.1b: Write project-root CLAUDE.md (orchestration entrypoint guide)

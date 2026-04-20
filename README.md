@@ -4,11 +4,48 @@
 [![License](https://img.shields.io/github/license/aiAgentDevelop/harness-marketplace-plugin)](./LICENSE)
 [![Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-brightgreen)](./CHANGELOG.md)
 
-**Scaffolding wizard that generates project-specific development pipeline harness skills for Claude Code.**
+**A 15-minute scaffolding wizard that gives your team a production-ready AI development pipeline for Claude Code.**
 
-Generate a complete AI-orchestrated development pipeline — [interview] → classify → plan → [codebase-analysis] → [debug] → implement → [visual-qa] → verify — with **real parallel Fan-out/Fan-in workers**, code-level enforcement via hooks, CI/CD pipeline generation, idle auto-watch, and self-learning capabilities. Three wizard modes: AI-driven interview, manual selection, or auto-detection. **Interview mode** (`/project-interview`) runs a multi-round deep service interview to produce a comprehensive PRD with domain-expert agents, development team composition, and implementation clarity tracking across 10 dimensions. A project-root `CLAUDE.md` is generated so `/project-harness` becomes the **default** working mode, not opt-in. One wizard, any project.
+One command generates the whole thing — interview → classify → plan → implement → verify → launch-check — with real parallel workers, code-level hooks, CI/CD pipelines, observability wiring, and a `CLAUDE.md` that turns `/project-harness` into the default way your team ships. Built for **small teams who want to build a service, not maintain another prompt library.**
 
 > **[한국어 (Korean)](./README-ko.md)**
+
+---
+
+## Why this exists
+
+If you've used Claude Code on anything larger than a toy project, you've probably hit at least two of these:
+
+- **"We'll wire Sentry later."** Later never comes. The first prod 5xx is a mystery.
+- **"Our CLAUDE.md is a paragraph."** Every session starts from zero context.
+- **"The AI forgot our conventions again."** Because there's no code-level guard — only hope.
+- **"Who's going to write the plan / implement / verify pipeline?"** Nobody has the afternoon.
+
+This plugin replaces all of that with a single wizard run. You answer 5–25 questions (depending on mode), and you walk away with a pipeline a small team can actually depend on — including an observability gate that refuses to let you ship blind.
+
+And we publish our own benchmark showing **exactly where the plugin wins and where it doesn't**. See [Honest Benchmarks](#honest-benchmarks-phase-1-v2--endtoend-isoiec-25010--owasp-asvs--dora) below — we're the plugin that admits most of its value comes from the CLAUDE.md it writes, not magic.
+
+---
+
+## Quick Start
+
+```bash
+# 1. Install (one-time)
+/plugin marketplace add https://github.com/aiAgentDevelop/harness-marketplace-plugin.git
+/plugin install harness-marketplace
+# ↑ fully restart Claude Code after this — see Installation below
+
+# 2. Scaffold your harness (5–15 minutes)
+cd <your-project>
+/harness-marketplace:wizard
+
+# 3. Ship
+/project-harness "implement user authentication"
+# ↑ the wizard wrote a CLAUDE.md that makes this command do everything:
+#   plan → implement → verify, with hooks + observability + CI
+```
+
+That's it. When you're ready to ship to production, `/harness-marketplace:launch-check` runs a pre-launch audit — error tracking wired? health check present? rollback path? — and blocks deploy if you forgot.
 
 ---
 
@@ -91,7 +128,9 @@ If typing `/harness-marketplace:` does not show skills in the dropdown:
 
 ## Usage
 
-### 5 Skills at a Glance
+**Pick your entry point**: new project → `wizard` (Deep Interview mode). Existing project → `wizard` (Auto-Detect mode). Already have a harness → `upgrade`. Want to ship? → `launch-check`.
+
+### 6 Skills at a Glance
 
 | Skill | Command | Purpose |
 |-------|---------|---------|
@@ -100,6 +139,7 @@ If typing `/harness-marketplace:` does not show skills in the dropdown:
 | **CI/CD** | `/harness-marketplace:ci-cd` | Configure CI/CD pipelines independently |
 | **Learn** | `/harness-marketplace:learn` | Save team-shared learnings to git-tracked files |
 | **GH** | `/harness-marketplace:gh` | Automate GitHub workflow (Issue → Branch → PR) |
+| **Launch-Check** | `/harness-marketplace:launch-check` | Pre-launch readiness gate — safety net + operational readiness audit |
 
 ### Generated Harness Commands
 
@@ -345,6 +385,60 @@ If a `CLAUDE.md` already exists at project root, the wizard asks whether to (a) 
 
 ---
 
+## Observability (required at wizard time)
+
+A service that ships without error tracking, product analytics, and a health signal is effectively blind in production. The wizard treats observability selection as a **required gate**, not an optional add-on. You pick at least an error-tracking platform before Phase 5 generation runs.
+
+### What the wizard asks (Phase 4, Step D)
+
+| Question | Required? | Catalog source |
+|---|---|---|
+| Q-D.1 — Error-tracking platform | **Yes, exactly one** | `data/observability-platforms.yaml` → `error_tracking` + `native` |
+| Q-D.2 — Product analytics platform(s) | Optional, zero or more | `data/observability-platforms.yaml` → `product_analytics` + `native` |
+| Q-D.3 — APM / logs backend (when `has_backend`) | Optional, zero or one | `data/observability-platforms.yaml` → `apm` + `logs_metrics` + `vendor_neutral` |
+
+The catalog currently lists 11 platforms: Sentry, Rollbar, Datadog, New Relic, PostHog, Amplitude, Plausible, Grafana Cloud, Axiom, OpenTelemetry, Vercel Analytics. Two of these ship with ready-to-use boilerplate templates today (Sentry, PostHog); the others emit a `TODO.md` stub with a link to the official docs.
+
+### What gets generated
+
+When you pick a platform with `integration_template_path` set (currently Sentry + PostHog), the wizard emits boilerplate directly into your project:
+
+- **Sentry + Next.js** → `instrumentation.ts`, `app/error-boundary.tsx`, `app/api/health/route.ts`
+- **Sentry + Node backend** → `src/instrument.ts`, health check endpoint
+- **PostHog + Next.js** → `app/providers/posthog-provider.tsx`, `docs/events-catalog.md`
+
+All generated files end with a `═══ CUSTOM RULES BELOW (preserved on upgrade) ═══` marker, so your team's edits survive `/harness-marketplace:upgrade`.
+
+The wizard also appends the `observability-auditor` agent and the `observability-fundamentals` guide to your harness, so every verify phase re-checks that the error boundary, health check, and SDK init are still wired.
+
+---
+
+## Pre-Launch Audit — `/harness-marketplace:launch-check`
+
+`verify` runs on every change. `launch-check` runs **once per release candidate** and covers the axes `verify` intentionally does not: service-operational readiness, legal / compliance, testing completeness, and runbook presence.
+
+| Section | Status today | Blocking? |
+|---|---|---|
+| 1. Safety Net (delegates to `verify`) | Implemented | BLOCK on failure |
+| 2. Service Operational Readiness | **Fully implemented** (7 checks) | BLOCK on failure |
+| 3. Legal / Compliance | Placeholder (warns) | WARN only |
+| 4. Testing Completeness | Placeholder (warns) | WARN only |
+| 5. Runbooks & Playbooks | Placeholder (warns) | WARN only |
+
+### Section 2 checks
+
+1. Observability platforms are connected (`observability.error_tracking.platform_id` set + env vars declared)
+2. Top-level error boundary exists when `has_ui`
+3. Error-capture SDK init is present on both client and server
+4. Health check endpoint exists when `has_backend`
+5. Rollback workflow or platform-level rollback is present
+6. Release identifier (SHA/tag) is injected in CI
+7. Cost estimate file is present (placeholder for the cost-guard P1)
+
+Failing any Section 1 or Section 2 check returns exit code 1, which a `deploy-prod.yml` workflow can gate on. Sections 3–5 remain WARN until their real implementations ship as follow-up PRs.
+
+---
+
 ## Beyond Markdown Files — Four Things the Harness Actively Runs
 
 ### 1. Hook-based Code Enforcement (real-time blocking)
@@ -575,7 +669,7 @@ harness-marketplace/
 
 - **Claude Code** with Agent Teams enabled (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
 
-## Benchmarks (Phase 1 v2 — End-to-End, ISO/IEC 25010 + OWASP ASVS + DORA)
+## Honest Benchmarks (Phase 1 v2 — End-to-End, ISO/IEC 25010 + OWASP ASVS + DORA)
 
 End-to-end empirical evaluation of `Plain Claude Code` vs `harness-marketplace` (v0.6.0 wizard output) grounded in international standards (ISO/IEC 25010, OWASP ASVS v4.0.3, OWASP Top 10 2021, CWE Top 25, DORA, HELM principles). Replaces the earlier Phase 0.5 single-task design (accessible via git history at commit `a455abe`).
 
@@ -647,6 +741,21 @@ Notable releases:
 | [v0.1.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.1.0) | Initial release |
 
 **Upgrading from v0.4.x or earlier?** v0.5.0 is a breaking hook contract migration. After updating the plugin, run `/harness-marketplace:upgrade` in each project — v0.5.1+ auto-detects legacy v1.x hooks and replaces them with the v2.x format (your old hooks are preserved in a timestamped backup).
+
+## Try it on a throwaway directory first
+
+Worried about installing a wizard that touches `.claude/settings.json` and writes CLAUDE.md into your real project? Don't be — test it in an empty dir first:
+
+```bash
+mkdir harness-try && cd harness-try
+/harness-marketplace:wizard
+# pick Manual mode, say "no" to CI/CD, pick Sentry + PostHog at Step D
+# → inspect the generated .claude/skills/project-harness/ tree
+```
+
+No git repo, no dependencies, no side effects on your real codebase. Delete when done.
+
+---
 
 ## Acknowledgments
 

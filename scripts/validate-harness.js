@@ -630,6 +630,89 @@ function validateSelfLearning(projectPath) {
   return { valid: errors.length === 0, errors, warnings, checks, passed };
 }
 
+function validateObservability(projectPath) {
+  const harnessPath = path.join(projectPath, HARNESS_ROOT);
+  const configPath = path.join(harnessPath, 'project-config.yaml');
+  const errors = [];
+  const warnings = [];
+  let checks = 0;
+  let passed = 0;
+
+  let config;
+  try {
+    const content = fs.readFileSync(configPath, 'utf-8');
+    config = yaml ? yaml.parse(content) : JSON.parse(content);
+  } catch {
+    return { valid: true, errors: [], warnings: ['Cannot read config for observability validation'], checks: 0, passed: 0 };
+  }
+
+  // Section present?
+  checks++;
+  if (!config.observability) {
+    errors.push('observability section missing in project-config.yaml — re-run wizard Phase 4 Step D');
+    return { valid: false, errors, warnings, checks, passed };
+  }
+  passed++;
+
+  // Error tracking is mandatory (gated in wizard, enforced here too)
+  checks++;
+  const errorTracking = config.observability.error_tracking;
+  if (!errorTracking || !errorTracking.platform_id) {
+    errors.push('observability.error_tracking.platform_id is required — no error tracking platform selected');
+  } else {
+    passed++;
+  }
+
+  // Error tracking env_vars should be a list
+  checks++;
+  if (errorTracking && errorTracking.env_vars) {
+    if (!Array.isArray(errorTracking.env_vars)) {
+      errors.push('observability.error_tracking.env_vars must be a list');
+    } else {
+      passed++;
+    }
+  } else {
+    warnings.push('observability.error_tracking.env_vars not declared — may block integration emission');
+    passed++;
+  }
+
+  // product_analytics is optional but must be a list when present
+  checks++;
+  const pa = config.observability.product_analytics;
+  if (pa === undefined || pa === null) {
+    passed++; // optional
+  } else if (!Array.isArray(pa)) {
+    errors.push('observability.product_analytics must be a list (may be empty)');
+  } else {
+    passed++;
+  }
+
+  // apm is optional; when present platform_id and env_vars must be coherent
+  checks++;
+  const apm = config.observability.apm;
+  if (!apm || apm.platform_id === null || apm.platform_id === undefined) {
+    passed++; // not selected, fine
+  } else {
+    if (typeof apm.platform_id !== 'string') {
+      errors.push('observability.apm.platform_id must be a string or null');
+    } else {
+      passed++;
+    }
+  }
+
+  // observability-auditor should be present in agents list (implicit add by wizard)
+  checks++;
+  const agents = Array.isArray(config.agents) ? config.agents : [];
+  if (agents.includes('observability-auditor')) {
+    passed++;
+  } else {
+    warnings.push('observability-auditor not in agents list — launch-check Section 2 will not run automatically on verify');
+    passed++; // warning only
+  }
+
+  return { valid: errors.length === 0, errors, warnings, checks, passed };
+}
+
 function runValidation(projectPath) {
   console.log('=== Project Harness Validation ===\n');
   console.log(`Project: ${projectPath}`);
@@ -642,6 +725,7 @@ function runValidation(projectPath) {
     hooks: validateHooks(projectPath),
     cicd: validateCICD(projectPath),
     'self-learning': validateSelfLearning(projectPath),
+    observability: validateObservability(projectPath),
   };
 
   let totalChecks = 0;
@@ -696,5 +780,5 @@ if (typeof require !== 'undefined' && require.main === module) {
 
 // Export for programmatic use
 if (typeof module !== 'undefined') {
-  module.exports = { runValidation, validateStructure, validateConfig, validateSkillContent, validateHooks, validateCICD, validateSelfLearning };
+  module.exports = { runValidation, validateStructure, validateConfig, validateSkillContent, validateHooks, validateCICD, validateSelfLearning, validateObservability };
 }

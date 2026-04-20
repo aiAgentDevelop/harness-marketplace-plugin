@@ -455,3 +455,29 @@ guides:
         - edge_computing
         - fleet_management
       recommended_when: []
+
+  observability:
+
+    - id: observability-fundamentals
+      name: Observability Fundamentals
+      domain: observability
+      description: Production observability patterns covering the three pillars (errors, metrics, logs) plus release tracking, sampling strategy, PII scrubbing, alert threshold setting, and on-call runbook hooks. References the chosen observability platform(s) from the wizard answers (Sentry/PostHog/Datadog/etc.) and emits platform-specific init snippets, error classification rules (user vs system vs transient), sampling guidelines (100% errors / 10% transactions default), and an alert channel setup checklist. Complements the observability-auditor worker.
+      suitable_project_types:
+        - web
+        - mobile
+        - backend
+        - desktop
+        - game
+      key_topics:
+        - three_pillars_errors_metrics_logs
+        - release_tracking_with_source_maps
+        - error_classification_user_vs_system
+        - sampling_strategy_errors_vs_transactions
+        - pii_scrubbing_rules
+        - alert_threshold_setting
+        - oncall_runbook_hooks
+        - correlation_ids_request_user
+      recommended_when:
+        - has_ui
+        - has_backend
+        - in_production

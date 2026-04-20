@@ -1,0 +1,384 @@
+# Observability Platforms — organized by category for the scaffolding wizard
+# Used by AI to filter/rank observability options based on project type, framework, and deployment platform
+#
+# Schema:
+#   id: kebab-case unique identifier
+#   name: human-readable name
+#   primary_category: error_tracking | apm | product_analytics | logs_metrics | vendor_neutral | session_replay | native
+#   secondary_categories: [optional list of additional capabilities]
+#   description: 1-2 sentence summary
+#   suitable_project_types: project type categories this works for (web, mobile, backend, ...)
+#   pricing_tier: freemium | paid_only | free_open_source | platform_native
+#   sdk_type: npm | cdn | agent | mixed
+#   env_vars: list of environment variables the user must provide during setup
+#   compatible_frameworks: frameworks with first-class SDK support
+#   key_benefits: what this platform is best at
+#   recommended_when: project flags that make this a strong recommendation
+#   integration_template_path: optional path under templates/integrations/ if PoC boilerplate exists
+#
+# When no template exists yet, integration_template_path is null and Wizard Phase 5
+# falls back to emitting a "TODO: integrate manually" stub pointing at the official docs.
+
+observability:
+
+  error_tracking:
+
+    - id: sentry
+      name: Sentry
+      primary_category: error_tracking
+      secondary_categories:
+        - apm
+        - session_replay
+      description: The most widely adopted error tracking + performance monitoring platform. First-class SDKs for most frameworks, source map support, release tracking, and session replay. Strong free tier (5K errors/month).
+      suitable_project_types:
+        - web
+        - mobile
+        - backend
+        - desktop
+        - game
+      pricing_tier: freemium
+      sdk_type: npm
+      env_vars:
+        - SENTRY_DSN
+        - SENTRY_ORG
+        - SENTRY_PROJECT
+        - SENTRY_AUTH_TOKEN
+      compatible_frameworks:
+        - nextjs
+        - react
+        - vue
+        - angular
+        - svelte
+        - express
+        - nestjs
+        - fastify
+        - fastapi
+        - django
+        - flask
+        - rails
+        - react-native
+        - electron
+        - unity
+      key_benefits:
+        - unified_error_and_performance
+        - source_map_support
+        - release_health_tracking
+        - session_replay_included
+      recommended_when:
+        - has_ui
+        - has_backend
+        - in_production
+      integration_template_path: integrations/sentry/
+
+    - id: rollbar
+      name: Rollbar
+      primary_category: error_tracking
+      description: Lightweight error tracking alternative to Sentry with simpler pricing and deployment tracking. Good for teams who only need error tracking without the broader APM/replay features.
+      suitable_project_types:
+        - web
+        - mobile
+        - backend
+      pricing_tier: freemium
+      sdk_type: npm
+      env_vars:
+        - ROLLBAR_ACCESS_TOKEN
+      compatible_frameworks:
+        - nextjs
+        - react
+        - vue
+        - express
+        - django
+        - flask
+        - rails
+      key_benefits:
+        - simple_pricing
+        - lightweight_sdk
+        - deployment_tracking
+      recommended_when:
+        - has_backend
+      integration_template_path: null
+
+  apm:
+
+    - id: datadog
+      name: Datadog
+      primary_category: apm
+      secondary_categories:
+        - logs_metrics
+        - error_tracking
+      description: Enterprise-grade unified observability — APM, logs, metrics, RUM, synthetic monitoring, security, and 700+ integrations in one pane. Excellent for complex/distributed systems. Price-sensitive teams should weigh carefully (per-host + per-ingested-GB pricing can spike).
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+        - data
+        - iot
+      pricing_tier: paid_only
+      sdk_type: mixed
+      env_vars:
+        - DD_API_KEY
+        - DD_APP_KEY
+        - DD_SITE
+        - DD_ENV
+        - DD_SERVICE
+      compatible_frameworks:
+        - nextjs
+        - express
+        - nestjs
+        - fastify
+        - fastapi
+        - django
+        - rails
+        - spring
+        - go
+      key_benefits:
+        - unified_observability
+        - distributed_tracing
+        - 700_plus_integrations
+        - aiops_anomaly_detection
+      recommended_when:
+        - has_backend
+        - in_production
+      integration_template_path: null
+
+    - id: new-relic
+      name: New Relic
+      primary_category: apm
+      secondary_categories:
+        - logs_metrics
+        - error_tracking
+      description: Mature APM platform with a generous free tier (100GB/month ingestion, 1 full-access user). Strong Java/.NET/Node instrumentation and OpenTelemetry native support.
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+      pricing_tier: freemium
+      sdk_type: mixed
+      env_vars:
+        - NEW_RELIC_LICENSE_KEY
+        - NEW_RELIC_APP_NAME
+      compatible_frameworks:
+        - nextjs
+        - express
+        - nestjs
+        - fastify
+        - django
+        - spring
+        - dotnet
+      key_benefits:
+        - generous_free_tier
+        - opentelemetry_native
+        - mature_dotnet_java_support
+      recommended_when:
+        - has_backend
+      integration_template_path: null
+
+  product_analytics:
+
+    - id: posthog
+      name: PostHog
+      primary_category: product_analytics
+      secondary_categories:
+        - session_replay
+        - feature_flags
+        - experiments
+      description: Open-source product analytics + session replay + feature flags + A/B testing + surveys in one tool. Self-hostable or cloud. Event-based pricing with a 1M events/month free tier. Strong alternative to paid Amplitude/Mixpanel + LaunchDarkly + Hotjar stack.
+      suitable_project_types:
+        - web
+        - mobile
+      pricing_tier: freemium
+      sdk_type: npm
+      env_vars:
+        - POSTHOG_PROJECT_API_KEY
+        - POSTHOG_HOST
+      compatible_frameworks:
+        - nextjs
+        - react
+        - vue
+        - angular
+        - svelte
+        - react-native
+        - flutter
+        - ios
+        - android
+      key_benefits:
+        - all_in_one_product_stack
+        - session_replay_bundled
+        - feature_flags_and_experiments
+        - self_host_option
+      recommended_when:
+        - has_ui
+      integration_template_path: integrations/posthog/
+
+    - id: amplitude
+      name: Amplitude
+      primary_category: product_analytics
+      description: Enterprise product analytics focused on funnel/retention/behavioral cohort analysis. Strong for B2C apps measuring activation, engagement, and LTV. Free tier covers 10M events/month.
+      suitable_project_types:
+        - web
+        - mobile
+      pricing_tier: freemium
+      sdk_type: npm
+      env_vars:
+        - AMPLITUDE_API_KEY
+      compatible_frameworks:
+        - nextjs
+        - react
+        - vue
+        - react-native
+        - ios
+        - android
+      key_benefits:
+        - advanced_funnel_retention
+        - behavioral_cohorts
+        - predictive_analytics
+      recommended_when:
+        - has_ui
+      integration_template_path: null
+
+    - id: plausible
+      name: Plausible Analytics
+      primary_category: product_analytics
+      description: Privacy-first, cookie-free, GDPR/CCPA-compliant web analytics. Lightweight script (<1KB), open-source, self-hostable. Good for marketing/content sites where simple pageview analytics is enough and privacy matters.
+      suitable_project_types:
+        - web
+      pricing_tier: paid_only
+      sdk_type: cdn
+      env_vars:
+        - PLAUSIBLE_DOMAIN
+      compatible_frameworks:
+        - nextjs
+        - react
+        - vue
+        - svelte
+        - astro
+        - static_html
+      key_benefits:
+        - privacy_first_no_cookies
+        - gdpr_compliant_by_default
+        - lightweight_script
+        - simple_ui
+      recommended_when:
+        - has_ui
+      integration_template_path: null
+
+  logs_metrics:
+
+    - id: grafana-cloud
+      name: Grafana Cloud
+      primary_category: logs_metrics
+      secondary_categories:
+        - apm
+      description: Managed Grafana + Prometheus + Loki + Tempo stack. Dashboards-first approach, OpenTelemetry native, generous free tier (10K series metrics, 50GB logs, 50GB traces). Best for teams already comfortable with PromQL/LogQL.
+      suitable_project_types:
+        - web
+        - backend
+        - data
+        - iot
+      pricing_tier: freemium
+      sdk_type: agent
+      env_vars:
+        - GRAFANA_CLOUD_API_KEY
+        - GRAFANA_CLOUD_STACK_ID
+      compatible_frameworks:
+        - nextjs
+        - express
+        - fastapi
+        - go
+        - kubernetes
+      key_benefits:
+        - unified_metrics_logs_traces
+        - opentelemetry_native
+        - dashboard_customization
+      recommended_when:
+        - has_backend
+      integration_template_path: null
+
+    - id: axiom
+      name: Axiom
+      primary_category: logs_metrics
+      description: Modern log/event ingestion platform with SQL-like query language (APL) and generous free tier (500GB ingestion/month). Built for high-volume event data without per-seat licensing. Pairs well with serverless/edge runtimes.
+      suitable_project_types:
+        - web
+        - backend
+      pricing_tier: freemium
+      sdk_type: npm
+      env_vars:
+        - AXIOM_TOKEN
+        - AXIOM_DATASET
+      compatible_frameworks:
+        - nextjs
+        - express
+        - fastify
+        - cloudflare-workers
+        - vercel-edge
+      key_benefits:
+        - high_ingestion_free_tier
+        - serverless_friendly
+        - sql_like_queries
+      recommended_when:
+        - has_backend
+      integration_template_path: null
+
+  vendor_neutral:
+
+    - id: opentelemetry
+      name: OpenTelemetry
+      primary_category: vendor_neutral
+      description: CNCF-graduated vendor-neutral instrumentation standard for traces, metrics, and logs. Not a backend itself — pairs with Datadog/New Relic/Grafana/Honeycomb via OTLP exporters. Choose this when you want to avoid vendor lock-in or already have a backend picked.
+      suitable_project_types:
+        - web
+        - backend
+        - mobile
+        - data
+        - iot
+      pricing_tier: free_open_source
+      sdk_type: npm
+      env_vars:
+        - OTEL_EXPORTER_OTLP_ENDPOINT
+        - OTEL_SERVICE_NAME
+        - OTEL_RESOURCE_ATTRIBUTES
+      compatible_frameworks:
+        - nextjs
+        - express
+        - nestjs
+        - fastify
+        - fastapi
+        - django
+        - spring
+        - go
+        - dotnet
+      key_benefits:
+        - vendor_neutral_standard
+        - no_lock_in
+        - cncf_graduated
+      recommended_when:
+        - has_backend
+      integration_template_path: null
+
+  native:
+
+    - id: vercel-analytics
+      name: Vercel Analytics + Speed Insights
+      primary_category: native
+      secondary_categories:
+        - product_analytics
+        - apm
+      description: Vercel-native web vitals + pageview analytics + server-side function observability. Zero-config for Next.js apps deployed on Vercel. Free tier for hobby projects, paid tier scales with traffic.
+      suitable_project_types:
+        - web
+      pricing_tier: platform_native
+      sdk_type: npm
+      env_vars: []
+      compatible_frameworks:
+        - nextjs
+        - nuxt
+        - sveltekit
+        - astro
+      key_benefits:
+        - zero_config_on_vercel
+        - core_web_vitals_builtin
+        - edge_function_traces
+      recommended_when:
+        - deployment_platform_vercel
+      integration_template_path: null

@@ -4,11 +4,48 @@
 [![License](https://img.shields.io/github/license/aiAgentDevelop/harness-marketplace-plugin)](./LICENSE)
 [![Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-brightgreen)](./CHANGELOG.md)
 
-**프로젝트 맞춤형 개발 파이프라인 harness 스킬을 생성하는 스캐폴딩 위자드 — Claude Code 플러그인**
+**15분 만에 팀이 의존할 수 있는 프로덕션급 AI 개발 파이프라인을 생성하는 Claude Code 스캐폴딩 위자드.**
 
-프로젝트 유형, 기술 스택, 배포 환경에 맞는 완전한 **AI 오케스트레이션 개발 파이프라인** ([interview] → classify → plan → [codebase-analysis] → [debug] → implement → [visual-qa] → verify) 을 생성합니다. **실제 병렬 Fan-out/Fan-in 워커**, Hook 기반 코드 강제, CI/CD 파이프라인 생성, idle 자동 감시, 자기 학습 기능을 포함. 3가지 위자드 모드: AI 딥 인터뷰, 직접 선택, 기존 코드 자동 감지. **인터뷰 모드** (`/project-interview`)는 다중 라운드 딥 서비스 인터뷰를 실행하여 도메인 전문가 에이전트, 개발 팀 구성, 10개 차원의 구현 명확도 추적이 포함된 종합 PRD를 생성합니다. **프로젝트 루트에 `CLAUDE.md` 가 자동 생성**되어 `/project-harness` 가 opt-in 이 아닌 **기본** 작업 방식이 됩니다. 하나의 위자드로 모든 프로젝트를 지원합니다.
+한 번의 위자드 실행으로 interview → classify → plan → implement → verify → launch-check 까지 전부 생성됩니다. 실제 병렬 워커, 코드 레벨 훅, CI/CD 파이프라인, 관측성 배선까지 포함되고, 프로젝트 루트에 자동 생성되는 `CLAUDE.md` 가 `/project-harness` 를 팀의 기본 개발 명령으로 만듭니다. **"프롬프트 템플릿 하나 더 유지하는 것"이 아니라 서비스를 만드는 소규모팀** 을 위한 도구입니다.
 
 > **[English](./README.md)**
+
+---
+
+## 이 플러그인이 존재하는 이유
+
+Claude Code 로 토이 프로젝트 이상을 해본 팀이라면 다음 중 두 개 이상을 겪어봤을 겁니다:
+
+- **"Sentry 는 나중에 연결하지 뭐."** 그 "나중"은 안 옵니다. 프로덕션 첫 5xx 가 미스터리로 남습니다.
+- **"우리 CLAUDE.md 는 한 문단짜리."** 매 세션이 context zero 에서 시작합니다.
+- **"AI 가 우리 컨벤션을 또 잊었다."** 코드 레벨 가드가 없고 "알아서 잘 하길" 기대만 있으니까요.
+- **"plan / implement / verify 파이프라인을 누가 쓰지?"** 반나절 낼 사람이 없습니다.
+
+이 플러그인은 이 모든 문제를 한 번의 위자드 실행으로 대체합니다. 모드에 따라 5–25개 질문에 답하면, 소규모팀이 실제로 의존할 수 있는 파이프라인이 나옵니다. 관측성 게이트까지 포함되어 — 에러 추적 없이는 배포 자체가 막힙니다.
+
+그리고 자체 벤치마크로 **이 플러그인이 어디서 이기고 어디서 지는지** 공개합니다. 아래 [Honest Benchmarks](#honest-benchmarks-phase-1-v2--endtoend-isoiec-25010--owasp-asvs--dora) 섹션을 보세요 — "우리가 만든 플러그인 가치의 대부분은 마법이 아니라 위자드가 써준 CLAUDE.md 에서 온다" 고 스스로 밝히는 플러그인입니다.
+
+---
+
+## Quick Start
+
+```bash
+# 1. 설치 (최초 1회)
+/plugin marketplace add https://github.com/aiAgentDevelop/harness-marketplace-plugin.git
+/plugin install harness-marketplace
+# ↑ 설치 후 Claude Code 를 완전히 재시작하세요 — 아래 설치 섹션 참조
+
+# 2. harness 스캐폴드 (5–15분)
+cd <your-project>
+/harness-marketplace:wizard
+
+# 3. 개발 시작
+/project-harness "사용자 인증 구현"
+# ↑ 위자드가 써준 CLAUDE.md 가 이 명령을 자동으로 다음과 같이 풀어줍니다:
+#   plan → implement → verify, hooks + 관측성 + CI 포함
+```
+
+이게 전부입니다. 프로덕션 배포 전에 `/harness-marketplace:launch-check` 가 출시 전 감사를 돕니다 — 에러 추적 연결됐나? 헬스체크 있나? 롤백 경로 있나? 빠뜨린 게 있으면 배포를 막아줍니다.
 
 ---
 
@@ -91,7 +128,9 @@ cp -r harness-marketplace/ ~/.claude/plugins/cache/harness-marketplace/harness-m
 
 ## 사용법
 
-### 5가지 스킬 한눈에 보기
+**시작 지점 고르기**: 새 프로젝트 → `wizard` (Deep Interview 모드). 기존 프로젝트 → `wizard` (Auto-Detect 모드). 이미 harness 가 있다면 → `upgrade`. 출시 준비 → `launch-check`.
+
+### 6가지 스킬 한눈에 보기
 
 | 스킬 | 명령어 | 용도 |
 |------|--------|------|
@@ -100,6 +139,7 @@ cp -r harness-marketplace/ ~/.claude/plugins/cache/harness-marketplace/harness-m
 | **CI/CD** | `/harness-marketplace:ci-cd` | CI/CD 파이프라인 독립 설정 |
 | **Learn** | `/harness-marketplace:learn` | 팀 학습을 git-tracked 파일로 저장 |
 | **GH** | `/harness-marketplace:gh` | GitHub 워크플로우 자동화 (Issue → Branch → PR) |
+| **Launch-Check** | `/harness-marketplace:launch-check` | 출시 전 준비도 게이트 — 안전망 + 서비스 운영 준비도 감사 |
 
 ### 생성된 Harness 명령어
 
@@ -345,6 +385,60 @@ wizard 완료 시 **프로젝트 루트에 `CLAUDE.md` 가 자동 생성**되어
 
 ---
 
+## 관측성 (Wizard 실행 시 필수)
+
+에러 추적, 프로덕트 분석, 헬스 시그널 없이 출시한 서비스는 프로덕션에서 사실상 눈을 감은 상태입니다. Wizard는 관측 스택 선택을 **옵션이 아닌 필수 게이트**로 취급합니다. Phase 5 생성 단계에 들어가기 전에 최소 하나의 에러 추적 플랫폼을 반드시 선택해야 합니다.
+
+### Wizard 가 묻는 내용 (Phase 4, Step D)
+
+| 질문 | 필수 여부 | 카탈로그 출처 |
+|---|---|---|
+| Q-D.1 — 에러 추적 플랫폼 | **필수, 정확히 1개** | `data/observability-platforms.yaml` → `error_tracking` + `native` |
+| Q-D.2 — 프로덕트 분석 플랫폼 | 선택, 0개 이상 | `data/observability-platforms.yaml` → `product_analytics` + `native` |
+| Q-D.3 — APM / 로그 백엔드 (`has_backend` 시) | 선택, 0 또는 1개 | `data/observability-platforms.yaml` → `apm` + `logs_metrics` + `vendor_neutral` |
+
+카탈로그에 현재 등재된 11개 플랫폼: Sentry, Rollbar, Datadog, New Relic, PostHog, Amplitude, Plausible, Grafana Cloud, Axiom, OpenTelemetry, Vercel Analytics. 이 중 2개(Sentry, PostHog)는 바로 쓸 수 있는 보일러플레이트 템플릿을 제공하며, 나머지는 공식 문서 링크가 담긴 `TODO.md` 스텁을 방출합니다.
+
+### 생성되는 파일
+
+`integration_template_path`가 설정된 플랫폼(현재 Sentry + PostHog)을 선택하면 wizard가 보일러플레이트를 프로젝트에 바로 써넣습니다:
+
+- **Sentry + Next.js** → `instrumentation.ts`, `app/error-boundary.tsx`, `app/api/health/route.ts`
+- **Sentry + Node 백엔드** → `src/instrument.ts`, 헬스체크 엔드포인트
+- **PostHog + Next.js** → `app/providers/posthog-provider.tsx`, `docs/events-catalog.md`
+
+모든 생성 파일은 `═══ CUSTOM RULES BELOW (preserved on upgrade) ═══` 마커로 끝나므로 팀의 수정 사항은 `/harness-marketplace:upgrade` 를 거쳐도 보존됩니다.
+
+Wizard는 동시에 `observability-auditor` 에이전트와 `observability-fundamentals` 가이드를 harness에 자동 추가하여, 매 verify 단계마다 에러 바운더리·헬스체크·SDK 초기화가 여전히 연결되어 있는지 재확인합니다.
+
+---
+
+## 출시 전 감사 — `/harness-marketplace:launch-check`
+
+`verify`는 매 변경마다 돕니다. `launch-check`는 **릴리스 후보 하나당 1회** 실행되며, verify가 의도적으로 다루지 않는 축 — 서비스 운영 준비도, 법적·규정 준수, 테스트 완결성, 플레이북 존재 — 을 점검합니다.
+
+| Section | 현재 상태 | 차단 여부 |
+|---|---|---|
+| 1. 안전망 (verify 위임) | 구현됨 | 실패 시 BLOCK |
+| 2. 서비스 운영 준비도 | **완전 구현** (7개 체크) | 실패 시 BLOCK |
+| 3. 법적 / 규정 준수 | Placeholder (경고만) | WARN only |
+| 4. 테스트 완결성 | Placeholder (경고만) | WARN only |
+| 5. 런북 & 플레이북 | Placeholder (경고만) | WARN only |
+
+### Section 2 체크 항목
+
+1. 관측 플랫폼 연결 확인 (`observability.error_tracking.platform_id` 설정 + env var 선언)
+2. `has_ui`일 때 최상위 에러 바운더리 존재
+3. 에러 캡처 SDK 초기화가 클라이언트와 서버 양쪽에 존재
+4. `has_backend`일 때 헬스체크 엔드포인트 존재
+5. 롤백 워크플로우 또는 플랫폼 수준 롤백 존재
+6. 릴리스 식별자(SHA/tag)가 CI에서 주입됨
+7. 비용 산정 파일 존재 (cost-guard P1 placeholder)
+
+Section 1 또는 Section 2 체크 중 하나라도 실패하면 exit 1을 반환하므로 `deploy-prod.yml` 워크플로우에서 이를 관문으로 삼을 수 있습니다. Section 3–5는 본 구현이 후속 PR로 들어올 때까지 WARN 수준에 머뭅니다.
+
+---
+
 ## 마크다운 파일 외에도 — 하네스가 직접 실행하는 4가지
 
 ### 1. Hook 기반 코드 강제 (실시간 차단)
@@ -575,7 +669,7 @@ harness-marketplace/
 
 - **Claude Code** Agent Teams 활성화 (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
 
-## 벤치마크 (Phase 1 v2 — End-to-End, ISO/IEC 25010 + OWASP ASVS + DORA)
+## Honest Benchmarks (Phase 1 v2 — End-to-End, ISO/IEC 25010 + OWASP ASVS + DORA)
 
 `Plain Claude Code` vs `harness-marketplace` (v0.6.0 wizard 결과물) 의 end-to-end 평가. 국제 표준 준거 (ISO/IEC 25010, OWASP ASVS v4.0.3, OWASP Top 10 2021, CWE Top 25, DORA, HELM 원칙). 이전 Phase 0.5 단일-task 벤치마크 (commit `a455abe` 이전) 를 대체.
 
@@ -647,6 +741,21 @@ node scorer/aggregate-v2.js --stage slim                       # reports/slim-re
 | [v0.1.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.1.0) | 최초 릴리스 |
 
 **v0.4.x 이하에서 업그레이드 하시나요?** v0.5.0은 hook 컨트랙트가 변경된 BREAKING 릴리스입니다. 플러그인을 업데이트한 뒤 각 프로젝트에서 `/harness-marketplace:upgrade`를 실행하세요 — v0.5.1부터 레거시 v1.x hook을 자동 감지하여 v2.x 형식으로 교체합니다(기존 hook은 타임스탬프 백업 디렉토리에 보존).
+
+## 버리는 디렉토리에서 먼저 써보세요
+
+`.claude/settings.json` 을 건드리고 실제 프로젝트에 CLAUDE.md 를 쓰는 위자드를 바로 설치하기 망설여지면, 빈 폴더에서 먼저 돌려보세요:
+
+```bash
+mkdir harness-try && cd harness-try
+/harness-marketplace:wizard
+# Manual 모드 선택, CI/CD 는 "no", Step D 에서 Sentry + PostHog 선택
+# → 생성된 .claude/skills/project-harness/ 트리를 직접 열어 확인
+```
+
+git 리포 없음, 의존성 없음, 실제 코드베이스에 부작용 없음. 다 보면 폴더째 삭제하면 끝입니다.
+
+---
 
 ## Acknowledgments
 

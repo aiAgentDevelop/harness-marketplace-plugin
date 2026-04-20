@@ -804,3 +804,34 @@ agents:
         - clean_instrumentation_removal
       recommended_when: []
       model: sonnet
+
+  observability:
+
+    - id: observability-auditor
+      name: Observability Auditor
+      domain: observability
+      description: Verifies that the project is observable in production. Runs a focused checklist across five categories — (1) error capture is wired (Sentry/Rollbar/platform init present on both client and server, error boundary component wraps app root, unhandled promise rejections are captured), (2) health signals exist (/api/health or equivalent endpoint exists and passes under normal conditions, readiness vs liveness distinction if applicable), (3) structured logging is in use (no naked console.log on server paths, request_id/user_id correlation fields present, PII scrubbing applied), (4) release tracking works (release tag/SHA is injected into error tracker, source maps uploaded on build), (5) async/background paths are instrumented (cron jobs, queue workers, webhooks all have explicit try/catch + capture). Binary PASS/BLOCK verdict. Runs on every verify phase and as a launch-check gate.
+      suitable_project_types:
+        - web
+        - mobile
+        - backend
+        - desktop
+        - game
+      key_concerns:
+        - error_capture_wired_client_and_server
+        - error_boundary_at_app_root
+        - unhandled_rejection_capture
+        - health_endpoint_exists
+        - readiness_vs_liveness_distinction
+        - structured_logging_no_naked_console
+        - request_user_correlation_fields
+        - pii_scrubbing_applied
+        - release_tag_sha_injected
+        - source_maps_uploaded
+        - background_job_instrumentation
+        - webhook_receiver_instrumentation
+      recommended_when:
+        - has_ui
+        - has_backend
+        - in_production
+      model: sonnet

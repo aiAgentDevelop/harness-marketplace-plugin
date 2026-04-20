@@ -1,0 +1,77 @@
+# Event Catalog — {{PROJECT_NAME}}
+
+> Single source of truth for every product-analytics event this app sends to PostHog.
+> Keep this file in sync with actual `posthog.capture(...)` calls. The
+> `observability-auditor` worker verifies that every capture call has a matching
+> entry here on each verify phase.
+
+## Naming convention
+
+- `verb_noun` lower snake_case (e.g., `clicked_signup`, `completed_onboarding`).
+- Noun first when the event is about an object, verb first when about an action.
+- Never rename an event after launch — deprecate and add a new one instead.
+
+## Required properties (every event)
+
+| Property | Type | Notes |
+|---|---|---|
+| `$user_id` | string | Set via `posthog.identify()` once user signs up/in. |
+| `environment` | `"production" \| "staging" \| "development"` | Auto-set via `super_properties`. |
+| `release` | string | Build SHA; inject via env var. |
+
+## Core events
+
+### `signed_up`
+User completed account creation.
+
+| Property | Type | Example |
+|---|---|---|
+| `method` | `"email" \| "google" \| "github"` | `"google"` |
+| `referrer` | string? | `"marketing-site"` |
+
+### `signed_in`
+User authenticated in an existing session.
+
+| Property | Type | Example |
+|---|---|---|
+| `method` | `"email" \| "google" \| "github"` | `"email"` |
+
+### `completed_onboarding`
+User finished the first-run tutorial / onboarding flow.
+
+| Property | Type | Example |
+|---|---|---|
+| `steps_completed` | number | `4` |
+| `duration_seconds` | number | `312` |
+
+### `invoked_core_action`
+Fires when the user performs the primary value action of your product.
+**TODO**: rename to your product's actual core action (e.g., `created_order`,
+`sent_message`, `published_post`). This is the single most important event —
+every other metric is derived from it.
+
+| Property | Type | Example |
+|---|---|---|
+| `action_type` | string | depends on product |
+
+## Events to add per feature
+
+Whenever you ship a new feature, add:
+
+1. At least one `{feature}_started` event when the user enters the feature flow.
+2. At least one `{feature}_completed` event when the user reaches the success state.
+3. Optionally `{feature}_abandoned` with a `reason` property when detectable.
+
+This minimum triple lets you build a funnel and measure drop-off without custom
+retro analysis.
+
+## Do NOT send
+
+- Raw email addresses, phone numbers, or government IDs (use the identified
+  user ID instead and correlate on the PostHog side).
+- Full request/response bodies from user-facing APIs (risk of PII leak).
+- Passwords, tokens, or session keys under any circumstance.
+
+## ═══ CUSTOM EVENTS BELOW (preserved on upgrade) ═══
+
+<!-- Add project-specific events below this marker. They will survive harness upgrades. -->

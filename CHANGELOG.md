@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-04-17
+
+### Highlights
+
+Observability layer 신설 — Wizard가 에러 추적·프로덕트 분석·APM 플랫폼 선택을 **필수 게이트**로 처리하고, Sentry/PostHog용 보일러플레이트 템플릿을 실제 프로젝트에 방출합니다. 동시에 `launch-check` 스킬 신설 — 출시 전 1회 실행용 감사 게이트로 "안전망"과 "서비스 운영 준비도"를 블로킹 수준으로 점검합니다. 법적·테스트·플레이북 3개 Section은 placeholder로 동봉되어 후속 PR에서 실구현됩니다.
+
+### Added
+
+- **`data/observability-platforms.yaml`** (new) — 11개 관측 플랫폼 카탈로그 (Sentry, Rollbar, Datadog, New Relic, PostHog, Amplitude, Plausible, Grafana Cloud, Axiom, OpenTelemetry, Vercel Analytics). `primary_category` / `pricing_tier` / `sdk_type` / `env_vars` / `compatible_frameworks` / `integration_template_path` 필드로 Wizard 필터링·랭킹·템플릿 방출을 지원.
+- **`templates/integrations/sentry/`** (new) — 4개 PoC 템플릿: `nextjs-init.ts.template` (Next.js App Router instrumentation), `node-backend-init.ts.template` (Express/NestJS/Fastify), `error-boundary.tsx.template` (Sentry-backed React error boundary), `health-check.ts.template` (readiness endpoint with DB/cache 조건부 블록).
+- **`templates/integrations/posthog/`** (new) — 2개 PoC 템플릿: `nextjs-init.ts.template` (PostHogProvider + pageview capture), `events-catalog.md.template` (이벤트 명명 규칙 + 핵심 이벤트 카탈로그).
+- **`templates/integrations/README.md`** (new) — Wizard answer → template 매핑 표 + 토큰 규약 + 새 플랫폼 추가 가이드.
+- **`skills/launch-check/SKILL.md`** (new) — 5-Section 출시 전 감사 게이트. Section 1 (안전망, verify 위임) 구현. Section 2 (서비스 운영 준비도, 7개 체크) 완전 구현. Section 3–5 (법적·테스트·플레이북) placeholder.
+- **`data/agents.yaml`** — `observability` 도메인 + `observability-auditor` 에이전트 추가. 에러 캡처 유선·에러 바운더리·헬스 시그널·구조적 로깅·릴리스 태그·백그라운드 작업 계측 등 12개 key_concerns.
+- **`data/guides.yaml`** — `observability` 도메인 + `observability-fundamentals` 가이드 추가 (3 pillars, 릴리스 트래킹, 에러 분류, 샘플링 전략, PII 스크러빙).
+- **`scripts/validate-harness.js`** — `validateObservability` 함수 추가. project-config.yaml의 `observability` 섹션 구조 검증 + error_tracking 필수 여부 + env_vars 리스트 형식 + observability-auditor 에이전트 등록 확인.
+- **`tests/observability-smoke.sh`** (new) — integration 템플릿 6개 전체에 대한 컴파일·토큰 치환·필수 API 서피스 체크 스모크 테스트.
+
+### Changed
+
+- **`skills/wizard/SKILL.md`** — Phase 4 에 Step D (Observability Stack Selection) 삽입. Q-D.1 에러 추적 필수, Q-D.2 프로덕트 분석 선택, Q-D.3 APM 선택 (has_backend 시). Phase 5 Step 5.1 에 observability 섹션 매핑 추가. Phase 5 Step 5.1c (integration 파일 방출) 신설 — 토큰 치환 + CONDITION 블록 해소 + .env.example 자동 확장.
+- **`README.md`** / **`README-ko.md`** — 5 Skills → 6 Skills 테이블로 확장 (Launch-Check 추가). "Observability (required at wizard time)" 섹션 신설 (Wizard Phase 4 Step D 질문 내용 + 생성 파일 목록 + 사후 검증 에이전트 설명). "Pre-Launch Audit" 섹션 신설 (5 Section 상태 표 + Section 2 7개 체크 상세). 양문 100% 동기화 (712줄 일치).
+- **Version bumps** — `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `package.json` 모두 0.7.0 → 0.8.0.
+
+### Known limitations
+
+- `launch-check` Section 3 (법적 / 규정 준수) / Section 4 (테스트 완결성) / Section 5 (런북 & 플레이북) 는 현재 WARN 만 발생. 실제 BLOCK 로직은 각각 별도 P1 PR 로 추적: 법적 도메인 에이전트·가이드, `templates/e2e-patterns.md`·`contract-test-patterns.md`, `templates/playbooks/*.md`.
+- observability 카탈로그 11개 플랫폼 중 현재 integration 템플릿 제공은 Sentry + PostHog 2개만. 나머지 9개는 선택 시 `TODO.md` 스텁 방출로 수동 연결 유도. Datadog / New Relic 템플릿은 follow-up.
+- 기존 v0.7.x 로 생성된 harness 에는 observability 섹션이 비어 있음. `/harness-marketplace:upgrade` 가 observability backfill 을 자동 제공하는 경로는 별도 이슈로 추적 예정.
+
 ## [0.7.0] - 2026-04-16
 
 ### Highlights
