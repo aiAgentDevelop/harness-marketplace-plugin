@@ -729,7 +729,8 @@ node scorer/aggregate-v2.js --stage slim                       # reports/slim-re
 
 | 버전 | 주요 내용 |
 |------|-----------|
-| [**v0.7.0**](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.7.0) | 인터뷰 모드 (`/project-interview`) — 다중 라운드 딥 서비스 인터뷰로 종합 PRD 생성. 도메인 전문가 에이전트, 팀 구성, 10개 차원 구현 명확도 추적 |
+| [**v0.8.0**](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.8.0) | 옵저버빌리티 레이어 — Wizard Phase 4 Step D 필수 게이트 + Sentry/PostHog PoC 통합 템플릿 + `launch-check` 출시 전 감사 스킬 (Section 1 안전망 + Section 2 서비스 운영 준비도 7개 블로킹 체크) + 관측 플랫폼 카탈로그 11개 + `observability-auditor` 에이전트 + `observability-fundamentals` 가이드 |
+| [v0.7.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.7.0) | 인터뷰 모드 (`/project-interview`) — 다중 라운드 딥 서비스 인터뷰로 종합 PRD 생성. 도메인 전문가 에이전트, 팀 구성, 10개 차원 구현 명확도 추적 |
 | [v0.6.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.6.0) | Orchestration-by-default (`./CLAUDE.md` 자동 생성) + 실제 병렬 Fan-out/Fan-in 워커 + Phase 2.5 codebase-analysis + TDD 전략 + Supabase 보안 게이트 + monitor mode + Phase 1 v2 벤치마크 |
 | [v0.5.2](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.2) | upgrade skill & validate-harness polish (v0.5.1 현장 테스트에서 발견된 이슈 수정) |
 | [v0.5.1](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.1) | upgrade skill이 레거시 v1.x hook을 자동 감지/마이그레이션 |

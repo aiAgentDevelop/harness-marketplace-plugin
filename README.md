@@ -729,7 +729,8 @@ Notable releases:
 
 | Version | Highlight |
 |---------|-----------|
-| [**v0.7.0**](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.7.0) | Interview mode (`/project-interview`) — multi-round deep service interview producing comprehensive PRD with domain-expert agents, team composition, and 10-dimension implementation clarity tracking |
+| [**v0.8.0**](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.8.0) | Observability layer — wizard Phase 4 Step D required gate + Sentry/PostHog PoC integration templates + `launch-check` pre-launch audit skill (Section 1 safety net + Section 2 operational readiness with 7 blocking checks) + 11-platform observability catalog + `observability-auditor` agent + `observability-fundamentals` guide |
+| [v0.7.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.7.0) | Interview mode (`/project-interview`) — multi-round deep service interview producing comprehensive PRD with domain-expert agents, team composition, and 10-dimension implementation clarity tracking |
 | [v0.6.0](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.6.0) | Orchestration-by-default (auto-generated `./CLAUDE.md`) + real parallel Fan-out/Fan-in workers + Phase 2.5 codebase-analysis + TDD strategy + Supabase security gate + monitor mode + Phase 1 v2 benchmark |
 | [v0.5.2](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.2) | upgrade skill & validate-harness polish (bugs found in post-v0.5.1 field test) |
 | [v0.5.1](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases/tag/v0.5.1) | upgrade skill auto-migrates legacy v1.x hooks |
