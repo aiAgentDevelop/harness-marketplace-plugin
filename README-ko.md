@@ -277,6 +277,15 @@ AI 추천:
                  # → Update marketplace → Update plugin → Claude Code 재시작
 ```
 
+`/plugin` UI 에서는 이 작업이 **두 개의 별개 액션**으로 노출됩니다. 반드시 순서대로 실행하세요:
+
+1. `/plugin` 실행 → **Marketplaces** 탭 → **harness-marketplace** 선택.
+2. **Update marketplace** 선택. 마켓플레이스의 git 클론을 pull 하여 최신 릴리스 태그를 가져옵니다. 항목의 `last updated` 타임스탬프가 "방금" 으로 갱신되는지 확인하세요.
+3. 한 단계 뒤로 가서 **Browse plugins (1)** → **harness-marketplace** → **Update** 선택. **이 단계가 실제로 새 플러그인 버전을 캐시로 다운로드하고 현재 세션에 적용합니다.** 3번을 건너뛰면 마켓플레이스는 새 버전을 인지하지만 캐시는 구 버전 그대로 남아 `/harness-marketplace:upgrade` 가 여전히 이전 릴리스로 판단합니다.
+4. Claude Code를 **완전히 종료**한 뒤 재실행 (`/reload-plugins` 만으로는 부족 — [#35641](https://github.com/anthropics/claude-code/issues/35641)).
+
+2번 이후에도 플러그인 항목에 **Update** 가 보이지 않으면, 마켓플레이스가 새 릴리스를 아직 못 찾은 것입니다. GitHub Releases 에 태그가 실제로 있는지 ([Releases 페이지](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases) 또는 `gh release list`) 그리고 `Update marketplace` 가 타임스탬프를 실제로 갱신했는지 확인하세요 — feature 브랜치에만 push 되고 머지/태그되지 않았다면 마켓플레이스가 pull 해도 받아올 게 없습니다.
+
 이 단계를 건너뛰면 `/upgrade`가 "이미 최신 버전입니다"라고 답하는 주된 원인이 됩니다 — 캐시된 플러그인(예: v0.3.0)이 자기 자신과 비교하기 때문입니다.
 
 **Step 2 — 각 프로젝트의 harness 업그레이드** (프로젝트별 릴리스당 1회):

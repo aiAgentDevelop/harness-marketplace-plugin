@@ -277,6 +277,15 @@ Upgrading is **two steps, in order**:
                  # → Update marketplace, then Update plugin → restart Claude Code
 ```
 
+The `/plugin` UI exposes this as **two separate actions**. Do both, in order:
+
+1. Open `/plugin` → **Marketplaces** tab → select **harness-marketplace**.
+2. Choose **Update marketplace**. This pulls the marketplace's git clone so Claude sees the newest release tag. The `last updated` timestamp on the entry should move to "just now".
+3. Go back one level and pick **Browse plugins (1)** → **harness-marketplace** → **Update**. *This* is what actually downloads the new plugin version into the cache and switches your session to it. If you skip step 3, the marketplace knows the new version exists but the cache stays on the old one — the most common reason `/harness-marketplace:upgrade` still thinks you're on the previous release.
+4. Quit Claude Code completely (not just `/reload-plugins` — see [#35641](https://github.com/anthropics/claude-code/issues/35641)) and reopen it.
+
+If **Update** doesn't appear on the plugin entry after step 2, the marketplace didn't find a newer release. Check that the GitHub Release actually exists ([Releases page](https://github.com/aiAgentDevelop/harness-marketplace-plugin/releases) or `gh release list`) and that `Update marketplace` bumped the timestamp — if the repo was only pushed to a feature branch and never merged/tagged, the marketplace pull has nothing to fetch.
+
 Skipping this step is the #1 reason `/upgrade` reports "already on the latest version" — the cached plugin (e.g. v0.3.0) compares itself to itself.
 
 **Step 2 — Upgrade each project's harness** (once per project per release):
