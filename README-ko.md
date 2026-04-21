@@ -4,6 +4,12 @@
 [![License](https://img.shields.io/github/license/aiAgentDevelop/harness-marketplace-plugin)](./LICENSE)
 [![Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-brightgreen)](./CHANGELOG.md)
 
+## 📝 3줄 요약
+
+- 🛠️ **스캐폴드 & 진화** — `/harness-marketplace:wizard`가 15분 만에 전체 AI 개발 파이프라인을 생성(plan → implement → verify + `CLAUDE.md` + hooks + 관측성), `/harness-marketplace:upgrade`는 Custom Rules를 지키면서 템플릿만 최신화.
+- 🚀 **배포 & 공유** — `/harness-marketplace:ci-cd`가 실제 GitHub Actions / GitLab CI 워크플로우 작성, `/harness-marketplace:gh`가 Issue → Branch → PR 자동 진행(자동 머지 없음), `/harness-marketplace:learn`이 팀 지식을 git 추적 파일로 축적.
+- 🚦 **출시 전 게이트** — `/harness-marketplace:launch-check`가 에러 추적/헬스체크/롤백 경로 중 하나라도 빠지면 배포 차단. 블라인드 배포 금지.
+
 **15분 만에 팀이 의존할 수 있는 프로덕션급 AI 개발 파이프라인을 생성하는 Claude Code 스캐폴딩 위자드.**
 
 한 번의 위자드 실행으로 interview → classify → plan → implement → verify → launch-check 까지 전부 생성됩니다. 실제 병렬 워커, 코드 레벨 훅, CI/CD 파이프라인, 관측성 배선까지 포함되고, 프로젝트 루트에 자동 생성되는 `CLAUDE.md` 가 `/project-harness` 를 팀의 기본 개발 명령으로 만듭니다. **"프롬프트 템플릿 하나 더 유지하는 것"이 아니라 서비스를 만드는 소규모팀** 을 위한 도구입니다.

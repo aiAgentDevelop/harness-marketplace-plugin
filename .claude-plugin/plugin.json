@@ -1,19 +1,30 @@
 {
   "name": "harness-marketplace",
   "version": "0.8.0",
-  "description": "Scaffolding wizard that generates project-specific development pipeline harness skills",
+  "description": "Claude Code plugin: 15-min wizard scaffolding an AI agent orchestration pipeline (plan → implement → verify) with parallel sub-agents, CLAUDE.md, hooks, CI/CD, and observability.",
   "author": {
     "name": "Book2Roy"
   },
   "repository": "https://github.com/aiAgentDevelop/harness-marketplace-plugin",
   "license": "Apache-2.0",
   "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "claude-md",
     "harness",
     "scaffolding",
+    "wizard",
     "pipeline",
-    "project-setup",
+    "orchestration",
+    "ai-agent",
+    "multi-agent",
+    "sub-agents",
+    "ci-cd",
+    "observability",
+    "hooks",
     "code-generation",
-    "multi-agent"
+    "developer-tools",
+    "launch-check"
   ],
   "skills": "./skills/"
 }

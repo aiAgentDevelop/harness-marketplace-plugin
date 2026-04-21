@@ -4,6 +4,12 @@
 [![License](https://img.shields.io/github/license/aiAgentDevelop/harness-marketplace-plugin)](./LICENSE)
 [![Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-brightgreen)](./CHANGELOG.md)
 
+## 📝 TL;DR
+
+- 🛠️ **Scaffold & evolve** — `/harness-marketplace:wizard` generates a full AI dev pipeline in 15 min (plan → implement → verify + `CLAUDE.md` + hooks + observability); `/harness-marketplace:upgrade` keeps templates current without losing your Custom Rules.
+- 🚀 **Ship & share** — `/harness-marketplace:ci-cd` writes real GitHub Actions / GitLab CI workflows, `/harness-marketplace:gh` drives Issue → Branch → PR (never auto-merges), `/harness-marketplace:learn` captures team knowledge into git-tracked files.
+- 🚦 **Pre-launch gate** — `/harness-marketplace:launch-check` blocks deploy if error tracking, health check, or rollback path is missing. No shipping blind.
+
 **A 15-minute scaffolding wizard that gives your team a production-ready AI development pipeline for Claude Code.**
 
 One command generates the whole thing — interview → classify → plan → implement → verify → launch-check — with real parallel workers, code-level hooks, CI/CD pipelines, observability wiring, and a `CLAUDE.md` that turns `/project-harness` into the default way your team ships. Built for **small teams who want to build a service, not maintain another prompt library.**

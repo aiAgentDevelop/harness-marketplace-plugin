@@ -1,24 +1,35 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "harness-marketplace",
-  "description": "Generate project-specific development pipeline harness skills via interactive scaffolding wizard. Supports web, mobile, backend, desktop, game, CLI, data/ML, and IoT project types.",
+  "description": "Claude Code plugin: 15-min wizard scaffolds an AI agent orchestration pipeline (plan → implement → verify) with parallel sub-agents, CLAUDE.md, hooks, CI/CD, observability (Sentry), and a pre-launch gate. Supports web, mobile, backend, desktop, game, CLI, data/ML, and IoT project types.",
   "owner": {
     "name": "Book2Roy"
   },
   "plugins": [
     {
       "name": "harness-marketplace",
-      "description": "Interactive scaffolding wizard → project-config.yaml + plan/implement/verify skills + agents + guides. Hybrid generation: template structure + AI-generated specialists.",
+      "description": "Interactive scaffolding wizard → project-config.yaml + plan/implement/verify skills (parallel sub-agent orchestration) + agents + guides + CLAUDE.md + hooks + CI/CD + observability + launch-check gate. Hybrid generation: template structure + AI-generated specialists.",
       "version": "0.8.0",
       "source": "./",
       "category": "productivity",
       "tags": [
+        "claude-code",
+        "claude-code-plugin",
+        "claude-md",
         "harness",
         "scaffolding",
+        "wizard",
         "pipeline",
-        "project-setup",
-        "code-generation",
+        "orchestration",
+        "ai-agent",
         "multi-agent",
+        "sub-agents",
+        "ci-cd",
+        "observability",
+        "hooks",
+        "code-generation",
+        "developer-tools",
+        "launch-check",
         "development-workflow"
       ]
     }
