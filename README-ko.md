@@ -45,13 +45,23 @@ Claude Code 로 토이 프로젝트 이상을 해본 팀이라면 다음 중 두
 cd <your-project>
 /harness-marketplace:wizard
 
-# 3. 개발 시작
+# 3. 방금 만들어진 harness 를 Claude Code 가 인식하도록 리로드
+/reload-plugins
+# ↑ 필수 — 위자드가 세션 도중에 .claude/skills/project-harness/ 와
+#   .claude/commands/project-*.md 를 생성합니다. /reload-plugins 가 없으면
+#   /project-harness 가 커맨드 메뉴에 나타나지 않습니다.
+
+# 4. 개발 시작
 /project-harness "사용자 인증 구현"
 # ↑ 위자드가 써준 CLAUDE.md 가 이 명령을 자동으로 다음과 같이 풀어줍니다:
 #   plan → implement → verify, hooks + 관측성 + CI 포함
 ```
 
 이게 전부입니다. 프로덕션 배포 전에 `/harness-marketplace:launch-check` 가 출시 전 감사를 돕니다 — 에러 추적 연결됐나? 헬스체크 있나? 롤백 경로 있나? 빠뜨린 게 있으면 배포를 막아줍니다.
+
+> **리로드 시점은 두 번, 방식은 다릅니다:**
+> 1. **`/plugin install harness-marketplace` 직후** → **Claude Code 완전 재시작** (종료 후 재실행). 마켓플레이스 플러그인 skills 는 `/reload-plugins` 로 로드되지 않습니다 ([#35641](https://github.com/anthropics/claude-code/issues/35641)).
+> 2. **`/harness-marketplace:wizard` 완료 직후** → **`/reload-plugins`** 로 충분. 위자드가 생성한 파일은 로컬 `.claude/skills/` 와 `.claude/commands/` 에 놓이고, Claude Code 는 세션 시작 시에 커맨드 메뉴를 한 번만 빌드하므로 재스캔이 필요합니다. 완전 재시작도 되지만 이 경우엔 필수가 아닙니다.
 
 ---
 
@@ -119,7 +129,7 @@ cp -r harness-marketplace/ ~/.claude/plugins/cache/harness-marketplace/harness-m
 
 `/harness-marketplace:` 입력 시 스킬이 드롭다운에 나타나지 않는 경우:
 
-1. **세션 완전 재시작 필요** — `/reload-plugins`에는 알려진 버그([#35641](https://github.com/anthropics/claude-code/issues/35641))가 있어 commands만 reload하고 skills는 reload하지 않습니다. VS Code를 완전히 종료 후 재시작하거나 CLI 세션을 새로 시작하세요.
+1. **세션 완전 재시작 필요** — `/reload-plugins`에는 알려진 버그([#35641](https://github.com/anthropics/claude-code/issues/35641))가 있어 commands만 reload하고 마켓플레이스 플러그인 skills 는 reload하지 않습니다. VS Code를 완전히 종료 후 재시작하거나 CLI 세션을 새로 시작하세요.
 
 2. **수동 입력은 항상 동작** — 자동완성이 안 되더라도 전체 명령어를 직접 입력하면 동작합니다:
    ```
@@ -131,6 +141,29 @@ cp -r harness-marketplace/ ~/.claude/plugins/cache/harness-marketplace/harness-m
    ```
 
 > **참고:** Claude Code의 미해결 이슈([#18949](https://github.com/anthropics/claude-code/issues/18949), [#35641](https://github.com/anthropics/claude-code/issues/35641))로 인해 마켓플레이스 플러그인 스킬이 자동완성에 표시되지 않을 수 있습니다. 이는 플러그인 버그가 아닌 Claude Code 런타임 제한사항입니다. 세션 완전 재시작이 가장 확실한 우회 방법입니다.
+
+### 위자드가 끝났는데 `/project-harness` 가 안 보일 때
+
+`/harness-marketplace:wizard` 가 완료된 직후 `.claude/skills/project-harness/` 와 `.claude/commands/project-*.md` 트리는 생성되어 있지만, 커맨드 메뉴에서 `/project-harness` 를 입력하면 **Unknown command** 로 뜹니다. 예상된 동작입니다.
+
+**원인.** Claude Code 는 세션 시작 시 단 한 번 스킬/커맨드 메뉴를 빌드합니다. 세션 *도중에* 위자드가 디스크에 써넣은 파일은 아직 메뉴에 반영되어 있지 않습니다.
+
+**해결.**
+
+```
+/reload-plugins
+```
+
+로컬 `.claude/skills/` 와 `.claude/commands/` 를 재스캔합니다. 위 "마켓플레이스 설치" 상황과 달리, 이 경우엔 `/reload-plugins` 만으로 충분합니다 — 파일이 플러그인 캐시가 아닌 프로젝트 로컬에 있으므로 [#35641](https://github.com/anthropics/claude-code/issues/35641) 이슈가 적용되지 않습니다. 세션 완전 재시작도 되지만 필수는 아닙니다.
+
+**검증.** 리로드 후 `/` 자동완성에서 `/project-harness` 와 `project-harness` 스킬이 보여야 합니다. 여전히 안 보이면:
+
+```bash
+ls .claude/skills/project-harness/SKILL.md   # 존재해야 함
+ls .claude/commands/project-harness.md       # 존재해야 함 (얇은 wrapper)
+```
+
+두 파일 모두 있는데도 메뉴에 안 뜨면 CLI 를 재시작하세요 — 일부 에디터 통합(VS Code 등)이 순수 터미널 세션보다 공격적으로 메뉴를 캐시합니다.
 
 ## 사용법
 

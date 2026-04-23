@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`skills/wizard/SKILL.md`** — Step 5.3 (AI-Generate Specialized Files) rewritten to eliminate the apparent-freeze experience during agent/guide generation. Three concrete changes: (1) pre-announcement box printed before any Agent tool call showing `n_agents + n_guides + n_batches + expected_time`, so the user knows how long the silent window actually is; (2) **PARALLEL REQUIRED** directive with `batch_size = 4` — within each batch, Agent tool calls MUST be issued as multiple tool-use blocks in a single assistant message (matching `templates/parallel-execution.md` convention), reducing wall-time from `sum(worker)` to `max(worker)` per batch (~4× speedup at 12+ agents); (3) per-batch progress line printed after each batch's tool results return (`[i/N] Done: {names} (Xs) ✓ | Remaining: M`). Includes rate-limit fallback to `batch_size = 2` (never sequential — sequential recreates the silence problem). Prompt templates and output paths unchanged; classification.md/options.md remain serial at the end.
+- **`README.md`** / **`README-ko.md`** — Quick Start now includes an explicit Step 3 `/reload-plugins` after `/harness-marketplace:wizard` completes, with a callout explaining the two different reload moments (full restart after plugin install due to [#35641](https://github.com/anthropics/claude-code/issues/35641), vs. `/reload-plugins` being sufficient after wizard since the generated files live in project-local `.claude/`). Added new Troubleshooting subsection "Wizard finished, but `/project-harness` is not available" with cause, fix, and verification steps.
+
 ## [0.8.0] - 2026-04-17
 
 ### Highlights
