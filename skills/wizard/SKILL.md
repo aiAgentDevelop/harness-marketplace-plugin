@@ -1173,11 +1173,136 @@ Conditional:
 ```
 
 ### Step 5.3: AI-Generate Specialized Files
-```
-For each selected agent, load its full entry from data/agents.yaml and spawn an AI generation task:
 
-Prompt pattern for agents:
-"Generate a Claude Code agent definition markdown file for a {agent_name} agent.
+This step spawns 1 Agent task per selected agent/guide. Each task takes ~30–60s. Sequential execution across 12 agents + 8 guides would take 10–20 min of apparent silence — the biggest UX pain point in the wizard. **Parallel batching + explicit progress output is MANDATORY here.**
+
+#### Step 5.3.1: Pre-announcement (BEFORE any generation)
+
+Compute counts first:
+- `n_agents = len(agents.selected)`
+- `n_guides = len(guides.selected)`
+- `total = n_agents + n_guides`
+- `batch_size = 4` (see rationale below)
+- `n_batches = ceil(total / batch_size)`
+- `est_time_min = n_batches * 1` (each batch ≈ 45–60s; round up)
+- `est_time_max = n_batches * 1.5`
+
+Then **Print** the following box to the user before issuing any Agent tool calls. Use Korean form if `wizard_language == "ko"`, otherwise English:
+
+**Korean form (wizard_language == "ko"):**
+
+```
+🤖 AI 생성 단계 시작 (Phase 5.3)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  에이전트: {n_agents} 개
+  가이드:   {n_guides} 개
+  합계:     {total} 개 AI 생성 태스크
+
+  실행 방식: 4 개씩 병렬 × {n_batches} 배치
+  예상 시간: {est_time_min}–{est_time_max} 분
+  배치 완료 시마다 진행률이 표시됩니다.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**English form (default):**
+
+```
+🤖 AI generation phase starting (Phase 5.3)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Agents: {n_agents}
+  Guides: {n_guides}
+  Total:  {total} AI generation tasks
+
+  Execution: 4 parallel × {n_batches} batches
+  Expected:  {est_time_min}–{est_time_max} min
+  Progress line printed after each batch.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Rationale for batch_size = 4**: each agent/guide generation Agent call typically consumes 20–40k tokens (prompt + response). A batch of 4 runs ~80–160k concurrent tokens, which stays below typical TPM limits on Pro/Max plans. If the user's plan hits a rate limit mid-batch, fall back to `batch_size = 2` for remaining batches.
+
+#### Step 5.3.2: Parallel batch execution (PARALLEL REQUIRED)
+
+**CRITICAL**: Within each batch, the Agent tool calls MUST be issued as **multiple tool-use blocks in a single assistant message**. Issuing them one-at-a-time across separate messages causes wall-time to grow linearly with batch size and re-creates the silence problem this step exists to fix.
+
+Build a flat work queue by concatenating agents then guides:
+
+```
+work_queue = [
+  {kind: "agent", name: a, meta: data/agents.yaml[a]} for a in agents.selected
+] + [
+  {kind: "guide", name: g, meta: data/guides.yaml[g]} for g in guides.selected
+]
+```
+
+Chunk `work_queue` into groups of `batch_size`. For each batch index `i` (1-indexed):
+
+**(a) Spawn the batch in a single message — correct form:**
+
+```js
+// ✅ Single assistant message containing N parallel Agent tool calls:
+[
+  Agent({subagent_type: "general-purpose", description: "gen {kind} {name1}", prompt: <see prompts below>}),
+  Agent({subagent_type: "general-purpose", description: "gen {kind} {name2}", prompt: <...>}),
+  Agent({subagent_type: "general-purpose", description: "gen {kind} {name3}", prompt: <...>}),
+  Agent({subagent_type: "general-purpose", description: "gen {kind} {name4}", prompt: <...>})
+]
+// Wall-time ≈ max(worker times) + overhead. NOT sum.
+```
+
+**❌ Forbidden form (sequential):**
+
+```
+// Message 1: Agent(name1) → wait → Message 2: Agent(name2) → wait → ...
+// This causes wall-time = sum(worker times). 4× slower, silent for 2+ min per agent.
+```
+
+**(b) After the batch's tool results return, print a progress line:**
+
+Korean:
+```
+[{i}/{n_batches}] 완료: {names_in_batch} ({batch_elapsed}s) ✓  | 남은 배치: {n_batches - i}
+```
+
+English:
+```
+[{i}/{n_batches}] Done: {names_in_batch} ({batch_elapsed}s) ✓  | Remaining batches: {n_batches - i}
+```
+
+`batch_elapsed` can be approximated from timestamps bracketing the batch (or omitted if no clock access — the progress line alone is the goal).
+
+**(c) Only after printing the progress line, proceed to the next batch.** Do not interleave unrelated tool calls between batches.
+
+#### Step 5.3.3: Post-completion summary
+
+After all batches complete, print:
+
+Korean:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ AI 생성 완료
+   에이전트 {n_agents} 개 → .claude/skills/project-harness/agents/
+   가이드   {n_guides} 개 → .claude/skills/project-harness/guides/
+   총 {total} 파일, {n_batches} 배치 소요
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+English:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ AI generation complete
+   Agents: {n_agents} → .claude/skills/project-harness/agents/
+   Guides: {n_guides} → .claude/skills/project-harness/guides/
+   Total {total} files across {n_batches} batches
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+#### Prompt templates (unchanged content, for reference)
+
+**Agent prompt** — used for each `{kind: "agent"}` work item:
+
+```
+Generate a Claude Code agent definition markdown file for a {agent_name} agent.
 Project context: {project_type}, {tech_stack}, {platform}.
 Agent catalog metadata:
   - Domain: {domain}
@@ -1190,14 +1315,14 @@ The agent should include:
   covering the key_concerns from the catalog)
 - Constraints
 - Output format
-Reference the game-harness agent format: name, description, model, checklist items."
+Reference the game-harness agent format: name, description, model, checklist items.
+Write the output to: .claude/skills/project-harness/agents/{agent_name}.md
+```
 
-Write to: .claude/skills/project-harness/agents/{agent_name}.md
+**Guide prompt** — used for each `{kind: "guide"}` work item:
 
-For each selected guide, load its full entry from data/guides.yaml and spawn an AI generation task:
-
-Prompt pattern for guides:
-"Generate a development guide for {guide_name} tailored to: {project_type} using {tech_stack}.
+```
+Generate a development guide for {guide_name} tailored to: {project_type} using {tech_stack}.
 Guide catalog metadata:
   - Domain: {domain}
   - Description: {description}
@@ -1207,10 +1332,17 @@ Include:
 - Key rules and conventions (10-20 rules, covering the key_topics from the catalog)
 - Examples with code snippets using the project's actual tech stack
 - Common mistakes to avoid
-- Integration with the project's specific tech stack"
+- Integration with the project's specific tech stack
+Write the output to: .claude/skills/project-harness/guides/{guide_name}.md
+```
 
-Write to: .claude/skills/project-harness/guides/{guide_name}.md
+Note: each prompt must end with the explicit `Write the output to: ...` line so the spawned agent knows where to write. The calling wizard does not write these files itself — the Agent does, in parallel.
 
+#### Step 5.3.4: Generate classification.md and options.md (serial, fast)
+
+These two are template-based with AI-filled sections, not full agent generations. Do them **after** Step 5.3.3 completes. They each take ~10s and do not need batching.
+
+```
 Generate classification.md:
 - Use templates/classification.md as base
 - Replace {{GENERATED}} markers with project-specific detection rules
@@ -1221,6 +1353,17 @@ Generate options.md:
 - Include usage examples
 Write to: .claude/skills/project-harness/references/options.md
 ```
+
+#### Rate-limit fallback
+
+If a batch's Agent tool calls return rate-limit errors:
+
+1. Print (Korean): `⚠️ Rate limit — 배치 크기를 2 로 줄이고 30 초 후 재시도합니다.`
+   English: `⚠️ Rate limit — reducing batch size to 2 and retrying in 30s.`
+2. Set `batch_size = 2` for all remaining batches (recompute `n_batches`).
+3. Wait 30s, then resume from the failed batch.
+
+Do NOT fall back to sequential — sequential recreates the silence problem. `batch_size = 2` is the minimum parallel factor.
 
 ### Step 5.4: MCP Auto-install
 ```

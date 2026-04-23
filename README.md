@@ -45,13 +45,23 @@ And we publish our own benchmark showing **exactly where the plugin wins and whe
 cd <your-project>
 /harness-marketplace:wizard
 
-# 3. Ship
+# 3. Reload so Claude Code picks up the just-generated harness
+/reload-plugins
+# ↑ REQUIRED — the wizard creates .claude/skills/project-harness/ and
+#   .claude/commands/project-*.md mid-session. Without /reload-plugins,
+#   /project-harness won't appear in the command menu.
+
+# 4. Ship
 /project-harness "implement user authentication"
 # ↑ the wizard wrote a CLAUDE.md that makes this command do everything:
 #   plan → implement → verify, with hooks + observability + CI
 ```
 
 That's it. When you're ready to ship to production, `/harness-marketplace:launch-check` runs a pre-launch audit — error tracking wired? health check present? rollback path? — and blocks deploy if you forgot.
+
+> **Two reload moments, different mechanisms:**
+> 1. **After `/plugin install harness-marketplace`** → **full Claude Code restart** (quit and reopen). `/reload-plugins` does not reload marketplace plugin skills ([#35641](https://github.com/anthropics/claude-code/issues/35641)).
+> 2. **After `/harness-marketplace:wizard` finishes** → **`/reload-plugins`** is enough. The wizard writes local `.claude/skills/` and `.claude/commands/` files during the session; Claude Code built its command menu at session start, so it needs to re-scan. A full restart also works but is not required here.
 
 ---
 
@@ -119,7 +129,7 @@ cp -r harness-marketplace/ ~/.claude/plugins/cache/harness-marketplace/harness-m
 
 If typing `/harness-marketplace:` does not show skills in the dropdown:
 
-1. **Full session restart required** — `/reload-plugins` has a known bug ([#35641](https://github.com/anthropics/claude-code/issues/35641)) where it reloads commands but not skills. Close and reopen VS Code or restart the Claude Code CLI session entirely.
+1. **Full session restart required** — `/reload-plugins` has a known bug ([#35641](https://github.com/anthropics/claude-code/issues/35641)) where it reloads commands but not marketplace plugin skills. Close and reopen VS Code or restart the Claude Code CLI session entirely.
 
 2. **Manual invocation always works** — Even without auto-completion, typing the full command works:
    ```
@@ -131,6 +141,29 @@ If typing `/harness-marketplace:` does not show skills in the dropdown:
    ```
 
 > **Note:** There are open Claude Code issues ([#18949](https://github.com/anthropics/claude-code/issues/18949), [#35641](https://github.com/anthropics/claude-code/issues/35641)) where marketplace plugin skills may not appear in auto-completion. This is a Claude Code runtime limitation, not a plugin bug. Full session restart is the most reliable workaround.
+
+### Wizard finished, but `/project-harness` is not available
+
+Right after `/harness-marketplace:wizard` completes you will see the generated tree at `.claude/skills/project-harness/` and `.claude/commands/project-*.md`, but typing `/project-harness` in the command menu shows **Unknown command**. This is expected.
+
+**Cause.** Claude Code builds the command/skill menu once at session start. Files the wizard writes *during* the session are on disk but not yet in the menu.
+
+**Fix.**
+
+```
+/reload-plugins
+```
+
+This re-scans local `.claude/skills/` and `.claude/commands/`. Unlike the marketplace-install case above, this reload is sufficient — the files live in your project, not in the plugin cache, so [#35641](https://github.com/anthropics/claude-code/issues/35641) does not apply. A full session restart also works but is not required.
+
+**Verification.** After reload, `/project-harness` and the `project-harness` skill should appear in `/` auto-completion. If they still don't:
+
+```bash
+ls .claude/skills/project-harness/SKILL.md   # must exist
+ls .claude/commands/project-harness.md       # must exist (thin wrapper)
+```
+
+If both files exist but the menu still won't pick them up, restart the CLI — some editor integrations cache the menu more aggressively than a bare terminal session.
 
 ## Usage
 
